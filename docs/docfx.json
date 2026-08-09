@@ -1,0 +1,66 @@
+{
+  "metadata": [
+    {
+      "src": [
+        {
+          "files": [
+            "JYPPX.HipSharp.csproj"
+          ],
+          "src": "../src/JYPPX.HipSharp"
+        }
+      ],
+      "dest": "api",
+      "includePrivateMembers": false,
+      "noRestore": true,
+      "namespaceLayout": "flattened",
+      "memberLayout": "samePage",
+      "enumSortOrder": "alphabetic",
+      "allowCompilationErrors": false,
+      "properties": {
+        "TargetFramework": "net10.0"
+      }
+    }
+  ],
+  "build": {
+    "content": [
+      {
+        "files": [
+          "**/*.yml"
+        ],
+        "src": "api",
+        "dest": "api"
+      },
+      {
+        "files": [
+          "compatibility/**/*.md",
+          "releases/**/*.md",
+          "*.md",
+          "toc.yml"
+        ]
+      }
+    ],
+    "globalMetadata": {
+      "_appTitle": "HipSharp API 文档 / Documentation",
+      "_appName": "HipSharp API",
+      "_appFooter": "<span>&copy; 2026 JYPPX contributors &middot; Apache-2.0</span>",
+      "_enableSearch": true,
+      "_disableNavbar": false,
+      "_disableBreadcrumb": false,
+      "_disableToc": false,
+      "_disableAffix": false,
+      "_gitContribute": {
+        "repo": "https://github.com/guojin-yan/HIP-CSharp-API",
+        "branch": "main"
+      },
+      "_gitUrlPattern": "github"
+    },
+    "dest": "../_site",
+    "template": [
+      "default"
+    ],
+    "markdownEngineName": "markdig",
+    "noLangKeyword": false,
+    "keepFileLink": false,
+    "disableGitFeatures": false
+  }
+}

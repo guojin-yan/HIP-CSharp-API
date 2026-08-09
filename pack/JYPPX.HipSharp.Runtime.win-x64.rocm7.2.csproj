@@ -1,6 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <PackageId>JYPPX.HIP.CSharp.API.Runtime.win-x64.rocm7.2</PackageId>
-    <RuntimeManifestPath>..\nuget\runtime-manifests\win-x64.rocm7.2.json</RuntimeManifestPath>
-  </PropertyGroup>
-</Project>

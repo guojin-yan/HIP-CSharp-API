@@ -1,11 +1,7 @@
 {
   "version": 2,
   "dependencies": {
-    ".NETCoreApp,Version=v3.1": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    },
+    ".NETCoreApp,Version=v3.1": {},
     ".NETFramework,Version=v4.6": {
       "Microsoft.NETFramework.ReferenceAssemblies": {
         "type": "Direct",
@@ -20,9 +16,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "NiiK1wNEKbDFxF08ybLkjwEn8g6SuIrUl/Y+jlAMcf3NsTtlU0JFRWFPJENV9yyZkW6nBxk/pniBlyZtE5fHwQ=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.6.1": {
@@ -39,9 +32,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "AmOJZwCqnOCNp6PPcf9joyogScWLtwy0M1WkqfEQ0M9nYwyDD7EX9ZjscKS5iYnyvteX7kzSKFCKt9I9dXA6mA=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.6.2": {
@@ -58,9 +48,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "IzAV30z22ESCeQfxP29oVf4qEo8fBGXLXSU6oacv/9Iqe6PzgHDKCaWfwMBak7bSJQM0F5boXWoZS+kChztRIQ=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.7": {
@@ -77,9 +64,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "s2ik8oLVJHVcQPVNHq+X5UfpQP6RsvoixtWzuW2qZvYjRickfC70OXpCmEUgTxjWumS4qZfZ3ZGR1yH7ATc4Wg=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.7.1": {
@@ -96,9 +80,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "Kf3vusy+mwHzn+0osmJAMrZNG00/UkwywjwfFKLUWSYEXiIMD6SEMGP9bG3sH1B54IiydxAneLubS5/Ajjn/Tw=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.7.2": {
@@ -115,9 +96,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "0E7evZXHXaDYYiLRfpyXvCh+yzM2rNTyuZDI+ZO7UUqSc6GfjePiXTdqJGtgIKUwdI81tzQKmaWprnUiPj9hAw=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.8": {
@@ -134,9 +112,6 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "zMk4D+9zyiEWByyQ7oPImPN/Jhpj166Ky0Nlla4eXlNL8hI/BtSJsgR8Inldd4NNpIAH3oh8yym0W2DrhXdSLQ=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
     ".NETFramework,Version=v4.8.1": {
@@ -153,40 +128,13 @@
         "type": "Transitive",
         "resolved": "1.0.3",
         "contentHash": "Vv/20vgHS7VglVOVh8J3Iz/MA+VYKVRp9f7r2qiKBMuzviTOmocG70yq0Q8T5OTmCONkEAIJwETD1zhEfLkAXQ=="
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     },
-    "net10.0": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    },
-    ".NETCoreApp,Version=v5.0": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    },
-    "net6.0": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    },
-    "net7.0": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    },
-    "net8.0": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    },
-    "net9.0": {
-      "jyppx.hipsharp.native": {
-        "type": "Project"
-      }
-    }
+    "net10.0": {},
+    ".NETCoreApp,Version=v5.0": {},
+    "net6.0": {},
+    "net7.0": {},
+    "net8.0": {},
+    "net9.0": {}
   }
 }

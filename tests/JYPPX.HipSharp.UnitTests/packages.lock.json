@@ -103,9 +103,6 @@
       },
       "JYPPX.HIP.CSharp.API": {
         "type": "Project"
-      },
-      "jyppx.hipsharp.native": {
-        "type": "Project"
       }
     }
   }

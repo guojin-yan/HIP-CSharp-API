@@ -1,6 +1,6 @@
 # Framework compatibility
 
-The two core projects directly target the following TFMs:
+The single core project directly targets the following TFMs:
 
 `net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, `net10.0`.
 

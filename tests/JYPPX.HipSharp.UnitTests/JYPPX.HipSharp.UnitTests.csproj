@@ -12,6 +12,5 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\JYPPX.HipSharp\JYPPX.HipSharp.csproj" />
-    <ProjectReference Include="..\..\src\JYPPX.HipSharp.Native\JYPPX.HipSharp.Native.csproj" />
   </ItemGroup>
 </Project>

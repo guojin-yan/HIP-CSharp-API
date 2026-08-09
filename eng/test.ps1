@@ -2,7 +2,7 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [string]$Version = "0.0.0-preview.1",
+    [string]$Version = "0.0.0",
     [string]$OutputDirectory = "artifacts/packages",
     [switch]$NoBuild
 )
@@ -11,7 +11,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$solution = Join-Path $repositoryRoot "JYPPX.HipSharp.sln"
+$solution = Join-Path $repositoryRoot "HipSharp.sln"
 $resultsDirectory = Join-Path $repositoryRoot "artifacts/test-results"
 
 if (-not $NoBuild) {

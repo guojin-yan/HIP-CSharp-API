@@ -2,9 +2,9 @@
 set -euo pipefail
 
 configuration="${1:-Release}"
-version="${2:-0.0.0-preview.1}"
+version="${2:-0.0.0}"
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
-solution="${repository_root}/JYPPX.HipSharp.sln"
+solution="${repository_root}/HipSharp.sln"
 package_dir="${repository_root}/artifacts/packages"
 
 cd "${repository_root}"

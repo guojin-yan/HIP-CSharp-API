@@ -2,7 +2,7 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [string]$Version = "0.0.0-preview.1",
+    [string]$Version = "0.0.0",
     [string]$OutputDirectory = "artifacts/packages",
     [switch]$NoBuild
 )

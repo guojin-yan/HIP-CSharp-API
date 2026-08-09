@@ -1,0 +1,7 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>JYPPX.HipSharp.Runtime.linux-x64</PackageId>
+    <PackageVersion>7.2.1</PackageVersion>
+    <RuntimeManifestPath>..\nuget\runtime-manifests\linux-x64.json</RuntimeManifestPath>
+  </PropertyGroup>
+</Project>

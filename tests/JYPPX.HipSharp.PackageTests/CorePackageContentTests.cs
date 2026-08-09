@@ -26,10 +26,16 @@ public sealed class CorePackageContentTests
 
         foreach (string framework in Frameworks)
         {
-            foreach (string file in new[] { "JYPPX.HipSharp.dll", "JYPPX.HipSharp.Native.dll", "JYPPX.HipSharp.xml", "JYPPX.HipSharp.Native.xml" })
+            string[] expectedFiles = { "JYPPX.HipSharp.dll", "JYPPX.HipSharp.xml" };
+            foreach (string file in expectedFiles)
             {
                 Assert.IsTrue(entries.Contains($"lib/{framework}/{file}"), $"Missing {framework} asset: {file}");
             }
+
+            string[] frameworkEntries = entries
+                .Where(entry => entry.StartsWith($"lib/{framework}/", StringComparison.OrdinalIgnoreCase))
+                .ToArray();
+            Assert.AreEqual(expectedFiles.Length, frameworkEntries.Length, $"Unexpected assets found for {framework}: {string.Join(", ", frameworkEntries)}");
         }
 
         foreach (string file in new[] { "README.md", "logo.jpg", "LICENSE" })
@@ -45,7 +51,7 @@ public sealed class CorePackageContentTests
         XNamespace ns = nuspec.Root!.Name.Namespace;
         XElement metadata = nuspec.Root.Element(ns + "metadata")!;
         Assert.AreEqual("JYPPX.HIP.CSharp.API", metadata.Element(ns + "id")!.Value);
-        Assert.AreEqual("0.0.0-preview.1", metadata.Element(ns + "version")!.Value);
+        Assert.AreEqual("0.0.0", metadata.Element(ns + "version")!.Value);
         Assert.AreEqual("README.md", metadata.Element(ns + "readme")!.Value);
         Assert.AreEqual("logo.jpg", metadata.Element(ns + "icon")!.Value);
         Assert.AreEqual("LICENSE", metadata.Element(ns + "license")!.Value);
@@ -75,7 +81,7 @@ public sealed class CorePackageContentTests
         }
 
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "JYPPX.HipSharp.sln")))
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "HipSharp.sln")))
         {
             directory = directory.Parent;
         }

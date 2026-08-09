@@ -34,9 +34,14 @@ $archive = [System.IO.Compression.ZipFile]::OpenRead($resolvedPackage)
 try {
     $entries = @($archive.Entries | ForEach-Object { $_.FullName.Replace("\", "/") })
     foreach ($framework in $frameworks) {
-        foreach ($file in @("JYPPX.HipSharp.dll", "JYPPX.HipSharp.Native.dll", "JYPPX.HipSharp.xml", "JYPPX.HipSharp.Native.xml")) {
+        $expectedFiles = @("JYPPX.HipSharp.dll", "JYPPX.HipSharp.xml")
+        foreach ($file in $expectedFiles) {
             $expected = "lib/$framework/$file"
             if ($entries -notcontains $expected) { throw "Package asset is missing: $expected" }
+        }
+        $frameworkEntries = @($entries | Where-Object { $_.StartsWith("lib/$framework/", [System.StringComparison]::OrdinalIgnoreCase) })
+        if ($frameworkEntries.Count -ne $expectedFiles.Count) {
+            throw "Unexpected assets found for $framework`: $($frameworkEntries -join ', ')"
         }
     }
 

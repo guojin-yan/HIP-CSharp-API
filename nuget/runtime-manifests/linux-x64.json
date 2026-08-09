@@ -1,6 +1,7 @@
 {
   "schemaVersion": 1,
-  "packageId": "JYPPX.HIP.CSharp.API.Runtime.linux-x64.rocm7.2.1",
+  "packageId": "JYPPX.HipSharp.Runtime.linux-x64",
+  "packageVersion": "7.2.1",
   "packEnabled": false,
   "verified": false,
   "nativeAssetPath": "runtimes/linux-x64/native",

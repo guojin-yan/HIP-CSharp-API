@@ -17,16 +17,13 @@ public sealed class RepositoryQualityTests
     private static readonly string RepositoryRoot = FindRepositoryRoot();
 
     [TestMethod]
-    public void CoreProjectsUseTheExactTargetFrameworkMatrix()
+    public void CoreProjectUsesTheExactTargetFrameworkMatrix()
     {
         XDocument props = XDocument.Load(Path.Combine(RepositoryRoot, "Directory.Build.props"));
         Assert.AreEqual(ExpectedFrameworks, props.Descendants("JYPPXManagedTargetFrameworks").Single().Value);
 
-        foreach (string project in CoreProjects())
-        {
-            XDocument document = XDocument.Load(project);
-            Assert.AreEqual("$(JYPPXManagedTargetFrameworks)", document.Descendants("TargetFrameworks").Single().Value);
-        }
+        XDocument document = XDocument.Load(CoreProject());
+        Assert.AreEqual("$(JYPPXManagedTargetFrameworks)", document.Descendants("TargetFrameworks").Single().Value);
     }
 
     [TestMethod]
@@ -38,11 +35,14 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual("JYPPX.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.HipSharp", project.Descendants("AssemblyName").Single().Value);
         Assert.AreEqual("0.0.0", props.Descendants("VersionPrefix").Single().Value);
-        Assert.AreEqual("preview.1", props.Descendants("VersionSuffix").Single().Value);
+        Assert.AreEqual("$(VersionPrefix)", props.Descendants("PackageVersion").Single().Value);
+        Assert.IsFalse(props.Descendants("VersionSuffix").Any());
         Assert.AreEqual("https://github.com/guojin-yan/HIP-CSharp-API", props.Descendants("RepositoryUrl").Single().Value);
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "nuget", "logo.jpg")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "nuget", "README.md")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "LICENSE")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "HipSharp.sln")));
+        Assert.IsFalse(File.Exists(Path.Combine(RepositoryRoot, "JYPPX.HipSharp.sln")));
     }
 
     [TestMethod]
@@ -70,15 +70,14 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(manifest.RootElement.GetProperty("compileProbe").GetProperty("enabled").GetBoolean());
         Assert.IsFalse(manifest.RootElement.GetProperty("compileProbe").GetProperty("invoked").GetBoolean());
 
-        string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp.Native", "Generated", "InteropCompileProbe.g.cs"));
+        string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "InteropCompileProbe.g.cs"));
         StringAssert.Contains(generated, "NET7_0_OR_GREATER");
         StringAssert.Contains(generated, "LibraryImport");
         StringAssert.Contains(generated, "DllImport");
 
         foreach (string framework in new[] { "net46", "netcoreapp3.1", "net7.0", "net10.0" })
         {
-            AssertBuilt("JYPPX.HipSharp.Native", framework);
-            AssertBuilt("JYPPX.HipSharp", framework);
+            AssertBuilt(framework);
         }
     }
 
@@ -88,13 +87,25 @@ public sealed class RepositoryQualityTests
         foreach (string manifestPath in Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests"), "*.json"))
         {
             using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
+            string packageId = manifest.RootElement.GetProperty("packageId").GetString()!;
+            Assert.IsTrue(packageId is "JYPPX.HipSharp.Runtime.linux-x64" or "JYPPX.HipSharp.Runtime.win-x64");
+            Assert.IsFalse(packageId.Contains("rocm", StringComparison.OrdinalIgnoreCase));
+            string expectedVersion = packageId.EndsWith("linux-x64", StringComparison.Ordinal) ? "7.2.1" : "7.2.0";
+            Assert.AreEqual(expectedVersion, manifest.RootElement.GetProperty("packageVersion").GetString());
             Assert.IsFalse(manifest.RootElement.GetProperty("packEnabled").GetBoolean());
             Assert.IsFalse(manifest.RootElement.GetProperty("verified").GetBoolean());
             Assert.AreEqual(0, manifest.RootElement.GetProperty("files").GetArrayLength());
             Assert.IsTrue(manifest.RootElement.GetProperty("nativeAssetPath").GetString()!.StartsWith("runtimes/", StringComparison.Ordinal));
+
+            string projectName = packageId.EndsWith("linux-x64", StringComparison.Ordinal)
+                ? "JYPPX.HipSharp.Runtime.linux-x64.csproj"
+                : "JYPPX.HipSharp.Runtime.win-x64.csproj";
+            XDocument runtimeProjectDocument = XDocument.Load(Path.Combine(RepositoryRoot, "pack", projectName));
+            Assert.AreEqual(packageId, runtimeProjectDocument.Descendants("PackageId").Single().Value);
+            Assert.AreEqual(expectedVersion, runtimeProjectDocument.Descendants("PackageVersion").Single().Value);
         }
 
-        string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.rocm7.2.1.csproj");
+        string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.csproj");
         var startInfo = new ProcessStartInfo("dotnet")
         {
             WorkingDirectory = RepositoryRoot,
@@ -116,6 +127,36 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
+    public void SourceDocumentationIsBilingualAndDocFxReady()
+    {
+        string docfxPath = Path.Combine(RepositoryRoot, "docs", "docfx.json");
+        using JsonDocument docfx = JsonDocument.Parse(File.ReadAllText(docfxPath));
+        JsonElement metadata = docfx.RootElement.GetProperty("metadata")[0];
+        Assert.AreEqual("net10.0", metadata.GetProperty("properties").GetProperty("TargetFramework").GetString());
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, ".config", "dotnet-tools.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "docs", "toc.yml")));
+
+        var declaration = new Regex(@"^\s*(?:internal|public)\s+(?:static\s+|sealed\s+|partial\s+)*(?:class|struct|enum|interface)\s+", RegexOptions.Multiline | RegexOptions.CultureInvariant);
+        var chineseText = new Regex(@"[\u4e00-\u9fff]", RegexOptions.CultureInvariant);
+        IEnumerable<string> files = Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp"), "*.cs", SearchOption.AllDirectories)
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}obj{Path.DirectorySeparatorChar}", StringComparison.Ordinal))
+            .Where(path => !path.Contains($"{Path.DirectorySeparatorChar}Properties{Path.DirectorySeparatorChar}", StringComparison.Ordinal));
+
+        foreach (string file in files)
+        {
+            string source = File.ReadAllText(file);
+            if (!declaration.IsMatch(source))
+            {
+                continue;
+            }
+
+            StringAssert.Contains(source, "/// <summary>", $"Missing XML summary in {file}");
+            Assert.IsTrue(chineseText.IsMatch(source), $"Missing Chinese API documentation in {file}");
+            StringAssert.Contains(source, " / ", $"Missing Chinese/English documentation separator in {file}");
+        }
+    }
+
+    [TestMethod]
     public void ProgramRepositoryCannotReachPrivatePlanningDirectories()
     {
         string[] forbidden = { "plan", "diary", "Radeon_Cloud" };
@@ -125,22 +166,21 @@ public sealed class RepositoryQualityTests
         }
     }
 
-    private static IEnumerable<string> CoreProjects()
+    private static string CoreProject()
     {
-        yield return Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp.Native", "JYPPX.HipSharp.Native.csproj");
-        yield return Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "JYPPX.HipSharp.csproj");
+        return Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "JYPPX.HipSharp.csproj");
     }
 
-    private static void AssertBuilt(string assembly, string framework)
+    private static void AssertBuilt(string framework)
     {
-        string path = Path.Combine(RepositoryRoot, "src", assembly, "bin", "Release", framework, $"{assembly}.dll");
+        string path = Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "bin", "Release", framework, "JYPPX.HipSharp.dll");
         Assert.IsTrue(File.Exists(path), $"Representative compile output is missing: {path}");
     }
 
     private static string FindRepositoryRoot()
     {
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
-        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "JYPPX.HipSharp.sln")))
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "HipSharp.sln")))
         {
             directory = directory.Parent;
         }
