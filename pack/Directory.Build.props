@@ -1,0 +1,28 @@
+<Project>
+  <Import Project="..\Directory.Build.props" />
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>obj\$(MSBuildProjectName)\</BaseIntermediateOutputPath>
+    <BaseOutputPath>bin\$(MSBuildProjectName)\</BaseOutputPath>
+    <NuGetLockFilePath>$(MSBuildProjectName).packages.lock.json</NuGetLockFilePath>
+    <TargetFramework>net10.0</TargetFramework>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+    <IsPackable>true</IsPackable>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <PackageIcon>logo.jpg</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <Description>Disabled runtime package skeleton. No package is produced until native provenance, dependency closure, licensing, hashes, and GPU validation are complete.</Description>
+    <PackageTags>AMD;HIP;ROCm;runtime;native</PackageTags>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\nuget\logo.jpg" Pack="true" PackagePath="\" Link="logo.jpg" />
+    <None Include="..\nuget\README.md" Pack="true" PackagePath="\" Link="README.md" />
+    <None Include="..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
+    <None Include="$(RuntimeManifestPath)" Pack="true" PackagePath="runtime-manifest.json" />
+  </ItemGroup>
+  <Target Name="BlockUnverifiedRuntimePackage" BeforeTargets="Pack">
+    <Error Code="HIPSHARP1001"
+           Text="Runtime package generation is disabled: native manifest, dependency closure, licenses, hashes, and GPU validation are not complete." />
+  </Target>
+</Project>

@@ -1,0 +1,6 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>JYPPX.HIP.CSharp.API.Runtime.linux-x64.rocm7.2.1</PackageId>
+    <RuntimeManifestPath>..\nuget\runtime-manifests\linux-x64.rocm7.2.1.json</RuntimeManifestPath>
+  </PropertyGroup>
+</Project>

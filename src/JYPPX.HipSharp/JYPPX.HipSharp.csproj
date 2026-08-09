@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(JYPPXManagedTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>JYPPX.HipSharp</AssemblyName>
+    <RootNamespace>JYPPX.HipSharp</RootNamespace>
+    <IsHipSharpCoreProject>true</IsHipSharpCoreProject>
+
+    <IsPackable>true</IsPackable>
+    <PackageId>JYPPX.HIP.CSharp.API</PackageId>
+    <Title>JYPPX HIP C# API</Title>
+    <Description>Engineering preview baseline for direct HIP C ABI bindings across .NET Framework 4.6 through .NET 10. HIP API calls are not implemented in M0.</Description>
+    <PackageTags>AMD;HIP;ROCm;GPU;interop;CSharp</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>logo.jpg</PackageIcon>
+    <PackageLicenseFile>LICENSE</PackageLicenseFile>
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <IncludeSymbols>false</IncludeSymbols>
+    <IncludeSource>false</IncludeSource>
+    <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
+         Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->
+    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeNativeBindingBuildOutput</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\JYPPX.HipSharp.Native\JYPPX.HipSharp.Native.csproj" PrivateAssets="all" />
+    <None Include="..\..\nuget\README.md" Pack="true" PackagePath="\" Link="README.md" />
+    <None Include="..\..\nuget\logo.jpg" Pack="true" PackagePath="\" Link="logo.jpg" />
+    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
+  </ItemGroup>
+
+  <Target Name="IncludeNativeBindingBuildOutput">
+    <PropertyGroup>
+      <_NativeBindingOutputDirectory>$(MSBuildThisFileDirectory)..\JYPPX.HipSharp.Native\bin\$(Configuration)\$(TargetFramework)</_NativeBindingOutputDirectory>
+    </PropertyGroup>
+    <Error Condition="!Exists('$(_NativeBindingOutputDirectory)\JYPPX.HipSharp.Native.dll')"
+           Text="Native binding assembly is missing for $(TargetFramework). Build the solution before packing." />
+    <Error Condition="!Exists('$(_NativeBindingOutputDirectory)\JYPPX.HipSharp.Native.xml')"
+           Text="Native binding XML documentation is missing for $(TargetFramework). Build the solution before packing." />
+    <ItemGroup>
+      <BuildOutputInPackage Include="$(_NativeBindingOutputDirectory)\JYPPX.HipSharp.Native.dll" />
+      <BuildOutputInPackage Include="$(_NativeBindingOutputDirectory)\JYPPX.HipSharp.Native.xml" />
+    </ItemGroup>
+  </Target>
+</Project>

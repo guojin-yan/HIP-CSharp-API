@@ -1,0 +1,42 @@
+# Build and package output
+[Bb]in/
+[Oo]bj/
+[Aa]rtifacts/
+TestResults/
+*.nupkg
+*.snupkg
+packages/
+
+# IDE and editor state
+.vs/
+.idea/
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+_ReSharper*/
+*.DotSettings.user
+
+# Native build output and downloaded ROCm assets
+[Cc]MakeFiles/
+CMakeCache.txt
+cmake-build-*/
+out/
+eng/native-assets/downloads/
+eng/native-assets/staging/
+eng/native-assets/cache/
+nuget/runtime-manifests/cache/
+*.dll
+*.so
+*.so.*
+*.dylib
+
+# OS and tooling noise
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak

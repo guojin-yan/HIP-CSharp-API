@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "description": "Single source for generated HIP interop declarations. M0 has no HIP functions.",
+  "libraryImportMinimumTarget": "net7.0",
+  "legacyDeclaration": "DllImport",
+  "modernDeclaration": "LibraryImport",
+  "functions": [],
+  "compileProbe": {
+    "enabled": true,
+    "library": "__JYPPX_HipSharp_M0_CompileProbe__",
+    "entryPoint": "M0CompileProbe",
+    "invoked": false
+  }
+}

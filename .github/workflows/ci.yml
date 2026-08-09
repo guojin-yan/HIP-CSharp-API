@@ -1,0 +1,68 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_dispatch:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  windows:
+    name: Windows build, tests, package audit
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Build all target frameworks
+        shell: pwsh
+        run: ./eng/build.ps1 -Configuration Release
+      - name: Test and audit package
+        shell: pwsh
+        run: ./eng/test.ps1 -Configuration Release -NoBuild
+      - name: Upload test and audit artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hipsharp-windows-m0-evidence
+          if-no-files-found: warn
+          path: |
+            artifacts/test-results/**
+            artifacts/package-audit/**
+            artifacts/packages/*.nupkg
+
+  linux:
+    name: Linux cross-platform build and tests
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+      - name: Restore, build, pack, and test
+        run: bash ./eng/build.sh Release
+      - name: Upload Linux test artifacts
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hipsharp-linux-m0-evidence
+          if-no-files-found: warn
+          path: |
+            artifacts/test-results/**
+            artifacts/packages/*.nupkg

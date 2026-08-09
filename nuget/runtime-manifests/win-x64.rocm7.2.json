@@ -1,0 +1,24 @@
+{
+  "schemaVersion": 1,
+  "packageId": "JYPPX.HIP.CSharp.API.Runtime.win-x64.rocm7.2",
+  "packEnabled": false,
+  "verified": false,
+  "nativeAssetPath": "runtimes/win-x64/native",
+  "source": {
+    "url": null,
+    "officialPackageName": null,
+    "version": "7.2",
+    "sha256": null
+  },
+  "licenses": [],
+  "dependencies": [],
+  "files": [],
+  "supportMatrix": {
+    "rid": "win-x64",
+    "os": "Windows 11 planned baseline",
+    "architecture": "x64",
+    "rocm": "7.2",
+    "hip": "7.2",
+    "gpuValidated": false
+  }
+}

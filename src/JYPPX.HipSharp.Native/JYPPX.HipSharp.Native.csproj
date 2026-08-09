@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>$(JYPPXManagedTargetFrameworks)</TargetFrameworks>
+    <AssemblyName>JYPPX.HipSharp.Native</AssemblyName>
+    <RootNamespace>JYPPX.HipSharp.Native</RootNamespace>
+    <IsHipSharpCoreProject>true</IsHipSharpCoreProject>
+    <IsPackable>false</IsPackable>
+  </PropertyGroup>
+</Project>
