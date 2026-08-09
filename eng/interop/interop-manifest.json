@@ -1,14 +1,212 @@
 {
-  "schemaVersion": 1,
-  "description": "Single source for generated HIP interop declarations. M0 has no HIP functions.",
+  "schemaVersion": 2,
+  "description": "Single source for the M1 HIP Runtime Direct C ABI declarations.",
+  "header": "hip/hip_runtime_api.h",
+  "headerVersion": "ROCm 7.2.1",
+  "library": "amdhip64",
   "libraryImportMinimumTarget": "net7.0",
   "legacyDeclaration": "DllImport",
   "modernDeclaration": "LibraryImport",
-  "functions": [],
-  "compileProbe": {
-    "enabled": true,
-    "library": "__JYPPX_HipSharp_M0_CompileProbe__",
-    "entryPoint": "M0CompileProbe",
-    "invoked": false
-  }
+  "callingConvention": "Cdecl",
+  "functions": [
+    {
+      "managedName": "Init",
+      "entryPoint": "hipInit",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "初始化 HIP Runtime",
+      "summaryEn": "Initializes the HIP Runtime",
+      "parameters": [
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "RuntimeGetVersion",
+      "entryPoint": "hipRuntimeGetVersion",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIP Runtime 版本",
+      "summaryEn": "Gets the HIP Runtime version",
+      "parameters": [
+        { "declaration": "out int runtimeVersion", "name": "runtimeVersion", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "DriverGetVersion",
+      "entryPoint": "hipDriverGetVersion",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIP 驱动版本",
+      "summaryEn": "Gets the HIP driver version",
+      "parameters": [
+        { "declaration": "out int driverVersion", "name": "driverVersion", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "GetDeviceCount",
+      "entryPoint": "hipGetDeviceCount",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取可用 HIP 设备数量",
+      "summaryEn": "Gets the number of available HIP devices",
+      "parameters": [
+        { "declaration": "out int count", "name": "count", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "GetDevice",
+      "entryPoint": "hipGetDevice",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取当前 HIP 设备序号",
+      "summaryEn": "Gets the current HIP device ordinal",
+      "parameters": [
+        { "declaration": "out int deviceId", "name": "deviceId", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "SetDevice",
+      "entryPoint": "hipSetDevice",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "设置当前 HIP 设备",
+      "summaryEn": "Sets the current HIP device",
+      "parameters": [
+        { "declaration": "int deviceId", "name": "deviceId", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "DeviceGetName",
+      "entryPoint": "hipDeviceGetName",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIP 设备名称",
+      "summaryEn": "Gets a HIP device name",
+      "parameters": [
+        { "declaration": "IntPtr name", "name": "name", "direction": "out", "ownership": "caller-buffer" },
+        { "declaration": "int length", "name": "length", "direction": "in", "ownership": "value" },
+        { "declaration": "int deviceId", "name": "deviceId", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "Malloc",
+      "entryPoint": "hipMalloc",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "分配设备内存",
+      "summaryEn": "Allocates device memory",
+      "parameters": [
+        { "declaration": "out IntPtr pointer", "name": "pointer", "direction": "out", "ownership": "caller" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "Free",
+      "entryPoint": "hipFree",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "释放设备内存",
+      "summaryEn": "Frees device memory",
+      "parameters": [
+        { "declaration": "IntPtr pointer", "name": "pointer", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "Memcpy",
+      "entryPoint": "hipMemcpy",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "同步复制内存",
+      "summaryEn": "Copies memory synchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "out", "ownership": "borrowed" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "DeviceSynchronize",
+      "entryPoint": "hipDeviceSynchronize",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "等待当前设备完成工作",
+      "summaryEn": "Waits for work on the current device to complete",
+      "parameters": []
+    },
+    {
+      "managedName": "GetErrorName",
+      "entryPoint": "hipGetErrorName",
+      "returnType": "IntPtr",
+      "returnOwnership": "borrowed",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIP 错误名称",
+      "summaryEn": "Gets a HIP error name",
+      "parameters": [
+        { "declaration": "HipError error", "name": "error", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GetErrorString",
+      "entryPoint": "hipGetErrorString",
+      "returnType": "IntPtr",
+      "returnOwnership": "borrowed",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIP 错误说明",
+      "summaryEn": "Gets a HIP error description",
+      "parameters": [
+        { "declaration": "HipError error", "name": "error", "direction": "in", "ownership": "value" }
+      ]
+    }
+  ]
 }

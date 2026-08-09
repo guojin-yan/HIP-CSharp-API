@@ -8,10 +8,10 @@ internal static class HipSharpBuildInfo
     /// <summary>
     /// 当前工程阶段 / Current engineering stage.
     /// </summary>
-    internal const string Stage = "M0-engineering-baseline";
+    internal const string Stage = "M1-direct-pinvoke";
 
     /// <summary>
     /// 指示是否已经实现 HIP API / Indicates whether HIP APIs have been implemented.
     /// </summary>
-    internal const bool HipApiImplemented = false;
+    internal const bool HipApiImplemented = true;
 }

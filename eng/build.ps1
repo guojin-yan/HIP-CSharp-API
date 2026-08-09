@@ -18,6 +18,8 @@ $frameworks = @(
 
 Push-Location $repositoryRoot
 try {
+    & (Join-Path $PSScriptRoot "generate-interop.ps1") -Verify
+
     if (-not $NoRestore) {
         & dotnet restore $solution
         if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE." }

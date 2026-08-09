@@ -8,7 +8,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>JYPPX.HIP.CSharp.API</PackageId>
     <Title>JYPPX HIP C# API</Title>
-    <Description>Engineering baseline for direct HIP C ABI bindings across .NET Framework 4.6 through .NET 10. HIP API calls are not implemented in M0.</Description>
+    <Description>Direct HIP Runtime C ABI bindings and managed device and memory APIs across .NET Framework 4.6 through .NET 10.</Description>
     <PackageTags>AMD;HIP;ROCm;GPU;interop;CSharp</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo.jpg</PackageIcon>
@@ -21,7 +21,8 @@
     <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->
-    <NoWarn>$(NoWarn);NU5128</NoWarn>
+    <!-- ThrowIf* helpers do not exist on the oldest supported target frameworks. -->
+    <NoWarn>$(NoWarn);NU5128;CA1510;CA1512;CA1513</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

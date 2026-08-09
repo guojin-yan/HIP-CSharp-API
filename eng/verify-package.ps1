@@ -111,7 +111,7 @@ $nugetConfig = @"
 <configuration>
   <packageSources>
     <clear />
-    <add key="M0 local candidate" value="$escapedFeed" />
+    <add key="M1 local candidate" value="$escapedFeed" />
   </packageSources>
 </configuration>
 "@
@@ -144,7 +144,7 @@ $frameworkReference
 </Project>
 "@
     [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Consumer.csproj"), $projectText)
-    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`ninternal static class Program { private static int Main() { return 0; } }`n")
+    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.HipSharp.HipRuntime;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length > 0 ? 0 : 1; } }`n")
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
@@ -175,7 +175,7 @@ $report = [pscustomobject]@{
     targetFrameworkAssets = $frameworks
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "not-run-M0"
+    runtimeAndGpuValidation = "not-run-local-M1"
 }
 $reportPath = Join-Path $auditDirectory "package-audit.json"
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $reportPath -Encoding UTF8

@@ -1,6 +1,9 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using JYPPX.HipSharp.Loading;
+using JYPPX.HipSharp.Memory;
+using JYPPX.HipSharp.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace JYPPX.HipSharp.UnitTests;
@@ -9,14 +12,21 @@ namespace JYPPX.HipSharp.UnitTests;
 public sealed class AssemblyBaselineTests
 {
     [TestMethod]
-    public void CoreAssemblyExposesM0MetadataWithoutPrematurePublicApi()
+    public void CoreAssemblyExposesM1ApiAndMetadata()
     {
         Assembly managed = Assembly.Load("JYPPX.HipSharp");
 
         Assert.AreEqual("JYPPX.HipSharp", managed.GetName().Name);
-        Assert.AreEqual(0, managed.GetExportedTypes().Length, "M0 must not freeze a public managed HIP API.");
-        Assert.AreEqual("M0-engineering-baseline", ReadMetadata(managed, "HipSharpStage"));
-        Assert.AreEqual("false", ReadMetadata(managed, "HipApiImplemented"));
+        CollectionAssert.IsSubsetOf(
+            new[]
+            {
+                typeof(HipRuntime), typeof(HipDevice), typeof(HipException), typeof(HipDeviceMemory),
+                typeof(HipError), typeof(HipVersion), typeof(HipRuntimeVersionInfo), typeof(HipDeviceInfo),
+                typeof(HipLibraryLoadException), typeof(HipLibraryLoadDiagnostics), typeof(HipLibraryLoadAttempt),
+            },
+            managed.GetExportedTypes());
+        Assert.AreEqual("M1-direct-pinvoke", ReadMetadata(managed, "HipSharpStage"));
+        Assert.AreEqual("true", ReadMetadata(managed, "HipApiImplemented"));
         Assert.AreEqual("eng/interop/interop-manifest.json", ReadMetadata(managed, "InteropSource"));
     }
 

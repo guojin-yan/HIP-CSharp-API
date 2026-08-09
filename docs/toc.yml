@@ -1,5 +1,7 @@
 - name: Home / 首页
   href: index.md
+- name: API Reference / API 参考
+  href: api/
 - name: Compatibility / 兼容性
   items:
     - name: Frameworks / 目标框架
@@ -8,5 +10,5 @@
       href: compatibility/platforms.md
 - name: Releases / 版本
   items:
-    - name: 0.0.0 Engineering Baseline / 工程基线
+    - name: 0.0.0 M1 Engineering Candidate / M1 工程候选
       href: releases/0.0.0.md

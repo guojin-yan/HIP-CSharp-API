@@ -1,17 +1,17 @@
 # HIP-CSharp-API
 
-HIP-CSharp-API is a planned .NET binding for AMD HIP's Direct C ABI. The single `JYPPX.HipSharp` assembly keeps native declarations internal under `Interop`, `Types`, `Loading`, and `Generated`, while managed APIs remain organized by feature area.
+HIP-CSharp-API is a .NET binding for the foundational AMD HIP Runtime Direct C ABI. The single `JYPPX.HipSharp` assembly keeps native declarations internal under `Interop`, `Types`, `Loading`, and `Generated`, while exposing managed runtime, device, error, and device-memory APIs.
 
-## M0 status
+## M1 status
 
-`0.0.0` is a local engineering candidate, not a nuget.org release. Versions beginning at `0.0.0` represent preview development without a prerelease suffix. M0 establishes the repository, 15-target-framework build, interop declaration split, package audit, clean consumer checks, and CI baseline. It does not implement `hipInit`, `hipMalloc`, HIPRTC, a loader, or any GPU operation.
+`0.0.0` is a local engineering candidate, not a nuget.org release. Versions beginning at `0.0.0` represent preview development without a prerelease suffix. M1 implements the initial `amdhip64` Direct P/Invoke vertical slice from one manifest: initialization, runtime and driver versions, device enumeration and selection, device names, synchronous memory allocation/copy/free, synchronization, and native error diagnostics. HIPRTC, modules, kernels, streams, and extended device properties remain out of scope.
 
-| State | M0 result |
+| State | M1 result |
 | --- | --- |
 | Build | The core assembly and XML documentation build for all 15 TFMs |
-| Package | The local core candidate carries the assembly and XML documentation for every TFM |
-| Runtime-tested | None; no HIP library is loaded |
-| GPU-validated | None; this machine has no AMD GPU |
+| Package | The local core candidate and clean consumer builds are regression-tested |
+| Runtime-tested | Pending authorized Radeon Cloud validation; local tests use an injected fake native facade |
+| GPU-validated | Pending; this machine has no AMD GPU |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
@@ -39,9 +39,11 @@ The equivalent cross-platform core gate is `bash ./eng/build.sh Release`. Packag
 
 ## Architecture boundary
 
-The intended implementation calls AMD's `amdhip64` and `hiprtc` C ABIs directly. M0 only proves the conditional `LibraryImport` (`net7+`) and `DllImport` (older targets) declaration paths from `eng/interop/interop-manifest.json`; it does not pretend that those declarations are HIP bindings.
+The M1 implementation calls the foundational `amdhip64` C ABI directly. `eng/interop/interop-manifest.json` is the declaration source; `eng/generate-interop.ps1` deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The public layer converts native errors to `HipException`, records every native-library load attempt, and owns `hipMalloc` allocations through `IDisposable` plus a `SafeHandle` fallback.
 
-All API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to generate the DocFX site under `_site`.
+The `samples/DeviceInfo` and `samples/MemoryCopy` projects demonstrate the two M1 workflows. They require a working HIP Runtime and AMD GPU; local CI only compiles them and does not execute GPU calls.
+
+All public API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to generate the API reference and DocFX site under `_site`.
 
 ## License
 

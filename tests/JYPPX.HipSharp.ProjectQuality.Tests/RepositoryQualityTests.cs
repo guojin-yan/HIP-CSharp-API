@@ -66,14 +66,32 @@ public sealed class RepositoryQualityTests
     {
         string manifestPath = Path.Combine(RepositoryRoot, "eng", "interop", "interop-manifest.json");
         using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
-        Assert.AreEqual(0, manifest.RootElement.GetProperty("functions").GetArrayLength());
-        Assert.IsTrue(manifest.RootElement.GetProperty("compileProbe").GetProperty("enabled").GetBoolean());
-        Assert.IsFalse(manifest.RootElement.GetProperty("compileProbe").GetProperty("invoked").GetBoolean());
+        string[] expectedEntryPoints =
+        {
+            "hipInit", "hipRuntimeGetVersion", "hipDriverGetVersion", "hipGetDeviceCount", "hipGetDevice",
+            "hipSetDevice", "hipDeviceGetName", "hipMalloc", "hipFree", "hipMemcpy", "hipDeviceSynchronize",
+            "hipGetErrorName", "hipGetErrorString",
+        };
+        JsonElement functions = manifest.RootElement.GetProperty("functions");
+        Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
+        CollectionAssert.AreEqual(
+            expectedEntryPoints,
+            functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
+        Assert.IsTrue(functions.EnumerateArray().All(function => !function.GetProperty("optional").GetBoolean()));
 
-        string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "InteropCompileProbe.g.cs"));
+        string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs"));
         StringAssert.Contains(generated, "NET7_0_OR_GREATER");
         StringAssert.Contains(generated, "LibraryImport");
         StringAssert.Contains(generated, "DllImport");
+        foreach (string entryPoint in expectedEntryPoints)
+        {
+            StringAssert.Contains(generated, "EntryPoint = \"" + entryPoint + "\"");
+        }
+
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "generate-interop.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-symbols.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "native", "abi-probe", "abi-evidence.schema.json")));
+        Assert.IsFalse(File.Exists(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "InteropCompileProbe.g.cs")));
 
         foreach (string framework in new[] { "net46", "netcoreapp3.1", "net7.0", "net10.0" })
         {

@@ -34,7 +34,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hipsharp-windows-m0-evidence
+          name: hipsharp-windows-m1-evidence
           if-no-files-found: warn
           path: |
             artifacts/test-results/**
@@ -61,7 +61,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hipsharp-linux-m0-evidence
+          name: hipsharp-linux-m1-evidence
           if-no-files-found: warn
           path: |
             artifacts/test-results/**
