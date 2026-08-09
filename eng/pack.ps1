@@ -19,6 +19,7 @@ $outputPath = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
 }
 
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
+$package = Join-Path $outputPath "JYPPX.HIP.CSharp.API.$Version.nupkg"
 
 Push-Location $repositoryRoot
 try {
@@ -31,6 +32,10 @@ try {
         $repositoryCommit = "0000000000000000000000000000000000000000"
     }
 
+    if (Test-Path -LiteralPath $package -PathType Leaf) {
+        [System.IO.File]::Delete($package)
+    }
+
     & dotnet pack $project `
         --configuration $Configuration `
         --no-build `
@@ -40,7 +45,6 @@ try {
         -p:RepositoryBranch=main
     if ($LASTEXITCODE -ne 0) { throw "dotnet pack failed with exit code $LASTEXITCODE." }
 
-    $package = Join-Path $outputPath "JYPPX.HIP.CSharp.API.$Version.nupkg"
     if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
         throw "Expected package was not generated: $package"
     }

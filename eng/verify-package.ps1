@@ -73,6 +73,11 @@ try {
     if ($metadata.repository.url -ne "https://github.com/guojin-yan/HIP-CSharp-API") { throw "Repository URL metadata is invalid." }
     if ($metadata.repository.type -ne "git") { throw "Repository type metadata is invalid." }
     if ($metadata.repository.commit -notmatch '^[0-9a-fA-F]{40}$') { throw "Repository commit metadata must be a 40-character Git SHA." }
+    $global:LASTEXITCODE = 0
+    $currentCommit = (& git -C $repositoryRoot rev-parse HEAD 2>$null)
+    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($currentCommit) -and $metadata.repository.commit -ne $currentCommit.Trim()) {
+        throw "Repository commit metadata is stale. Package: $($metadata.repository.commit); current HEAD: $($currentCommit.Trim())."
+    }
     if ($nuspecText -match '[A-Za-z]:\\' -or $nuspecText -match 'E:/GitSpace') { throw "The nuspec contains a local absolute path." }
 }
 finally {
