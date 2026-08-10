@@ -67,7 +67,8 @@ try {
     if ($metadata.repository.url -ne "https://github.com/guojin-yan/HIP-CSharp-API" -or $metadata.repository.type -ne "git") { throw "Runtime nuspec repository metadata is invalid." }
     $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
     if ($LASTEXITCODE -ne 0 -or $metadata.repository.commit -ne $gitSha) { throw "Runtime nuspec repository commit does not match the current Git SHA." }
-    if ($null -ne $metadata.dependencies -and @($metadata.dependencies.group.dependency).Count -gt 0) { throw "Single-package runtime candidate must not have NuGet package dependencies." }
+    $packageDependencies = @($metadata.SelectNodes("*[local-name()='dependencies']/*[local-name()='group']/*[local-name()='dependency']"))
+    if ($packageDependencies.Count -gt 0) { throw "Single-package runtime candidate must not have NuGet package dependencies." }
     $managed = @($entryNames | Where-Object { $_ -match "\.dll$" })
     if ($managed.Count -gt 0) { throw "Runtime package must not contain managed assemblies: $($managed -join ', ')" }
 } finally { $archive.Dispose() }
