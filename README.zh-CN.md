@@ -10,10 +10,10 @@ HIP-CSharp-API 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 绑定。
 - Package：本地核心包和代表性干净消费者会执行回归验证。
 - M1 Runtime-tested：已在 Radeon Cloud 的 Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 环境通过。
 - M1 GPU-validated：已在一个 `gfx1100` 实例完成设备枚举、分配、H2D/D2D/D2H、同步和释放。
-- M2 GPU-validated：等待新授权的 Radeon Cloud 会话；目前不声称 HIPRTC 编译与 VectorAdd 已通过真实硬件验证。
+- M2 GPU-validated：已在一个授权的 Radeon Cloud `gfx1100` 实例通过 HIPRTC 编译/日志/code、module/function、五种长度各 20 次 VectorAdd、同步、D2H、CPU 对比和预期编译失败。
 - Supported：尚未对任何 runtime、操作系统或 GPU 组合作支持承诺。
 
-M1 硬件验证基线已在 Radeon Cloud 的 Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 和 `gfx1100` 上通过；它不能替代 M2 的新授权验证。Windows HIP SDK 兼容设计已保留，但尚无 AMD GPU 实测。`.NET Core 3.1`、`.NET 5/6/7`、`.NET Framework 4.6/4.6.1` 已经 EOL，仅作为构建和包兼容目标。
+M1 与 M2 已在授权的 Radeon Cloud Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 和 `gfx1100` 实例通过。M2 验证了 17 个 Runtime/Module exports、9 个 HIPRTC exports、官方头文件 ABI，以及长度 `1`、`127`、`256`、`1000`、`1048576` 各 20 次 VectorAdd。该结果不等于广泛支持声明。Windows HIP SDK 兼容设计已保留，但尚无 AMD GPU 实测。`.NET Core 3.1`、`.NET 5/6/7`、`.NET Framework 4.6/4.6.1` 已经 EOL，仅作为构建和包兼容目标。
 
 核心包 `JYPPX.HIP.CSharp.API` 默认不包含 ROCm 或 AMD 原生二进制。runtime 包 ID 固定为 `JYPPX.HipSharp.Runtime.linux-x64` 和 `JYPPX.HipSharp.Runtime.win-x64`，包版本使用对应 ROCm 版本。两个候选 manifest 仍明确禁用；依赖闭包、逐组件许可证、官方来源与哈希、体积和干净 GPU 验证完成前，不会生成伪 runtime 包。
 

@@ -12,12 +12,12 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 | Package | The local core candidate and clean consumer builds are regression-tested |
 | M1 runtime-tested | Passed on Radeon Cloud Ubuntu 24.04.4 with ROCm 7.2.1 and HIP 7.2.53211 |
 | M1 GPU-validated | Passed on one `gfx1100` AMD Radeon Graphics instance: enumerate, allocate, H2D/D2D/D2H, synchronize, and free |
-| M2 GPU-validated | Pending a newly authorized Radeon Cloud session; HIPRTC compile and VectorAdd are not yet claimed as hardware-validated |
+| M2 GPU-validated | Passed on one authorized Radeon Cloud `gfx1100` instance: HIPRTC compile/log/code, module/function, five VectorAdd lengths x 20 repeats, synchronization, D2H, CPU comparison, and expected compile failure |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
 
-The core project directly targets `net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, and `net10.0`. The M1 hardware validation passed on Ubuntu 24.04.4 with ROCm 7.2.1, HIP 7.2.53211, and a `gfx1100` GPU through Radeon Cloud. M2 HIPRTC and VectorAdd hardware validation requires a fresh authorized session. Windows HIP SDK compatibility is retained in the design but has not received AMD GPU validation.
+The core project directly targets `net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, and `net10.0`. M1 and M2 hardware validation passed on an authorized Radeon Cloud Ubuntu 24.04.4 instance with ROCm 7.2.1, HIP 7.2.53211, and a `gfx1100` GPU. M2 verified 17 Runtime/Module exports, 9 HIPRTC exports, official-header ABI assertions, and VectorAdd lengths `1`, `127`, `256`, `1000`, and `1048576` for 20 repetitions each. Windows HIP SDK compatibility is retained in the design but has not received AMD GPU validation.
 
 The .NET Core 3.1, .NET 5, .NET 6, .NET 7, .NET Framework 4.6, and .NET Framework 4.6.1 targets are end-of-support upstream. They are build/package compatibility targets, not a promise of security updates. .NET 8 and .NET 9 should also be evaluated against their current upstream support status before deployment.
 
