@@ -112,7 +112,8 @@ $nugetConfig = @"
 <configuration>
   <packageSources>
     <clear />
-    <add key="M2 local candidate" value="$escapedFeed" />
+    <add key="Local candidate" value="$escapedFeed" />
+    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
   </packageSources>
 </configuration>
 "@
