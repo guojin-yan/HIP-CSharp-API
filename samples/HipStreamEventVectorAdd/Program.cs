@@ -136,10 +136,6 @@ internal sealed class Options
     internal static Options Parse(string[] args)
     {
         string? architecture = Environment.GetEnvironmentVariable("HIPSHARP_GPU_ARCH");
-        if (string.IsNullOrWhiteSpace(architecture))
-        {
-            throw new ArgumentException("Pass --arch <gfx-target> or set HIPSHARP_GPU_ARCH.");
-        }
         var lengths = new[] { 1, 127, 256, 1000, 1048576 };
         int repeats = 100;
         for (int index = 0; index < args.Length; index++)
@@ -150,6 +146,10 @@ internal sealed class Options
                 case "--lifecycle-repeats" when index + 1 < args.Length: repeats = int.Parse(args[++index], CultureInfo.InvariantCulture); break;
                 default: throw new ArgumentException("Unknown argument: " + args[index]);
             }
+        }
+        if (string.IsNullOrWhiteSpace(architecture))
+        {
+            throw new ArgumentException("Pass --arch <gfx-target> or set HIPSHARP_GPU_ARCH.");
         }
         if (repeats < 100)
         {
