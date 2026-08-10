@@ -6,7 +6,7 @@ date -Is
 cloud_hostname="$(hostname)"
 echo "instance: <cloud-instance>"
 echo "== Kernel =="
-uname -a
+uname -a | sed "s/${cloud_hostname}/<cloud-instance>/g"
 echo "== Operating system =="
 cat /etc/os-release
 echo "== CPU and memory cgroup limits =="
@@ -33,7 +33,10 @@ python3 --version
 echo "== HIP =="
 hipconfig --full | sed "s/${cloud_hostname}/<cloud-instance>/g"
 echo "== ROCm SMI =="
-rocm-smi --showproductname --showmeminfo vram --showdriverversion
+rocm-smi --showproductname --showmeminfo vram --showdriverversion \
+  | sed -E \
+      -e 's/(Card SKU:[[:space:]]*).*/\1<redacted>/' \
+      -e 's/(GUID:[[:space:]]*).*/\1<redacted>/'
 echo "== ROCm agents =="
 rocminfo | grep -E '^[[:space:]]*(Name:|Marketing Name:)' | head -n 20
 echo "== HIP library =="
