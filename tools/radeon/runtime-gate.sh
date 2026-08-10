@@ -70,7 +70,7 @@ make_consumer() {
   cp "${repository_root}/samples/${source}/Program.cs" "${directory}/Program.cs"
   cat > "${directory}/Consumer.csproj" <<EOF
 <Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>disable</ImplicitUsings><Nullable>disable</Nullable></PropertyGroup>
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
     <PackageReference Include="JYPPX.HIP.CSharp.API" Version="0.0.0" />
     <PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="7.2.1" />
