@@ -123,7 +123,7 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
-    public void RuntimeManifestsUseAuditedLinuxSchemaAndKeepPackagingBlocked()
+    public void RuntimeManifestsUseAuditedLinuxSchemaAndEnableOnlyVerifiedLinuxPackaging()
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
         using (JsonDocument linux = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "linux-x64.json"))))
@@ -132,8 +132,8 @@ public sealed class RepositoryQualityTests
             Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
             Assert.AreEqual("JYPPX.HipSharp.Runtime.linux-x64", root.GetProperty("packageId").GetString());
             Assert.AreEqual("7.2.1", root.GetProperty("packageVersion").GetString());
-            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
@@ -142,8 +142,10 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(root.GetProperty("verification").GetProperty("closureVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
+            Assert.AreEqual(64, root.GetProperty("verification").GetProperty("validationSha256").GetString()!.Length);
+            Assert.AreEqual("x86_64", root.GetProperty("verification").GetProperty("environment").GetProperty("architecture").GetString());
         }
 
         using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
@@ -194,9 +196,9 @@ public sealed class RepositoryQualityTests
         using Process process = Process.Start(startInfo)!;
         string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
         process.WaitForExit();
-        Assert.AreNotEqual(0, process.ExitCode, "An unverified runtime package must not be created.");
-        StringAssert.Contains(output, "HIPSHARP1001");
-        Assert.IsFalse(File.Exists(Path.Combine(RepositoryRoot, "pack", "bin", "JYPPX.HipSharp.Runtime.linux-x64", "Release", "JYPPX.HipSharp.Runtime.linux-x64.7.2.1.nupkg")));
+        Assert.AreEqual(0, process.ExitCode, "A verified runtime manifest must allow guarded package creation.\n" + output);
+        StringAssert.Contains(output, "Runtime manifest validation passed");
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "pack", "bin", "JYPPX.HipSharp.Runtime.linux-x64", "Release", "JYPPX.HipSharp.Runtime.linux-x64.7.2.1.nupkg")));
 
         startInfo.ArgumentList.Add("-p:RuntimeCandidateAttestationPath=artifacts/fake-attestation.json");
         using Process incompleteCandidate = Process.Start(startInfo)!;

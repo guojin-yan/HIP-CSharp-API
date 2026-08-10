@@ -4,8 +4,8 @@
   "packageId": "JYPPX.HipSharp.Runtime.linux-x64",
   "packageVersion": "7.2.1",
   "rid": "linux-x64",
-  "packEnabled": false,
-  "verified": false,
+  "packEnabled": true,
+  "verified": true,
   "nativeAssetPath": "runtimes/linux-x64/native",
   "rocm": "7.2.1",
   "hip": "7.2.53211",
@@ -133,20 +133,25 @@
   },
   "size": {
     "unpackedBytes": 415070520,
-    "packageBytes": 162813488,
+    "packageBytes": 162891900,
     "nugetLimitBytes": 262144000,
-    "topology": "single-package-pending-isolated-GPU-validation",
-    "decision": "The complete allowlisted payload compressed to 162813488 bytes in the local preflight, below the 262144000-byte gate. This is not a final nupkg size. Component splitting is rejected for now because HIP/HSA/COMGR share one lockstep ROCm release and one loader closure."
+    "topology": "single-package-verified-isolated-GPU",
+    "decision": "The complete allowlisted payload compressed to 162891900 bytes in the validated candidate, below the 262144000-byte gate. The exact final nupkg size is recorded by its external package audit to avoid a self-referential manifest. Component splitting is rejected because HIP/HSA/COMGR share one lockstep ROCm release and one loader closure."
   },
   "verification": {
     "provenanceVerified": true,
     "closureVerified": true,
     "licensesVerified": true,
     "sbomVerified": true,
-    "packageAuditVerified": false,
-    "gpuValidated": false,
-    "validationSha256": null,
-    "environment": null,
-    "reason": "M5 local provenance, dependency, license, and staging analysis is complete. The runtime package remains disabled until a newly Owner-authorized isolated Radeon Cloud clean consumer validates this exact closure."
+    "packageAuditVerified": true,
+    "gpuValidated": true,
+    "validationSha256": "3b5ec16e633f1423661548f709f97f8d910710c57f0bd755657a7f358ddf780b",
+    "environment": {
+      "os": "Ubuntu 24.04.4 LTS",
+      "architecture": "x86_64",
+      "gpu": "AMD Radeon Graphics (gfx1100)",
+      "isolation": "Ubuntu Base rootfs under PRoot; explicit /dev, /proc, and /sys boundaries; no system ROCm user-mode libraries"
+    },
+    "reason": "The non-publishable candidate bound to clean commit 715b81f4ed04e58a62c3f84fbcd9c52f1fd34c95 passed package audits, package-local loader/maps checks, 31 Runtime and 9 HIPRTC exports, four GPU consumers, and four fail-closed negative gates. The final package must still pass the same isolated gate before delivery."
   }
 }

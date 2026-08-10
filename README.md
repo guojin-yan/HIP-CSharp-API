@@ -4,9 +4,9 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 
 ## M5 status
 
-The M4 managed-only core candidate remains unchanged. M5 now has a signed-source lock for AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; a local preflight compressed it to 162,813,488 bytes, so the current topology decision remains one runtime package.
+The M4 managed-only core candidate remains unchanged. M5 has a signed-source lock for AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; the validated candidate compressed to 162,891,900 bytes, so the topology remains one runtime package.
 
-`JYPPX.HipSharp.Runtime.linux-x64` is still blocked by `HIPSHARP1001`. No runtime nupkg is generated because this exact closure has not yet passed a newly Owner-authorized isolated GPU consumer with no system ROCm user-mode libraries. It is not published and is not a support claim.
+`JYPPX.HipSharp.Runtime.linux-x64` is enabled for guarded local packaging after its exact candidate passed a newly Owner-authorized isolated GPU consumer with no system ROCm user-mode libraries. The package is not published, direct `dotnet pack` remains guarded, and one validated environment is not a broad support claim.
 
 | State | Result |
 | --- | --- |
@@ -18,7 +18,7 @@ The M4 managed-only core candidate remains unchanged. M5 now has a signed-source
 | Local managed gate | Passed generator/manifest checks, 25 unit tests, 7 quality tests, package audit, loader diagnostics, sample build, and DocFX |
 | M4 GPU/ABI-validated | Passed on one Owner-authorized Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / gfx1100 session; not a broad support claim |
 | M5 signed provenance/closure/licenses/SBOM | Passed locally for the pinned AMD ROCm 7.2.1 Noble index and six canonical ELF files |
-| M5 runtime package/isolated GPU | Blocked pending new Owner authorization; pack guard remains enabled |
+| M5 runtime package/isolated GPU | Candidate passed package-local loader/maps, 31 Runtime and 9 HIPRTC exports, four GPU workloads, and four fail-closed negatives; final package is rebuilt and revalidated |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
@@ -29,7 +29,7 @@ The .NET Core 3.1, .NET 5, .NET 6, .NET 7, .NET Framework 4.6, and .NET Framewor
 
 ## Packages
 
-The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`, with versions `7.2.1` and `7.2.0`. Linux provenance, closure, licenses, hashes, SBOM, and preflight size are audited, but its manifest remains disabled until package audit and isolated GPU validation complete. Windows remains an empty disabled skeleton.
+The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`, with versions `7.2.1` and `7.2.0`. Linux provenance, closure, licenses, hashes, SBOM, package content, and one isolated `gfx1100` GPU environment are audited. Windows remains an empty disabled skeleton.
 
 ## Local verification
 
@@ -47,9 +47,9 @@ dotnet restore HipSharp.sln
 
 The equivalent cross-platform core gate is `bash ./eng/build.sh Release`. Package output and audit results are written below ignored `artifacts/` directories.
 
-`prepare-runtime.ps1` requires `gpg`, `gpgv`, and `tar`; on Windows it also discovers the standard Git for Windows `usr/bin` copies when they are not on `PATH`. It fails closed on a missing tool, unsigned metadata, an offline cache miss, or any package/file/ELF/license/SBOM mismatch. `pack-runtime.ps1` remains blocked until every manifest verification gate is evidenced.
+`prepare-runtime.ps1` requires `gpg`, `gpgv`, and `tar`; on Windows it also discovers the standard Git for Windows `usr/bin` copies when they are not on `PATH`. It fails closed on a missing tool, unsigned metadata, an offline cache miss, or any package/file/ELF/license/SBOM mismatch. `pack-runtime.ps1` is the guarded entry point for the verified Linux package; the Windows runtime and incomplete manifests remain blocked.
 
-For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` can create a non-publishable local-feed package from a clean SHA and a tool-generated attestation bound to the exact manifest, SBOM, and staging digest. Direct `dotnet pack` remains blocked; after the candidate passes, the verified final package is rebuilt and must pass the isolated gate again.
+For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` creates a non-publishable local-feed package from a clean SHA and a tool-generated attestation bound to the exact manifest, SBOM, and staging digest. Direct `dotnet pack` without the verified manifest remains fail-closed. After the candidate passes, `pack-runtime.ps1` rebuilds the verified final package, which must pass the isolated gate again.
 
 ## Architecture boundary
 
@@ -61,6 +61,6 @@ All public API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to g
 
 ## License
 
-Source code is prepared under Apache-2.0, the default proposed by the project plan. Native ROCm components, when evaluated in a later stage, will retain their own component licenses and notices.
+Source code is prepared under Apache-2.0, the default proposed by the project plan. Packaged ROCm components retain their own component licenses and notices.
 
 See [README.zh-CN.md](README.zh-CN.md), [framework compatibility](docs/compatibility/frameworks.md), [platform compatibility](docs/compatibility/platforms.md), [contributing](CONTRIBUTING.md), and [security policy](SECURITY.md).
