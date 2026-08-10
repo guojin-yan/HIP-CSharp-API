@@ -78,19 +78,39 @@ python3 ./native/abi-probe/collect_evidence.py \
   --types "${evidence_dir}/abi-evidence.json" \
   --header /opt/rocm/include/hip/hip_runtime_api.h \
   --header /opt/rocm/include/hip/hiprtc.h \
-  --output "${evidence_dir}/m3-abi-evidence.json"
+  --output "${evidence_dir}/m4-abi-evidence.json"
 
 python3 - <<'PY'
+import hashlib
 import json
+import subprocess
 from pathlib import Path
 schema = json.loads(Path("native/abi-probe/abi-evidence.schema.json").read_text())
-evidence = json.loads(Path("artifacts/radeon-cloud/m3-abi-evidence.json").read_text())
+evidence = json.loads(Path("artifacts/radeon-cloud/m4-abi-evidence.json").read_text())
 required = schema["required"]
 missing = [key for key in required if key not in evidence]
 if missing:
     raise SystemExit("ABI evidence is missing: " + ", ".join(missing))
-print("M3 ABI evidence schema fields present")
+expected_commit = subprocess.check_output(["git", "rev-parse", "HEAD"], text=True).strip()
+expected_manifest_hash = hashlib.sha256(Path("eng/interop/normalized-model.json").read_bytes()).hexdigest().upper()
+if evidence["gitCommit"] != expected_commit:
+    raise SystemExit("ABI evidence commit does not match the detached checkout")
+if evidence["normalizedManifestHash"].upper() != expected_manifest_hash:
+    raise SystemExit("ABI evidence normalized manifest hash does not match the checkout")
+if evidence["schemaVersion"] != 2 or len(evidence.get("functions", [])) != 40:
+    raise SystemExit("ABI evidence must use schema 2 and include all 40 manifest functions")
+if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
+    raise SystemExit("ABI evidence must include both official header hashes")
+print("M4 ABI evidence schema fields present")
 PY
+
+if ! command -v pwsh >/dev/null 2>&1; then
+  echo "PowerShell is required for the release package audit (eng/verify-package.ps1)." >&2
+  exit 1
+fi
+pwsh -NoProfile -File ./eng/verify-package.ps1 \
+  -PackagePath "${evidence_dir}/../packages/JYPPX.HIP.CSharp.API.0.0.0.nupkg" \
+  | tee "${evidence_dir}/package-audit.txt"
 
 dotnet run --project ./samples/DeviceInfo/DeviceInfo.csproj -c Release | tee "${evidence_dir}/device-info.txt"
 dotnet run --project ./samples/MemoryCopy/MemoryCopy.csproj -c Release | tee "${evidence_dir}/memory-copy.txt"
@@ -120,4 +140,4 @@ dotnet run --project ./samples/HipStreamEventVectorAdd/HipStreamEventVectorAdd.c
   --arch "${gpu_architecture}" \
   --lifecycle-repeats 100 2>&1 | tee "${evidence_dir}/stream-event-vector-add.txt"
 
-echo "Radeon Cloud M3 validation passed for ${actual_commit}."
+echo "Radeon Cloud M4 validation passed for ${actual_commit}."

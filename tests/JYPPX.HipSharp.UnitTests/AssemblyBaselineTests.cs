@@ -14,7 +14,7 @@ namespace JYPPX.HipSharp.UnitTests;
 public sealed class AssemblyBaselineTests
 {
     [TestMethod]
-    public void CoreAssemblyExposesM3ApiAndMetadata()
+    public void CoreAssemblyExposesM4ApiAndMetadata()
     {
         Assembly managed = Assembly.Load("JYPPX.HipSharp");
 
@@ -33,7 +33,7 @@ public sealed class AssemblyBaselineTests
                 typeof(HipPinnedMemory), typeof(HipTypedMemory<>),
             },
             managed.GetExportedTypes());
-        Assert.AreEqual("M3-stream-event-async", ReadMetadata(managed, "HipSharpStage"));
+        Assert.AreEqual("M4-release-candidate", ReadMetadata(managed, "HipSharpStage"));
         Assert.AreEqual("true", ReadMetadata(managed, "HipApiImplemented"));
         Assert.AreEqual("eng/interop/interop-manifest.json", ReadMetadata(managed, "InteropSource"));
     }

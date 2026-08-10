@@ -2,19 +2,19 @@
 
 HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABIs. The single `JYPPX.HipSharp` assembly keeps native declarations internal while exposing managed runtime, device, memory, runtime compilation, module, and kernel-launch APIs.
 
-## M3 status
+## M4 status
 
-`0.0.0` is a local engineering candidate, not a nuget.org release. M3 extends the single official-header manifest with a normalized deterministic model, ABI-verified device attributes, explicit stream/event and async memory/kernel APIs, and a real two-stream VectorAdd sample. GPU validation is blocked pending new Owner authorization; no GPU result is claimed here.
+`0.0.0` is a local release-candidate audit package, not a nuget.org release. M4 carries forward M3's deterministic official-header manifest, ABI-verified device attributes, explicit stream/event and async memory/kernel APIs, and two-stream VectorAdd sample. The local package, clean consumers, loader diagnostics, and DocFX gates pass. Official-header compilation and real Runtime/Memory/Stream/Event/Module/HIPRTC execution remain blocked pending a new Owner-authorized Radeon Cloud session; no new GPU result is claimed here.
 
 | State | Result |
 | --- | --- |
-| Build | M3 core assembly and XML documentation build for all 15 TFMs |
-| Package | The local core candidate and clean consumer builds are regression-tested |
+| Build | M4 core assembly and XML documentation build for all 15 TFMs |
+| Package | The local core candidate, 15 TFM assets, and 4 clean consumer builds pass audit |
 | M1 runtime-tested | Passed on Radeon Cloud Ubuntu 24.04.4 with ROCm 7.2.1 and HIP 7.2.53211 |
 | M1 GPU-validated | Passed on one `gfx1100` AMD Radeon Graphics instance: enumerate, allocate, H2D/D2D/D2H, synchronize, and free |
 | M2 GPU-validated | Passed on one authorized Radeon Cloud `gfx1100` instance: HIPRTC compile/log/code, module/function, five VectorAdd lengths x 20 repeats, synchronization, D2H, CPU comparison, and expected compile failure |
-| M3 local managed gate | Passed generator check, stream/event/async lease tests, sample build, package and documentation gates locally |
-| M3 GPU-validated | Blocked: no new Owner-authorized Radeon Cloud endpoint was provided for this stage |
+| M4 local managed gate | Passed generator/manifest checks, 24 unit tests, 7 quality tests, package audit, loader diagnostics, sample build, and DocFX |
+| M4 GPU/ABI-validated | Blocked: no new Owner-authorized Radeon Cloud endpoint or ROCm toolchain was provided for this stage |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
