@@ -135,7 +135,9 @@ for expected_library in libamdhip64 libhiprtc libhsa-runtime64 libamd_comgr; do
   grep -q "${expected_library}" "${maps_file}" || { echo "Process maps did not capture ${expected_library}." >&2; exit 1; }
 done
 
-hsa_soname="${native_directory}/libhsa-runtime64.so.1"
+device_native_directory="$(find "${runtime_root}/device-info/bin/Release/net10.0" -type f -name 'libamdhip64.so' -printf '%h\n' -quit)"
+[[ -n "${device_native_directory}" ]] || { echo "Device-info native asset directory is missing." >&2; exit 1; }
+hsa_soname="${device_native_directory}/libhsa-runtime64.so.1"
 mv "${hsa_soname}" "${hsa_soname}.removed"
 set +e
 (cd "${runtime_root}/device-info" && dotnet run --configuration Release --no-build --no-restore >"${evidence_dir}/missing-dependency-negative.txt" 2>&1)
