@@ -21,7 +21,7 @@ try {
     & (Join-Path $PSScriptRoot "generate-interop.ps1") -Verify
 
     if (-not $NoRestore) {
-        & dotnet restore $solution
+        & dotnet restore $solution --locked-mode
         if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE." }
     }
 

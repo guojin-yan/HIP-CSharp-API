@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using JYPPX.HipSharp.Interop;
+using JYPPX.HipSharp.Streams;
 using JYPPX.HipSharp.Types;
 
 namespace JYPPX.HipSharp.Memory;
@@ -12,6 +13,8 @@ public sealed class HipDeviceMemory : IDisposable
 {
     private readonly IHipNativeApi _nativeApi;
     private readonly HipDeviceMemoryHandle _handle;
+    private readonly object _lifetimeSync = new();
+    private int _asyncReferences;
 
     internal HipDeviceMemory(IHipNativeApi nativeApi, IntPtr pointer, ulong byteLength)
     {
@@ -136,11 +139,51 @@ public sealed class HipDeviceMemory : IDisposable
     }
 
     /// <summary>
+    /// 在指定 stream 异步复制托管数组到设备，并由 stream 保持数组和设备指针有效 / Asynchronously copies a managed array to the device while the stream retains the array and device pointer.
+    /// </summary>
+    public void CopyFromAsync(byte[] source, HipStream stream)
+    {
+        if (source is null) throw new ArgumentNullException(nameof(source));
+        QueueAsync(source, stream, true, (ulong)source.LongLength);
+    }
+
+    /// <summary>
+    /// 在指定 stream 异步复制设备数据到托管数组 / Asynchronously copies device data to a managed array on a stream.
+    /// </summary>
+    public void CopyToAsync(byte[] destination, HipStream stream)
+    {
+        if (destination is null) throw new ArgumentNullException(nameof(destination));
+        QueueAsync(destination, stream, false, (ulong)destination.LongLength);
+    }
+
+    /// <summary>使用 pinned owner 异步复制到设备 / Asynchronously copies from an owned pinned buffer.</summary>
+    public void CopyFromAsync(HipPinnedMemory source, HipStream stream, ulong byteCount = 0)
+    {
+        if (source is null) throw new ArgumentNullException(nameof(source));
+        QueuePinnedAsync(source, stream, true, byteCount == 0 ? source.ByteLength : byteCount);
+    }
+
+    /// <summary>使用 pinned owner 异步复制到主机 / Asynchronously copies to an owned pinned buffer.</summary>
+    public void CopyToAsync(HipPinnedMemory destination, HipStream stream, ulong byteCount = 0)
+    {
+        if (destination is null) throw new ArgumentNullException(nameof(destination));
+        QueuePinnedAsync(destination, stream, false, byteCount == 0 ? destination.ByteLength : byteCount);
+    }
+
+    /// <summary>
     /// 释放设备内存；重复调用不会重复释放 / Releases the device memory; repeated calls do not free it twice.
     /// </summary>
     /// <exception cref="HipException">HIP 无法释放内存；此时可重试释放 / HIP cannot free the memory; disposal can be retried.</exception>
     public void Dispose()
     {
+        lock (_lifetimeSync)
+        {
+            if (_asyncReferences != 0)
+            {
+                _handle.Dispose();
+                return;
+            }
+        }
         HipError error = _handle.ReleaseChecked();
         if (error == HipError.Success)
         {
@@ -155,13 +198,24 @@ public sealed class HipDeviceMemory : IDisposable
 
     internal IntPtr DangerousAcquireHandle(out bool addedReference)
     {
-        ThrowIfDisposed();
-        addedReference = false;
-        _handle.DangerousAddRef(ref addedReference);
-        return _handle.DangerousGetHandle();
+        lock (_lifetimeSync)
+        {
+            ThrowIfDisposed();
+            addedReference = false;
+            _handle.DangerousAddRef(ref addedReference);
+            if (addedReference) _asyncReferences++;
+            return _handle.DangerousGetHandle();
+        }
     }
 
-    internal void DangerousReleaseHandle() => _handle.DangerousRelease();
+    internal void DangerousReleaseHandle()
+    {
+        lock (_lifetimeSync)
+        {
+            _handle.DangerousRelease();
+            if (_asyncReferences > 0) _asyncReferences--;
+        }
+    }
 
     internal static UIntPtr ToUIntPtr(ulong value, string parameterName)
     {
@@ -189,6 +243,74 @@ public sealed class HipDeviceMemory : IDisposable
         if (IsDisposed)
         {
             throw new ObjectDisposedException(nameof(HipDeviceMemory));
+        }
+    }
+
+    private void QueueAsync(byte[] host, HipStream stream, bool hostToDevice, ulong byteCount)
+    {
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+        ThrowIfDisposed();
+        ValidateByteCount(byteCount, ByteLength, nameof(host));
+        if (!ReferenceEquals(_nativeApi, stream.NativeApi)) throw new ArgumentException("Memory and stream belong to different HIP Runtime clients.", nameof(stream));
+        if (byteCount == 0) return;
+        GCHandle pinned = GCHandle.Alloc(host, GCHandleType.Pinned);
+        bool deviceReference = false;
+        try
+        {
+            IntPtr devicePointer = DangerousAcquireHandle(out deviceReference);
+            HipError error = _nativeApi.MemcpyAsync(
+                hostToDevice ? devicePointer : pinned.AddrOfPinnedObject(),
+                hostToDevice ? pinned.AddrOfPinnedObject() : devicePointer,
+                ToUIntPtr(byteCount, nameof(byteCount)),
+                hostToDevice ? HipMemoryCopyKind.HostToDevice : HipMemoryCopyKind.DeviceToHost,
+                stream.DangerousGetHandle());
+            if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipMemcpyAsync");
+            stream.AddPendingLease(new HipAsyncLease(() =>
+            {
+                pinned.Free();
+                if (deviceReference) DangerousReleaseHandle();
+            }));
+        }
+        catch
+        {
+            if (deviceReference) DangerousReleaseHandle();
+            if (pinned.IsAllocated) pinned.Free();
+            throw;
+        }
+    }
+
+    private void QueuePinnedAsync(HipPinnedMemory host, HipStream stream, bool hostToDevice, ulong byteCount)
+    {
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+        ThrowIfDisposed();
+        if (!ReferenceEquals(_nativeApi, stream.NativeApi) || !ReferenceEquals(_nativeApi, host.NativeApi)) throw new ArgumentException("Memory, pinned buffer, and stream must belong to one HIP Runtime client.", nameof(stream));
+        ValidateByteCount(byteCount, ByteLength, nameof(byteCount));
+        ValidateByteCount(byteCount, host.ByteLength, nameof(byteCount));
+        if (byteCount == 0) return;
+        bool deviceReference = false;
+        bool hostReference = false;
+        try
+        {
+            IntPtr devicePointer = DangerousAcquireHandle(out deviceReference);
+            IntPtr hostPointer = host.AcquireHandle(out hostReference);
+            HipError error = _nativeApi.MemcpyAsync(
+                hostToDevice ? devicePointer : hostPointer,
+                hostToDevice ? hostPointer : devicePointer,
+                ToUIntPtr(byteCount, nameof(byteCount)),
+                hostToDevice ? HipMemoryCopyKind.HostToDevice : HipMemoryCopyKind.DeviceToHost,
+                stream.DangerousGetHandle());
+            if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipMemcpyAsync");
+            stream.AddPendingLease(new HipAsyncLease(() =>
+            {
+                if (hostReference) host.ReleaseHandle();
+                if (deviceReference) DangerousReleaseHandle();
+            }));
+        }
+        catch
+        {
+            if (hostReference) host.ReleaseHandle();
+            if (deviceReference) DangerousReleaseHandle();
+            throw;
         }
     }
 }

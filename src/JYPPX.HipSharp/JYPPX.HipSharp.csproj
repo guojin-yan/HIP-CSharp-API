@@ -22,7 +22,7 @@
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->
     <!-- ThrowIf* helpers do not exist on the oldest supported target frameworks. -->
-    <NoWarn>$(NoWarn);NU5128;CA1510;CA1512;CA1513</NoWarn>
+    <NoWarn>$(NoWarn);NU5128;CA1510;CA1512;CA1513;IDE0011;CA1711;CA1822</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>

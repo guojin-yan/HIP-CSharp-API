@@ -1,6 +1,9 @@
 {
-  "schemaVersion": 3,
-  "description": "Single source for the M2 HIP Runtime, Module, launch, and HIPRTC Direct C ABI declarations.",
+  "schemaVersion": 4,
+  "generatorVersion": "3.0.0",
+  "rocmTag": "rocm-7.2.1",
+  "hipTag": "hip-7.2.1",
+  "description": "Single source for the M3 HIP Runtime, Memory, Stream, Event, Module, launch, and HIPRTC Direct C ABI declarations.",
   "header": "hip/hip_runtime_api.h",
   "headerVersion": "ROCm 7.2.1",
   "verifiedHeaders": [
@@ -20,6 +23,19 @@
   "legacyDeclaration": "DllImport",
   "modernDeclaration": "LibraryImport",
   "callingConvention": "Cdecl",
+  "preprocessorMacros": [ "__HIP_DISABLE_CPP_FUNCTIONS__" ],
+  "overrides": {
+    "policy": "explicit-only",
+    "declarations": []
+  },
+  "abiExpectations": {
+    "schemaVersion": 2,
+    "pointerWidthBits": 64,
+    "sizeTWidthBits": 64,
+    "enumWidthBits": 32,
+    "flagsWidthBits": 32,
+    "normalizedManifestHash": "generated-from-normalized-model"
+  },
   "functions": [
     {
       "managedName": "Init",
@@ -136,6 +152,177 @@
       ]
     },
     {
+      "managedName": "DeviceGetAttribute",
+      "entryPoint": "hipDeviceGetAttribute",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "读取一个经过 ABI 验证的设备属性",
+      "summaryEn": "Reads one ABI-verified device attribute",
+      "parameters": [
+        { "declaration": "out int value", "name": "value", "direction": "out", "ownership": "caller" },
+        { "declaration": "HipDeviceAttribute attribute", "name": "attribute", "direction": "in", "ownership": "value" },
+        { "declaration": "int deviceId", "name": "deviceId", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "StreamCreateWithFlags",
+      "entryPoint": "hipStreamCreateWithFlags",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "按标志创建 HIP stream",
+      "summaryEn": "Creates a HIP stream with flags",
+      "parameters": [
+        { "declaration": "out IntPtr stream", "name": "stream", "direction": "out", "ownership": "caller" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "StreamDestroy",
+      "entryPoint": "hipStreamDestroy",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "销毁 HIP stream",
+      "summaryEn": "Destroys a HIP stream",
+      "parameters": [ { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "StreamSynchronize",
+      "entryPoint": "hipStreamSynchronize",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "等待 HIP stream 完成",
+      "summaryEn": "Waits for a HIP stream to complete",
+      "parameters": [ { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "StreamQuery",
+      "entryPoint": "hipStreamQuery",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "查询 HIP stream 是否完成",
+      "summaryEn": "Queries whether a HIP stream is complete",
+      "parameters": [ { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "EventCreateWithFlags",
+      "entryPoint": "hipEventCreateWithFlags",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "按标志创建 HIP event",
+      "summaryEn": "Creates a HIP event with flags",
+      "parameters": [
+        { "declaration": "out IntPtr eventHandle", "name": "eventHandle", "direction": "out", "ownership": "caller" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "EventDestroy",
+      "entryPoint": "hipEventDestroy",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "销毁 HIP event",
+      "summaryEn": "Destroys a HIP event",
+      "parameters": [ { "declaration": "IntPtr eventHandle", "name": "eventHandle", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "EventRecord",
+      "entryPoint": "hipEventRecord",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": false,
+      "summaryZh": "在指定 stream 记录 event",
+      "summaryEn": "Records an event on a stream",
+      "parameters": [
+        { "declaration": "IntPtr eventHandle", "name": "eventHandle", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "EventSynchronize",
+      "entryPoint": "hipEventSynchronize",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "等待 HIP event 完成",
+      "summaryEn": "Waits for a HIP event to complete",
+      "parameters": [ { "declaration": "IntPtr eventHandle", "name": "eventHandle", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "EventQuery",
+      "entryPoint": "hipEventQuery",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "查询 HIP event 是否完成",
+      "summaryEn": "Queries whether a HIP event is complete",
+      "parameters": [ { "declaration": "IntPtr eventHandle", "name": "eventHandle", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "EventElapsedTime",
+      "entryPoint": "hipEventElapsedTime",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "读取两个 event 之间的耗时",
+      "summaryEn": "Reads elapsed time between two events",
+      "parameters": [
+        { "declaration": "out float milliseconds", "name": "milliseconds", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr start", "name": "start", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr end", "name": "end", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
       "managedName": "Malloc",
       "entryPoint": "hipMalloc",
       "library": "amdhip64",
@@ -186,6 +373,58 @@
         { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
         { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" }
       ]
+    },
+    {
+      "managedName": "MemcpyAsync",
+      "entryPoint": "hipMemcpyAsync",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": false,
+      "summaryZh": "在指定 stream 异步复制内存",
+      "summaryEn": "Copies memory asynchronously on a stream",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "out", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "HostMalloc",
+      "entryPoint": "hipHostMalloc",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "分配 HIP pinned host memory",
+      "summaryEn": "Allocates HIP pinned host memory",
+      "parameters": [
+        { "declaration": "out IntPtr pointer", "name": "pointer", "direction": "out", "ownership": "caller" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "HostFree",
+      "entryPoint": "hipHostFree",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "释放 HIP pinned host memory",
+      "summaryEn": "Frees HIP pinned host memory",
+      "parameters": [ { "declaration": "IntPtr pointer", "name": "pointer", "direction": "in", "ownership": "borrowed" } ]
     },
     {
       "managedName": "DeviceSynchronize",

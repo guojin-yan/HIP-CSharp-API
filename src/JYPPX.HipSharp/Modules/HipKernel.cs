@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using JYPPX.HipSharp.Interop;
 using JYPPX.HipSharp.Memory;
+using JYPPX.HipSharp.Streams;
 using JYPPX.HipSharp.Types;
 
 namespace JYPPX.HipSharp.Modules;
@@ -60,12 +61,44 @@ public sealed class HipKernel
 
         _module.Invoke(moduleHandle =>
         {
-            LaunchCore(grid, block, arguments, sharedMemoryBytes);
+            LaunchCore(null, grid, block, arguments, sharedMemoryBytes);
+            return moduleHandle;
+        });
+    }
+
+    /// <summary>
+    /// 在显式 stream 上启动 kernel；stream 完成前保留参数所有权 / Launches on an explicit stream and retains argument ownership until completion.
+    /// </summary>
+    /// <param name="stream">目标 stream / Target stream.</param>
+    /// <param name="grid">网格尺寸 / Grid dimensions.</param>
+    /// <param name="block">线程块尺寸 / Block dimensions.</param>
+    /// <param name="arguments">kernel 参数 / Kernel arguments.</param>
+    /// <param name="sharedMemoryBytes">动态共享内存字节数 / Dynamic shared-memory bytes.</param>
+    /// <exception cref="ArgumentNullException">stream 或 arguments 为 null / stream or arguments is null.</exception>
+    /// <exception cref="ArgumentException">stream 或内存来自其他 Runtime / stream or memory belongs to another Runtime.</exception>
+    /// <exception cref="HipException">kernel 启动失败 / Kernel launch fails.</exception>
+    public void Launch(
+        HipStream stream,
+        HipLaunchDimensions grid,
+        HipLaunchDimensions block,
+        IReadOnlyList<HipKernelArgument> arguments,
+        uint sharedMemoryBytes = 0)
+    {
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+        if (arguments is null) throw new ArgumentNullException(nameof(arguments));
+        ValidateDimensions(grid, nameof(grid));
+        ValidateDimensions(block, nameof(block));
+        if (arguments.Count > int.MaxValue / IntPtr.Size) throw new ArgumentOutOfRangeException(nameof(arguments));
+        if (!ReferenceEquals(_module.NativeApi, stream.NativeApi)) throw new ArgumentException("Kernel and stream belong to different HIP Runtime clients.", nameof(stream));
+        _module.Invoke(moduleHandle =>
+        {
+            LaunchCore(stream, grid, block, arguments, sharedMemoryBytes);
             return moduleHandle;
         });
     }
 
     private void LaunchCore(
+        HipStream? stream,
         HipLaunchDimensions grid,
         HipLaunchDimensions block,
         IReadOnlyList<HipKernelArgument> arguments,
@@ -74,8 +107,15 @@ public sealed class HipKernel
         var valueStorage = new List<IntPtr>(arguments.Count);
         var acquiredMemory = new List<HipDeviceMemory>();
         IntPtr parameterArray = IntPtr.Zero;
+        bool moduleReference = false;
+        bool transferred = false;
         try
         {
+            if (stream is not null)
+            {
+                _module.AcquireAsyncReference();
+                moduleReference = true;
+            }
             if (arguments.Count != 0)
             {
                 parameterArray = Marshal.AllocHGlobal(checked(arguments.Count * IntPtr.Size));
@@ -128,14 +168,29 @@ public sealed class HipKernel
                 block.Y,
                 block.Z,
                 sharedMemoryBytes,
+                stream?.DangerousGetHandle() ?? IntPtr.Zero,
                 parameterArray);
             HipCall.ThrowIfFailed(_module.NativeApi, error, "hipModuleLaunchKernel");
+            if (stream is not null)
+            {
+                var memorySnapshot = acquiredMemory.ToArray();
+                stream.AddPendingLease(new HipAsyncLease(() =>
+                {
+                    for (int index = memorySnapshot.Length - 1; index >= 0; index--) memorySnapshot[index].DangerousReleaseHandle();
+                    _module.ReleaseAsyncReference();
+                }));
+                transferred = true;
+            }
         }
         finally
         {
-            for (int index = acquiredMemory.Count - 1; index >= 0; index--)
+            if (!transferred)
             {
-                acquiredMemory[index].DangerousReleaseHandle();
+                for (int index = acquiredMemory.Count - 1; index >= 0; index--)
+                {
+                    acquiredMemory[index].DangerousReleaseHandle();
+                }
+                if (moduleReference) _module.ReleaseAsyncReference();
             }
 
             foreach (IntPtr valuePointer in valueStorage)

@@ -67,7 +67,10 @@ python3 ./native/abi-probe/verify_symbols.py \
   --library-name hiprtc \
   --manifest ./eng/interop/interop-manifest.json \
   --output "${evidence_dir}/hiprtc-symbol-evidence.json"
-hipcc -std=c++14 ./native/abi-probe/hip_abi_probe.cpp -o "${evidence_dir}/hip-abi-probe"
+normalized_manifest_hash="$(sha256sum ./eng/interop/normalized-model.json | awk '{print toupper($1)}')"
+hipcc -std=c++14 ./native/abi-probe/hip_abi_probe.cpp \
+  "-DHIPSHARP_NORMALIZED_MANIFEST_SHA256=\"${normalized_manifest_hash}\"" \
+  -o "${evidence_dir}/hip-abi-probe"
 "${evidence_dir}/hip-abi-probe" | tee "${evidence_dir}/abi-evidence.json"
 python3 ./native/abi-probe/collect_evidence.py \
   --symbols "${evidence_dir}/runtime-symbol-evidence.json" \
@@ -75,7 +78,19 @@ python3 ./native/abi-probe/collect_evidence.py \
   --types "${evidence_dir}/abi-evidence.json" \
   --header /opt/rocm/include/hip/hip_runtime_api.h \
   --header /opt/rocm/include/hip/hiprtc.h \
-  --output "${evidence_dir}/m2-abi-evidence.json"
+  --output "${evidence_dir}/m3-abi-evidence.json"
+
+python3 - <<'PY'
+import json
+from pathlib import Path
+schema = json.loads(Path("native/abi-probe/abi-evidence.schema.json").read_text())
+evidence = json.loads(Path("artifacts/radeon-cloud/m3-abi-evidence.json").read_text())
+required = schema["required"]
+missing = [key for key in required if key not in evidence]
+if missing:
+    raise SystemExit("ABI evidence is missing: " + ", ".join(missing))
+print("M3 ABI evidence schema fields present")
+PY
 
 dotnet run --project ./samples/DeviceInfo/DeviceInfo.csproj -c Release | tee "${evidence_dir}/device-info.txt"
 dotnet run --project ./samples/MemoryCopy/MemoryCopy.csproj -c Release | tee "${evidence_dir}/memory-copy.txt"
@@ -100,4 +115,9 @@ dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
   --arch "${gpu_architecture}" \
   --negative-compile 2>&1 | tee "${evidence_dir}/negative-compile.txt"
 
-echo "Radeon Cloud M2 validation passed for ${actual_commit}."
+dotnet run --project ./samples/HipStreamEventVectorAdd/HipStreamEventVectorAdd.csproj \
+  -c Release --no-build -- \
+  --arch "${gpu_architecture}" \
+  --lifecycle-repeats 100 2>&1 | tee "${evidence_dir}/stream-event-vector-add.txt"
+
+echo "Radeon Cloud M3 validation passed for ${actual_commit}."

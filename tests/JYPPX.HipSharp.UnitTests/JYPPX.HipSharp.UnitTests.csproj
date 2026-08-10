@@ -4,6 +4,7 @@
     <IsTestProject>true</IsTestProject>
     <IsPackable>false</IsPackable>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);IDE0011</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" />

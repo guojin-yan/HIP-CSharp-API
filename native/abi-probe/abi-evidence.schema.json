@@ -3,9 +3,11 @@
   "$id": "https://github.com/guojin-yan/HIP-CSharp-API/native/abi-probe/abi-evidence.schema.json",
   "title": "HipSharp ABI evidence",
   "type": "object",
-  "required": [ "gitCommit", "environment", "headers", "libraries", "types" ],
+  "required": [ "schemaVersion", "gitCommit", "normalizedManifestHash", "environment", "compiler", "headers", "libraries", "types" ],
   "properties": {
+    "schemaVersion": { "type": "integer", "minimum": 1 },
     "gitCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
+    "normalizedManifestHash": { "type": "string", "pattern": "^[0-9A-Fa-f]{64}$" },
     "environment": {
       "type": "object",
       "required": [ "os", "architecture", "rocmVersion", "hipVersion" ],
@@ -41,6 +43,9 @@
         }
       }
     },
-    "types": { "type": "array", "items": { "type": "object" } }
+    "types": { "type": "array", "items": { "type": "object" } },
+    "compiler": { "type": "object" },
+    "functions": { "type": "array", "items": { "type": "object" } },
+    "offsets": { "type": "object" }
   }
 }

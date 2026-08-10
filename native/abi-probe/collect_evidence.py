@@ -22,6 +22,8 @@ def main() -> int:
     headers = [pathlib.Path(value).resolve(strict=True) for value in args.header]
     symbol_reports = [json.loads(pathlib.Path(value).read_text(encoding="utf-8")) for value in args.symbols]
     type_values = json.loads(pathlib.Path(args.types).read_text(encoding="utf-8"))
+    manifest_path = pathlib.Path(__file__).resolve().parents[2] / "eng" / "interop" / "normalized-model.json"
+    normalized_manifest_hash = hashlib.sha256(manifest_path.read_bytes()).hexdigest() if manifest_path.exists() else ""
     os_release = pathlib.Path("/etc/os-release").read_text(encoding="utf-8")
     pretty_name = next(
         (line.split("=", 1)[1].strip().strip('"') for line in os_release.splitlines() if line.startswith("PRETTY_NAME=")),
@@ -30,12 +32,18 @@ def main() -> int:
     rocm_version_path = pathlib.Path("/opt/rocm/.info/version")
     rocm_version = rocm_version_path.read_text(encoding="utf-8").strip() if rocm_version_path.exists() else "reported-by-hipconfig"
     report = {
+        "schemaVersion": 2,
         "gitCommit": command("git", "rev-parse", "HEAD"),
+        "normalizedManifestHash": normalized_manifest_hash,
         "environment": {
             "os": pretty_name,
             "architecture": platform.machine(),
             "rocmVersion": rocm_version,
             "hipVersion": command("hipconfig", "--version"),
+        },
+        "compiler": {
+            "hipcc": command("hipcc", "--version"),
+            "gcc": command("gcc", "--version").splitlines()[0],
         },
         "headers": [
             {
@@ -53,6 +61,11 @@ def main() -> int:
             for symbols in symbol_reports
         ],
         "types": [{"name": name, "value": value} for name, value in type_values.items()],
+        "functions": [
+            {"entryPoint": item["entryPoint"], "library": symbols["libraryName"], "found": item["found"]}
+            for symbols in symbol_reports
+            for item in symbols["symbols"]
+        ],
     }
     output = pathlib.Path(args.output).resolve()
     output.parent.mkdir(parents=True, exist_ok=True)

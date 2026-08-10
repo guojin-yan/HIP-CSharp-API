@@ -6,6 +6,8 @@
   items:
     - name: HIPRTC VectorAdd
       href: guides/hiprtc-vectoradd.md
+    - name: Stream/Event VectorAdd / 显式 Stream/Event VectorAdd
+      href: guides/hip-stream-event-vectoradd.md
 - name: Compatibility / 兼容性
   items:
     - name: Frameworks / 目标框架

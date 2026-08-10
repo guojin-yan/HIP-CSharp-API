@@ -10,6 +10,8 @@ namespace JYPPX.HipSharp.UnitTests;
 internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 {
     private readonly Dictionary<IntPtr, int> _allocations = new();
+    private readonly HashSet<IntPtr> _streams = new();
+    private readonly HashSet<IntPtr> _events = new();
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -22,6 +24,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal HipError ModuleLaunchResult { get; set; } = HipError.Success;
 
     internal HipError SynchronizeResult { get; set; } = HipError.Success;
+
+    internal HipError StreamSynchronizeResult { get; set; } = HipError.Success;
+
+    internal HipError StreamQueryResult { get; set; } = HipError.Success;
+
+    internal HipError EventSynchronizeResult { get; set; } = HipError.Success;
+
+    internal HipError EventQueryResult { get; set; } = HipError.Success;
 
     internal IList<bool> ExpectedKernelPointerArguments { get; } = new List<bool>();
 
@@ -42,6 +52,12 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int ModuleUnloadCount { get; private set; }
 
     internal int ModuleLaunchCount { get; private set; }
+
+    internal int AsyncCopyCount { get; private set; }
+
+    internal int StreamDestroyCount { get; private set; }
+
+    internal int EventDestroyCount { get; private set; }
 
     public HipError Init(uint flags)
     {
@@ -95,6 +111,12 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return deviceId >= 0 && deviceId < 2 ? HipError.Success : HipError.InvalidDevice;
     }
 
+    public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId)
+    {
+        value = attribute == HipDeviceAttribute.MaxThreadsPerBlock ? 1024 : 0;
+        return deviceId >= 0 && deviceId < 2 ? HipError.Success : HipError.InvalidDevice;
+    }
+
     public HipError Malloc(out IntPtr pointer, UIntPtr byteCount)
     {
         if (MallocResult != HipError.Success)
@@ -136,10 +158,64 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return HipError.Success;
     }
 
+    public HipError MemcpyAsync(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind, IntPtr stream)
+    {
+        AsyncCopyCount++;
+        return Memcpy(destination, source, byteCount, kind);
+    }
+
+    public HipError HostMalloc(out IntPtr pointer, UIntPtr byteCount, uint flags) => Malloc(out pointer, byteCount);
+
+    public HipError HostFree(IntPtr pointer) => Free(pointer);
+
     public HipError DeviceSynchronize()
     {
         SynchronizeCount++;
         return SynchronizeResult;
+    }
+
+    public HipError StreamCreateWithFlags(out IntPtr stream, uint flags)
+    {
+        stream = new IntPtr(0x5000 + _streams.Count + 1);
+        _streams.Add(stream);
+        return HipError.Success;
+    }
+
+    public HipError StreamDestroy(IntPtr stream)
+    {
+        if (!_streams.Remove(stream)) return HipError.InvalidValue;
+        StreamDestroyCount++;
+        return HipError.Success;
+    }
+
+    public HipError StreamSynchronize(IntPtr stream) => _streams.Contains(stream) ? StreamSynchronizeResult : HipError.InvalidValue;
+
+    public HipError StreamQuery(IntPtr stream) => _streams.Contains(stream) ? StreamQueryResult : HipError.InvalidValue;
+
+    public HipError EventCreateWithFlags(out IntPtr eventHandle, uint flags)
+    {
+        eventHandle = new IntPtr(0x6000 + _events.Count + 1);
+        _events.Add(eventHandle);
+        return HipError.Success;
+    }
+
+    public HipError EventDestroy(IntPtr eventHandle)
+    {
+        if (!_events.Remove(eventHandle)) return HipError.InvalidValue;
+        EventDestroyCount++;
+        return HipError.Success;
+    }
+
+    public HipError EventRecord(IntPtr eventHandle, IntPtr stream) => _events.Contains(eventHandle) && _streams.Contains(stream) ? HipError.Success : HipError.InvalidValue;
+
+    public HipError EventSynchronize(IntPtr eventHandle) => _events.Contains(eventHandle) ? EventSynchronizeResult : HipError.InvalidValue;
+
+    public HipError EventQuery(IntPtr eventHandle) => _events.Contains(eventHandle) ? EventQueryResult : HipError.InvalidValue;
+
+    public HipError EventElapsedTime(out float milliseconds, IntPtr start, IntPtr end)
+    {
+        milliseconds = 1.25f;
+        return _events.Contains(start) && _events.Contains(end) ? HipError.Success : HipError.InvalidValue;
     }
 
     public HipError ModuleLoadData(byte[] codeObject, out IntPtr module)
@@ -175,6 +251,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         uint blockY,
         uint blockZ,
         uint sharedMemoryBytes,
+        IntPtr stream,
         IntPtr kernelParameters)
     {
         ModuleLaunchCount++;

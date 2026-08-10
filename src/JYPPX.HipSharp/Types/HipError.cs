@@ -28,4 +28,7 @@ public enum HipError
 
     /// <summary>设备序号无效 / The device ordinal is invalid.</summary>
     InvalidDevice = 101,
+
+    /// <summary>异步操作尚未完成 / An asynchronous operation is not complete.</summary>
+    NotReady = 600,
 }

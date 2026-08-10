@@ -46,6 +46,9 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
         }
     }
 
+    public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId) =>
+        HipNativeMethods.DeviceGetAttribute(out value, attribute, deviceId);
+
     public HipError Malloc(out IntPtr pointer, UIntPtr byteCount) => HipNativeMethods.Malloc(out pointer, byteCount);
 
     public HipError Free(IntPtr pointer) => HipNativeMethods.Free(pointer);
@@ -53,7 +56,38 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
     public HipError Memcpy(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind) =>
         HipNativeMethods.Memcpy(destination, source, byteCount, kind);
 
+    public HipError MemcpyAsync(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind, IntPtr stream) =>
+        HipNativeMethods.MemcpyAsync(destination, source, byteCount, kind, stream);
+
+    public HipError HostMalloc(out IntPtr pointer, UIntPtr byteCount, uint flags) =>
+        HipNativeMethods.HostMalloc(out pointer, byteCount, flags);
+
+    public HipError HostFree(IntPtr pointer) => HipNativeMethods.HostFree(pointer);
+
     public HipError DeviceSynchronize() => HipNativeMethods.DeviceSynchronize();
+
+    public HipError StreamCreateWithFlags(out IntPtr stream, uint flags) =>
+        HipNativeMethods.StreamCreateWithFlags(out stream, flags);
+
+    public HipError StreamDestroy(IntPtr stream) => HipNativeMethods.StreamDestroy(stream);
+
+    public HipError StreamSynchronize(IntPtr stream) => HipNativeMethods.StreamSynchronize(stream);
+
+    public HipError StreamQuery(IntPtr stream) => HipNativeMethods.StreamQuery(stream);
+
+    public HipError EventCreateWithFlags(out IntPtr eventHandle, uint flags) =>
+        HipNativeMethods.EventCreateWithFlags(out eventHandle, flags);
+
+    public HipError EventDestroy(IntPtr eventHandle) => HipNativeMethods.EventDestroy(eventHandle);
+
+    public HipError EventRecord(IntPtr eventHandle, IntPtr stream) => HipNativeMethods.EventRecord(eventHandle, stream);
+
+    public HipError EventSynchronize(IntPtr eventHandle) => HipNativeMethods.EventSynchronize(eventHandle);
+
+    public HipError EventQuery(IntPtr eventHandle) => HipNativeMethods.EventQuery(eventHandle);
+
+    public HipError EventElapsedTime(out float milliseconds, IntPtr start, IntPtr end) =>
+        HipNativeMethods.EventElapsedTime(out milliseconds, start, end);
 
     public HipError ModuleLoadData(byte[] codeObject, out IntPtr module)
     {
@@ -87,6 +121,7 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
         uint blockY,
         uint blockZ,
         uint sharedMemoryBytes,
+        IntPtr stream,
         IntPtr kernelParameters) =>
         HipNativeMethods.ModuleLaunchKernel(
             function,
@@ -97,7 +132,7 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
             blockY,
             blockZ,
             sharedMemoryBytes,
-            IntPtr.Zero,
+            stream,
             kernelParameters,
             IntPtr.Zero);
 

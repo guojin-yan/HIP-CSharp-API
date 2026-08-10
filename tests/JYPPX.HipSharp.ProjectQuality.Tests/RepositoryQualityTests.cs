@@ -69,25 +69,33 @@ public sealed class RepositoryQualityTests
         string[] expectedEntryPoints =
         {
             "hipInit", "hipRuntimeGetVersion", "hipDriverGetVersion", "hipGetDeviceCount", "hipGetDevice",
-            "hipSetDevice", "hipDeviceGetName", "hipMalloc", "hipFree", "hipMemcpy", "hipDeviceSynchronize",
+            "hipSetDevice", "hipDeviceGetName", "hipDeviceGetAttribute",
+            "hipStreamCreateWithFlags", "hipStreamDestroy", "hipStreamSynchronize", "hipStreamQuery",
+            "hipEventCreateWithFlags", "hipEventDestroy", "hipEventRecord", "hipEventSynchronize", "hipEventQuery", "hipEventElapsedTime",
+            "hipMalloc", "hipFree", "hipMemcpy", "hipMemcpyAsync", "hipHostMalloc", "hipHostFree", "hipDeviceSynchronize",
             "hipGetErrorName", "hipGetErrorString", "hipModuleLoadData", "hipModuleUnload", "hipModuleGetFunction",
             "hipModuleLaunchKernel", "hiprtcVersion", "hiprtcGetErrorString", "hiprtcCreateProgram",
             "hiprtcDestroyProgram", "hiprtcCompileProgram", "hiprtcGetProgramLogSize", "hiprtcGetProgramLog",
             "hiprtcGetCodeSize", "hiprtcGetCode",
         };
         JsonElement functions = manifest.RootElement.GetProperty("functions");
+        Assert.AreEqual(4, manifest.RootElement.GetProperty("schemaVersion").GetInt32());
+        StringAssert.Contains(manifest.RootElement.GetProperty("generatorVersion").GetString()!, ".");
+        Assert.AreEqual("rocm-7.2.1", manifest.RootElement.GetProperty("rocmTag").GetString());
+        Assert.IsTrue(manifest.RootElement.GetProperty("preprocessorMacros").GetArrayLength() > 0);
         JsonElement verifiedHeaders = manifest.RootElement.GetProperty("verifiedHeaders");
         Assert.AreEqual(2, verifiedHeaders.GetArrayLength());
         Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
             Regex.IsMatch(header.GetProperty("sha256").GetString()!, "^[0-9A-F]{64}$", RegexOptions.CultureInvariant)));
         Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
             header.GetProperty("source").GetString()!.Contains("/ROCm/HIP/", StringComparison.Ordinal)));
+        Assert.AreEqual(40, expectedEntryPoints.Length);
         Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
         CollectionAssert.AreEqual(
             expectedEntryPoints,
             functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
         Assert.IsTrue(functions.EnumerateArray().All(function => !function.GetProperty("optional").GetBoolean()));
-        Assert.AreEqual(17, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
+        Assert.AreEqual(31, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
         Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
         string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs"));
@@ -102,8 +110,10 @@ public sealed class RepositoryQualityTests
         }
 
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "generate-interop.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "interop", "normalized-model.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-symbols.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "native", "abi-probe", "abi-evidence.schema.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "JYPPX.HipSharp.BindingGenerator", "JYPPX.HipSharp.BindingGenerator.csproj")));
         Assert.IsFalse(File.Exists(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "InteropCompileProbe.g.cs")));
 
         foreach (string framework in new[] { "net46", "netcoreapp3.1", "net7.0", "net10.0" })

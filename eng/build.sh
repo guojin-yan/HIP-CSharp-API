@@ -11,7 +11,7 @@ cd "${repository_root}"
 if command -v pwsh >/dev/null 2>&1; then
   pwsh -NoProfile -File "${repository_root}/eng/generate-interop.ps1" -Verify
 fi
-dotnet restore "${solution}"
+dotnet restore "${solution}" --locked-mode
 dotnet build "${solution}" --configuration "${configuration}" --no-restore -p:PackageVersion="${version}"
 dotnet pack "src/JYPPX.HipSharp/JYPPX.HipSharp.csproj" \
   --configuration "${configuration}" \

@@ -14,7 +14,7 @@ namespace JYPPX.HipSharp.UnitTests;
 public sealed class AssemblyBaselineTests
 {
     [TestMethod]
-    public void CoreAssemblyExposesM2ApiAndMetadata()
+    public void CoreAssemblyExposesM3ApiAndMetadata()
     {
         Assembly managed = Assembly.Load("JYPPX.HipSharp");
 
@@ -28,9 +28,12 @@ public sealed class AssemblyBaselineTests
                 typeof(HipRtc), typeof(HipRtcProgram), typeof(HipRtcCompilation), typeof(HipRtcResult),
                 typeof(HipRtcException), typeof(HipRtcVersion), typeof(HipModule), typeof(HipKernel),
                 typeof(HipKernelArgument), typeof(HipLaunchDimensions),
+                typeof(JYPPX.HipSharp.Streams.HipStream), typeof(JYPPX.HipSharp.Streams.HipEvent),
+                typeof(HipStreamFlags), typeof(HipEventFlags), typeof(HipDeviceAttribute),
+                typeof(HipPinnedMemory), typeof(HipTypedMemory<>),
             },
             managed.GetExportedTypes());
-        Assert.AreEqual("M2-hiprtc-kernel", ReadMetadata(managed, "HipSharpStage"));
+        Assert.AreEqual("M3-stream-event-async", ReadMetadata(managed, "HipSharpStage"));
         Assert.AreEqual("true", ReadMetadata(managed, "HipApiImplemented"));
         Assert.AreEqual("eng/interop/interop-manifest.json", ReadMetadata(managed, "InteropSource"));
     }

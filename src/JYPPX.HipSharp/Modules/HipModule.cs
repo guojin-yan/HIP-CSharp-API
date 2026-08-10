@@ -12,6 +12,7 @@ public sealed class HipModule : IDisposable
     private readonly IHipNativeApi _nativeApi;
     private readonly HipModuleHandle _handle;
     private readonly object _sync = new();
+    private int _asyncReferences;
 
     internal HipModule(IHipNativeApi nativeApi, IntPtr module)
     {
@@ -63,6 +64,11 @@ public sealed class HipModule : IDisposable
     {
         lock (_sync)
         {
+            if (_asyncReferences != 0)
+            {
+                _handle.Dispose();
+                return;
+            }
             HipError error = _handle.ReleaseChecked();
             if (error == HipError.Success)
             {
@@ -75,6 +81,27 @@ public sealed class HipModule : IDisposable
     }
 
     internal IHipNativeApi NativeApi => _nativeApi;
+
+    internal void AcquireAsyncReference()
+    {
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            bool addedReference = false;
+            _handle.DangerousAddRef(ref addedReference);
+            if (!addedReference) throw new ObjectDisposedException(nameof(HipModule));
+            _asyncReferences++;
+        }
+    }
+
+    internal void ReleaseAsyncReference()
+    {
+        lock (_sync)
+        {
+            _handle.DangerousRelease();
+            if (_asyncReferences > 0) _asyncReferences--;
+        }
+    }
 
     internal T Invoke<T>(Func<IntPtr, T> action)
     {
