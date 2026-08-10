@@ -33,6 +33,7 @@
       {
         "files": [
           "compatibility/**/*.md",
+          "guides/**/*.md",
           "releases/**/*.md",
           "*.md",
           "toc.yml"

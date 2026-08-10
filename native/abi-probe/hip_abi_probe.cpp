@@ -1,5 +1,6 @@
 #define __HIP_DISABLE_CPP_FUNCTIONS__
 #include <hip/hip_runtime_api.h>
+#include <hip/hiprtc.h>
 
 #include <cstddef>
 #include <cstdio>
@@ -18,6 +19,23 @@ static_assert(std::is_same<decltype(&hipMemcpy), hipError_t (*)(void*, const voi
 static_assert(std::is_same<decltype(&hipDeviceSynchronize), hipError_t (*)()>::value, "hipDeviceSynchronize signature mismatch");
 static_assert(std::is_same<decltype(&hipGetErrorName), const char* (*)(hipError_t)>::value, "hipGetErrorName signature mismatch");
 static_assert(std::is_same<decltype(&hipGetErrorString), const char* (*)(hipError_t)>::value, "hipGetErrorString signature mismatch");
+static_assert(std::is_same<decltype(&hipModuleLoadData), hipError_t (*)(hipModule_t*, const void*)>::value, "hipModuleLoadData signature mismatch");
+static_assert(std::is_same<decltype(&hipModuleUnload), hipError_t (*)(hipModule_t)>::value, "hipModuleUnload signature mismatch");
+static_assert(std::is_same<decltype(&hipModuleGetFunction), hipError_t (*)(hipFunction_t*, hipModule_t, const char*)>::value, "hipModuleGetFunction signature mismatch");
+static_assert(
+    std::is_same<
+        decltype(&hipModuleLaunchKernel),
+        hipError_t (*)(hipFunction_t, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, hipStream_t, void**, void**)>::value,
+    "hipModuleLaunchKernel signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcVersion), hiprtcResult (*)(int*, int*)>::value, "hiprtcVersion signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcGetErrorString), const char* (*)(hiprtcResult)>::value, "hiprtcGetErrorString signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcCreateProgram), hiprtcResult (*)(hiprtcProgram*, const char*, const char*, int, const char* const*, const char* const*)>::value, "hiprtcCreateProgram signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcDestroyProgram), hiprtcResult (*)(hiprtcProgram*)>::value, "hiprtcDestroyProgram signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcCompileProgram), hiprtcResult (*)(hiprtcProgram, int, const char* const*)>::value, "hiprtcCompileProgram signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcGetProgramLogSize), hiprtcResult (*)(hiprtcProgram, std::size_t*)>::value, "hiprtcGetProgramLogSize signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcGetProgramLog), hiprtcResult (*)(hiprtcProgram, char*)>::value, "hiprtcGetProgramLog signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcGetCodeSize), hiprtcResult (*)(hiprtcProgram, std::size_t*)>::value, "hiprtcGetCodeSize signature mismatch");
+static_assert(std::is_same<decltype(&hiprtcGetCode), hiprtcResult (*)(hiprtcProgram, char*)>::value, "hiprtcGetCode signature mismatch");
 
 int main()
 {
@@ -29,7 +47,16 @@ int main()
         "  \"hipMemcpyKindAlignment\": %zu,\n"
         "  \"pointerSize\": %zu,\n"
         "  \"pointerAlignment\": %zu,\n"
+        "  \"hiprtcResultSize\": %zu,\n"
+        "  \"hiprtcResultAlignment\": %zu,\n"
+        "  \"hiprtcProgramSize\": %zu,\n"
+        "  \"hipModuleHandleSize\": %zu,\n"
+        "  \"hipFunctionHandleSize\": %zu,\n"
         "  \"hipSuccess\": %d,\n"
+        "  \"hiprtcSuccess\": %d,\n"
+        "  \"hiprtcCompilation\": %d,\n"
+        "  \"hiprtcInternalError\": %d,\n"
+        "  \"hiprtcLinkingError\": %d,\n"
         "  \"hipMemcpyHostToDevice\": %d,\n"
         "  \"hipMemcpyDeviceToHost\": %d,\n"
         "  \"hipMemcpyDeviceToDevice\": %d\n"
@@ -40,7 +67,16 @@ int main()
         alignof(hipMemcpyKind),
         sizeof(void*),
         alignof(void*),
+        sizeof(hiprtcResult),
+        alignof(hiprtcResult),
+        sizeof(hiprtcProgram),
+        sizeof(hipModule_t),
+        sizeof(hipFunction_t),
         static_cast<int>(hipSuccess),
+        static_cast<int>(HIPRTC_SUCCESS),
+        static_cast<int>(HIPRTC_ERROR_COMPILATION),
+        static_cast<int>(HIPRTC_ERROR_INTERNAL_ERROR),
+        static_cast<int>(HIPRTC_ERROR_LINKING),
         static_cast<int>(hipMemcpyHostToDevice),
         static_cast<int>(hipMemcpyDeviceToHost),
         static_cast<int>(hipMemcpyDeviceToDevice));

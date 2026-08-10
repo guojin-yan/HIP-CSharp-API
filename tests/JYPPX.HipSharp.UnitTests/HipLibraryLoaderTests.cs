@@ -48,12 +48,31 @@ public sealed class HipLibraryLoaderTests
 
         Assert.AreEqual("Linux test", exception.Diagnostics.OperatingSystem);
         Assert.AreEqual("linux-x64", exception.Diagnostics.RuntimeIdentifier);
+        Assert.AreEqual("amdhip64", exception.Diagnostics.LibraryName);
         Assert.HasCount(7, exception.Diagnostics.Attempts);
         Assert.IsTrue(exception.Diagnostics.Attempts.All(attempt => !attempt.Succeeded));
         Assert.AreEqual(exception.Diagnostics.Attempts.Count, backend.Candidates.Count);
         Assert.AreEqual("<explicit-path>/libamdhip64.so", exception.Diagnostics.Attempts[0].Candidate);
         Assert.IsFalse(exception.Diagnostics.Attempts.Any(attempt => attempt.Candidate.Contains("/private/home", StringComparison.Ordinal)));
         StringAssert.Contains(exception.Message, "Architecture=x64");
+    }
+
+    [TestMethod]
+    public void RtcLocatorAndDiagnosticsRemainIndependentFromRuntime()
+    {
+        var platform = new HipPlatformInfo(false, true, "Linux test", "x64", ".NET 10", "linux-x64");
+        var locator = new HipLibraryLocator(platform, "/opt/test-app", _ => null, HipNativeLibraryKind.Rtc);
+        HipLibraryCandidate[] candidates = locator.GetCandidates(null).ToArray();
+
+        Assert.AreEqual(Path.Combine("/opt/test-app", "libhiprtc.so"), candidates[0].Value);
+        Assert.AreEqual("libhiprtc.so", candidates[candidates.Length - 1].Value);
+        CollectionAssert.Contains(candidates.Select(candidate => candidate.Value).ToArray(), "libhiprtc.so.7");
+
+        var loader = new HipNativeLibraryLoader(platform, locator, new AlwaysFailBackend(), HipNativeLibraryKind.Rtc);
+        HipLibraryLoadException exception = Assert.ThrowsExactly<HipLibraryLoadException>(() => loader.Load(null));
+        Assert.AreEqual("hiprtc", exception.Diagnostics.LibraryName);
+        StringAssert.Contains(exception.Message, "hiprtc");
+        Assert.IsFalse(exception.Diagnostics.Attempts.Any(attempt => attempt.Candidate.Contains("amdhip64", StringComparison.Ordinal)));
     }
 
     private sealed class AlwaysFailBackend : INativeLibraryBackend

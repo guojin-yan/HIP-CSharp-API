@@ -9,6 +9,7 @@ import sys
 def main() -> int:
     parser = argparse.ArgumentParser()
     parser.add_argument("--library", required=True)
+    parser.add_argument("--library-name", required=True, choices=("amdhip64", "hiprtc"))
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
@@ -32,9 +33,11 @@ def main() -> int:
             "found": function["entryPoint"] in exported,
         }
         for function in manifest["functions"]
+        if function["library"] == args.library_name
     ]
     report = {
         "library": str(library),
+        "libraryName": args.library_name,
         "manifest": str(manifest_path),
         "symbols": symbols,
     }
@@ -45,7 +48,7 @@ def main() -> int:
         print("Missing required HIP symbols: " + ", ".join(missing), file=sys.stderr)
         return 1
 
-    print(f"Verified {len(symbols)} HIP symbols in {library}")
+    print(f"Verified {len(symbols)} {args.library_name} symbols in {library}")
     return 0
 
 

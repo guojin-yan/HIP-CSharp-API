@@ -51,7 +51,8 @@ try {
 
     $forbiddenEntries = @($entries | Where-Object {
         $_ -match '(^|/)(bin|obj|tests?|plan|diary|Radeon_Cloud|artifacts)(/|$)' -or
-        $_ -match '\.(pdb|so|dylib|deb|zip)$' -or
+        $_ -match '\.(pdb|so|dylib|deb|zip|hsaco|bc|hip|cpp|cs|h)$' -or
+        $_ -match '(amdhip|hiprtc).*\.dll$' -or
         $_ -match 'runtimes/[^/]+/native/'
     })
     if ($forbiddenEntries.Count -ne 0) {
@@ -111,7 +112,7 @@ $nugetConfig = @"
 <configuration>
   <packageSources>
     <clear />
-    <add key="M1 local candidate" value="$escapedFeed" />
+    <add key="M2 local candidate" value="$escapedFeed" />
   </packageSources>
 </configuration>
 "@
@@ -144,7 +145,7 @@ $frameworkReference
 </Project>
 "@
     [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Consumer.csproj"), $projectText)
-    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.HipSharp.HipRuntime;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length > 0 ? 0 : 1; } }`n")
+    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.HipSharp.HipRuntime;`nusing HipModule = HipSharp::JYPPX.HipSharp.Modules.HipModule;`nusing HipRtc = HipSharp::JYPPX.HipSharp.Rtc.HipRtc;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length > 0 ? 0 : 1; } }`n")
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
@@ -175,7 +176,7 @@ $report = [pscustomobject]@{
     targetFrameworkAssets = $frameworks
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "not-run-local-M1"
+    runtimeAndGpuValidation = "not-run-local-M2"
 }
 $reportPath = Join-Path $auditDirectory "package-audit.json"
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $reportPath -Encoding UTF8

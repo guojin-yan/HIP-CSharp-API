@@ -13,6 +13,24 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
+    internal HipError ModuleLoadResult { get; set; } = HipError.Success;
+
+    internal HipError ModuleUnloadResult { get; set; } = HipError.Success;
+
+    internal HipError ModuleGetFunctionResult { get; set; } = HipError.Success;
+
+    internal HipError ModuleLaunchResult { get; set; } = HipError.Success;
+
+    internal HipError SynchronizeResult { get; set; } = HipError.Success;
+
+    internal IList<bool> ExpectedKernelPointerArguments { get; } = new List<bool>();
+
+    internal IList<long> LastKernelArgumentValues { get; } = new List<long>();
+
+    internal byte[] LastModuleCodeObject { get; private set; } = Array.Empty<byte>();
+
+    internal string LastKernelName { get; private set; } = string.Empty;
+
     internal uint LastInitFlags { get; private set; }
 
     internal int LastSetDevice { get; private set; }
@@ -20,6 +38,10 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int FreeCount { get; private set; }
 
     internal int SynchronizeCount { get; private set; }
+
+    internal int ModuleUnloadCount { get; private set; }
+
+    internal int ModuleLaunchCount { get; private set; }
 
     public HipError Init(uint flags)
     {
@@ -117,7 +139,56 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError DeviceSynchronize()
     {
         SynchronizeCount++;
-        return HipError.Success;
+        return SynchronizeResult;
+    }
+
+    public HipError ModuleLoadData(byte[] codeObject, out IntPtr module)
+    {
+        LastModuleCodeObject = (byte[])codeObject.Clone();
+        module = ModuleLoadResult == HipError.Success ? new IntPtr(0x2000) : IntPtr.Zero;
+        return ModuleLoadResult;
+    }
+
+    public HipError ModuleUnload(IntPtr module)
+    {
+        if (ModuleUnloadResult == HipError.Success)
+        {
+            ModuleUnloadCount++;
+        }
+
+        return ModuleUnloadResult;
+    }
+
+    public HipError ModuleGetFunction(IntPtr module, string kernelName, out IntPtr function)
+    {
+        LastKernelName = kernelName;
+        function = ModuleGetFunctionResult == HipError.Success ? new IntPtr(0x3000) : IntPtr.Zero;
+        return ModuleGetFunctionResult;
+    }
+
+    public HipError ModuleLaunchKernel(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr kernelParameters)
+    {
+        ModuleLaunchCount++;
+        LastKernelArgumentValues.Clear();
+        for (int index = 0; index < ExpectedKernelPointerArguments.Count; index++)
+        {
+            IntPtr valueStorage = Marshal.ReadIntPtr(kernelParameters, index * IntPtr.Size);
+            long value = ExpectedKernelPointerArguments[index]
+                ? Marshal.ReadIntPtr(valueStorage).ToInt64()
+                : Marshal.ReadInt32(valueStorage);
+            LastKernelArgumentValues.Add(value);
+        }
+
+        return ModuleLaunchResult;
     }
 
     public string GetErrorName(HipError error) => error == HipError.OutOfMemory ? "hipErrorOutOfMemory" : "hipErrorUnknown";

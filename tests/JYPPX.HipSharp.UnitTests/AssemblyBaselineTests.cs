@@ -3,6 +3,8 @@ using System.Linq;
 using System.Reflection;
 using JYPPX.HipSharp.Loading;
 using JYPPX.HipSharp.Memory;
+using JYPPX.HipSharp.Modules;
+using JYPPX.HipSharp.Rtc;
 using JYPPX.HipSharp.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,7 +14,7 @@ namespace JYPPX.HipSharp.UnitTests;
 public sealed class AssemblyBaselineTests
 {
     [TestMethod]
-    public void CoreAssemblyExposesM1ApiAndMetadata()
+    public void CoreAssemblyExposesM2ApiAndMetadata()
     {
         Assembly managed = Assembly.Load("JYPPX.HipSharp");
 
@@ -23,9 +25,12 @@ public sealed class AssemblyBaselineTests
                 typeof(HipRuntime), typeof(HipDevice), typeof(HipException), typeof(HipDeviceMemory),
                 typeof(HipError), typeof(HipVersion), typeof(HipRuntimeVersionInfo), typeof(HipDeviceInfo),
                 typeof(HipLibraryLoadException), typeof(HipLibraryLoadDiagnostics), typeof(HipLibraryLoadAttempt),
+                typeof(HipRtc), typeof(HipRtcProgram), typeof(HipRtcCompilation), typeof(HipRtcResult),
+                typeof(HipRtcException), typeof(HipRtcVersion), typeof(HipModule), typeof(HipKernel),
+                typeof(HipKernelArgument), typeof(HipLaunchDimensions),
             },
             managed.GetExportedTypes());
-        Assert.AreEqual("M1-direct-pinvoke", ReadMetadata(managed, "HipSharpStage"));
+        Assert.AreEqual("M2-hiprtc-kernel", ReadMetadata(managed, "HipSharpStage"));
         Assert.AreEqual("true", ReadMetadata(managed, "HipApiImplemented"));
         Assert.AreEqual("eng/interop/interop-manifest.json", ReadMetadata(managed, "InteropSource"));
     }

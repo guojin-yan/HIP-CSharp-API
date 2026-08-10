@@ -151,6 +151,18 @@ public sealed class HipDeviceMemory : IDisposable
         HipCall.ThrowIfFailed(_nativeApi, error, "hipFree");
     }
 
+    internal IHipNativeApi NativeApi => _nativeApi;
+
+    internal IntPtr DangerousAcquireHandle(out bool addedReference)
+    {
+        ThrowIfDisposed();
+        addedReference = false;
+        _handle.DangerousAddRef(ref addedReference);
+        return _handle.DangerousGetHandle();
+    }
+
+    internal void DangerousReleaseHandle() => _handle.DangerousRelease();
+
     internal static UIntPtr ToUIntPtr(ulong value, string parameterName)
     {
         if (UIntPtr.Size == 4 && value > uint.MaxValue)

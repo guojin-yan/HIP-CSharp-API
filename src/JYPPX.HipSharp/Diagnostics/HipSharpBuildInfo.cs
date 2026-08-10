@@ -8,7 +8,7 @@ internal static class HipSharpBuildInfo
     /// <summary>
     /// 当前工程阶段 / Current engineering stage.
     /// </summary>
-    internal const string Stage = "M1-direct-pinvoke";
+    internal const string Stage = "M2-hiprtc-kernel";
 
     /// <summary>
     /// 指示是否已经实现 HIP API / Indicates whether HIP APIs have been implemented.

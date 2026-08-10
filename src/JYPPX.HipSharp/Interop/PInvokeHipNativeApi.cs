@@ -14,7 +14,7 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
 {
     internal PInvokeHipNativeApi(string? explicitLibraryPath)
     {
-        HipImportResolver.EnsureLoaded(explicitLibraryPath);
+        HipImportResolver.EnsureLoaded(HipNativeLibraryKind.Runtime, explicitLibraryPath);
     }
 
     public HipError Init(uint flags) => HipNativeMethods.Init(flags);
@@ -54,6 +54,52 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
         HipNativeMethods.Memcpy(destination, source, byteCount, kind);
 
     public HipError DeviceSynchronize() => HipNativeMethods.DeviceSynchronize();
+
+    public HipError ModuleLoadData(byte[] codeObject, out IntPtr module)
+    {
+        GCHandle pinned = GCHandle.Alloc(codeObject, GCHandleType.Pinned);
+        try
+        {
+            return HipNativeMethods.ModuleLoadData(out module, pinned.AddrOfPinnedObject());
+        }
+        finally
+        {
+            pinned.Free();
+        }
+    }
+
+    public HipError ModuleUnload(IntPtr module) => HipNativeMethods.ModuleUnload(module);
+
+    public HipError ModuleGetFunction(IntPtr module, string kernelName, out IntPtr function)
+    {
+        using (var nativeName = new Utf8NativeString(kernelName, nameof(kernelName)))
+        {
+            return HipNativeMethods.ModuleGetFunction(out function, module, nativeName.Pointer);
+        }
+    }
+
+    public HipError ModuleLaunchKernel(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr kernelParameters) =>
+        HipNativeMethods.ModuleLaunchKernel(
+            function,
+            gridX,
+            gridY,
+            gridZ,
+            blockX,
+            blockY,
+            blockZ,
+            sharedMemoryBytes,
+            IntPtr.Zero,
+            kernelParameters,
+            IntPtr.Zero);
 
     public string GetErrorName(HipError error) => ReadBorrowedString(HipNativeMethods.GetErrorName(error));
 

@@ -8,7 +8,7 @@ namespace JYPPX.HipSharp.Loading;
 public sealed class HipLibraryLoadException : Exception
 {
     internal HipLibraryLoadException(HipLibraryLoadDiagnostics diagnostics)
-        : base("Unable to load the HIP Runtime native library. " + diagnostics)
+        : base("Unable to load the HIP native library '" + diagnostics.LibraryName + "'. " + diagnostics)
     {
         Diagnostics = diagnostics;
     }

@@ -2,6 +2,10 @@
   href: index.md
 - name: API Reference / API 参考
   href: api/
+- name: Guides / 指南
+  items:
+    - name: HIPRTC VectorAdd
+      href: guides/hiprtc-vectoradd.md
 - name: Compatibility / 兼容性
   items:
     - name: Frameworks / 目标框架
@@ -10,5 +14,5 @@
       href: compatibility/platforms.md
 - name: Releases / 版本
   items:
-    - name: 0.0.0 M1 Engineering Candidate / M1 工程候选
+    - name: 0.0.0 M2 Engineering Candidate / M2 工程候选
       href: releases/0.0.0.md

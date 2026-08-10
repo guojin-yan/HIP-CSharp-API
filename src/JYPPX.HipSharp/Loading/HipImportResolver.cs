@@ -14,39 +14,69 @@ namespace JYPPX.HipSharp.Loading;
 internal static class HipImportResolver
 {
     private static readonly object Sync = new();
-    private static bool _loaded;
-    private static string? _explicitLibraryPath;
+    private static bool _runtimeLoaded;
+    private static bool _rtcLoaded;
+    private static string? _runtimeExplicitLibraryPath;
+    private static string? _rtcExplicitLibraryPath;
 #if NETCOREAPP3_1_OR_GREATER
-    private static IntPtr _handle;
+    private static bool _resolverInstalled;
+    private static IntPtr _runtimeHandle;
+    private static IntPtr _rtcHandle;
 #endif
 
-    internal static void EnsureLoaded(string? explicitLibraryPath)
+    internal static void EnsureLoaded(HipNativeLibraryKind libraryKind, string? explicitLibraryPath)
     {
         lock (Sync)
         {
-            if (_loaded)
+            bool loaded = libraryKind == HipNativeLibraryKind.Runtime ? _runtimeLoaded : _rtcLoaded;
+            string? loadedPath = libraryKind == HipNativeLibraryKind.Runtime ? _runtimeExplicitLibraryPath : _rtcExplicitLibraryPath;
+            if (loaded)
             {
                 if (!string.IsNullOrWhiteSpace(explicitLibraryPath) &&
-                    !string.Equals(_explicitLibraryPath, explicitLibraryPath, StringComparison.OrdinalIgnoreCase))
+                    !string.Equals(loadedPath, explicitLibraryPath, StringComparison.OrdinalIgnoreCase))
                 {
-                    throw new InvalidOperationException("The HIP Runtime library has already been loaded from another location.");
+                    throw new InvalidOperationException("The HIP native library has already been loaded from another location.");
                 }
 
                 return;
             }
 
-            IntPtr handle = new HipNativeLibraryLoader().Load(explicitLibraryPath);
+            IntPtr handle = new HipNativeLibraryLoader(libraryKind).Load(explicitLibraryPath);
 #if NETCOREAPP3_1_OR_GREATER
-            NativeLibrary.SetDllImportResolver(typeof(HipNativeMethods).Assembly, Resolve);
-            _handle = handle;
+            if (!_resolverInstalled)
+            {
+                NativeLibrary.SetDllImportResolver(typeof(HipNativeMethods).Assembly, Resolve);
+                _resolverInstalled = true;
+            }
 #endif
-            _explicitLibraryPath = explicitLibraryPath;
-            _loaded = true;
+            if (libraryKind == HipNativeLibraryKind.Runtime)
+            {
+#if NETCOREAPP3_1_OR_GREATER
+                _runtimeHandle = handle;
+#endif
+                _runtimeExplicitLibraryPath = explicitLibraryPath;
+                _runtimeLoaded = true;
+            }
+            else
+            {
+#if NETCOREAPP3_1_OR_GREATER
+                _rtcHandle = handle;
+#endif
+                _rtcExplicitLibraryPath = explicitLibraryPath;
+                _rtcLoaded = true;
+            }
         }
     }
 
 #if NETCOREAPP3_1_OR_GREATER
-    private static IntPtr Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath) =>
-        string.Equals(libraryName, HipNativeLibraryNames.RuntimeImportName, StringComparison.Ordinal) ? _handle : IntPtr.Zero;
+    private static IntPtr Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)
+    {
+        if (string.Equals(libraryName, HipNativeLibraryNames.RuntimeImportName, StringComparison.Ordinal))
+        {
+            return _runtimeHandle;
+        }
+
+        return string.Equals(libraryName, HipNativeLibraryNames.RtcImportName, StringComparison.Ordinal) ? _rtcHandle : IntPtr.Zero;
+    }
 #endif
 }

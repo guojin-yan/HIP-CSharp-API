@@ -45,19 +45,59 @@ bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
 bash ./eng/build.sh Release 0.0.0 | tee "${evidence_dir}/managed-gate.txt"
 
 hip_library="$(readlink -f /opt/rocm/lib/libamdhip64.so)"
+hiprtc_candidate=""
+for rocm_library_directory in /opt/rocm/lib /opt/rocm/lib64; do
+  if [[ -e "${rocm_library_directory}/libhiprtc.so" ]]; then
+    hiprtc_candidate="${rocm_library_directory}/libhiprtc.so"
+    break
+  fi
+done
+if [[ -z "${hiprtc_candidate}" ]]; then
+  echo "Unable to locate libhiprtc.so under the ROCm installation." >&2
+  exit 1
+fi
+hiprtc_library="$(readlink -f "${hiprtc_candidate}")"
 python3 ./native/abi-probe/verify_symbols.py \
   --library "${hip_library}" \
+  --library-name amdhip64 \
   --manifest ./eng/interop/interop-manifest.json \
-  --output "${evidence_dir}/symbol-evidence.json"
+  --output "${evidence_dir}/runtime-symbol-evidence.json"
+python3 ./native/abi-probe/verify_symbols.py \
+  --library "${hiprtc_library}" \
+  --library-name hiprtc \
+  --manifest ./eng/interop/interop-manifest.json \
+  --output "${evidence_dir}/hiprtc-symbol-evidence.json"
 hipcc -std=c++14 ./native/abi-probe/hip_abi_probe.cpp -o "${evidence_dir}/hip-abi-probe"
 "${evidence_dir}/hip-abi-probe" | tee "${evidence_dir}/abi-evidence.json"
 python3 ./native/abi-probe/collect_evidence.py \
-  --symbols "${evidence_dir}/symbol-evidence.json" \
+  --symbols "${evidence_dir}/runtime-symbol-evidence.json" \
+  --symbols "${evidence_dir}/hiprtc-symbol-evidence.json" \
   --types "${evidence_dir}/abi-evidence.json" \
   --header /opt/rocm/include/hip/hip_runtime_api.h \
-  --output "${evidence_dir}/m1-abi-evidence.json"
+  --header /opt/rocm/include/hip/hiprtc.h \
+  --output "${evidence_dir}/m2-abi-evidence.json"
 
 dotnet run --project ./samples/DeviceInfo/DeviceInfo.csproj -c Release | tee "${evidence_dir}/device-info.txt"
 dotnet run --project ./samples/MemoryCopy/MemoryCopy.csproj -c Release | tee "${evidence_dir}/memory-copy.txt"
 
-echo "Radeon Cloud M1 validation passed for ${actual_commit}."
+gpu_architecture="$(rocminfo | grep -Eo 'gfx[0-9]+' | sed -n '1p')"
+if [[ -z "${gpu_architecture}" ]]; then
+  echo "Unable to determine the GPU architecture from rocminfo." >&2
+  exit 1
+fi
+
+: > "${evidence_dir}/vector-add.txt"
+for length in 1 127 256 1000 1048576; do
+  dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
+    -c Release --no-build -- \
+    --arch "${gpu_architecture}" \
+    --length "${length}" \
+    --repeat 20 2>&1 | tee -a "${evidence_dir}/vector-add.txt"
+done
+
+dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
+  -c Release --no-build -- \
+  --arch "${gpu_architecture}" \
+  --negative-compile 2>&1 | tee "${evidence_dir}/negative-compile.txt"
+
+echo "Radeon Cloud M2 validation passed for ${actual_commit}."

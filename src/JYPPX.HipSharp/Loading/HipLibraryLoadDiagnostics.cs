@@ -10,12 +10,19 @@ namespace JYPPX.HipSharp.Loading;
 /// </summary>
 public sealed class HipLibraryLoadDiagnostics
 {
-    internal HipLibraryLoadDiagnostics(string operatingSystem, string processArchitecture, string targetFramework, string runtimeIdentifier, IList<HipLibraryLoadAttempt> attempts)
+    internal HipLibraryLoadDiagnostics(
+        string operatingSystem,
+        string processArchitecture,
+        string targetFramework,
+        string runtimeIdentifier,
+        string libraryName,
+        IList<HipLibraryLoadAttempt> attempts)
     {
         OperatingSystem = operatingSystem;
         ProcessArchitecture = processArchitecture;
         TargetFramework = targetFramework;
         RuntimeIdentifier = runtimeIdentifier;
+        LibraryName = libraryName;
         Attempts = new ReadOnlyCollection<HipLibraryLoadAttempt>(attempts ?? throw new ArgumentNullException(nameof(attempts)));
     }
 
@@ -31,11 +38,14 @@ public sealed class HipLibraryLoadDiagnostics
     /// <summary>获取用于探测 runtime 资源的 RID / Gets the RID used to probe runtime assets.</summary>
     public string RuntimeIdentifier { get; }
 
+    /// <summary>获取本次加载的逻辑库名 / Gets the logical library name being loaded.</summary>
+    public string LibraryName { get; }
+
     /// <summary>获取按顺序执行的加载尝试 / Gets the load attempts in execution order.</summary>
     public IReadOnlyList<HipLibraryLoadAttempt> Attempts { get; }
 
     /// <summary>获取单行加载环境摘要 / Gets a single-line summary of the load environment.</summary>
     /// <returns>加载环境摘要 / Load-environment summary.</returns>
     public override string ToString() =>
-        string.Format(CultureInfo.InvariantCulture, "OS={0}; Architecture={1}; TFM={2}; RID={3}; Attempts={4}", OperatingSystem, ProcessArchitecture, TargetFramework, RuntimeIdentifier, Attempts.Count);
+        string.Format(CultureInfo.InvariantCulture, "Library={0}; OS={1}; Architecture={2}; TFM={3}; RID={4}; Attempts={5}", LibraryName, OperatingSystem, ProcessArchitecture, TargetFramework, RuntimeIdentifier, Attempts.Count);
 }

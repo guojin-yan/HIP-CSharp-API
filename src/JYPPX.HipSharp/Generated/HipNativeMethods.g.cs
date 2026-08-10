@@ -5,12 +5,13 @@ using System;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using JYPPX.HipSharp.Memory;
+using JYPPX.HipSharp.Rtc;
 using JYPPX.HipSharp.Types;
 
 namespace JYPPX.HipSharp.Generated;
 
 /// <summary>
-/// 提供由 manifest 生成的 HIP Runtime C ABI 声明 / Provides manifest-generated HIP Runtime C ABI declarations.
+/// 提供由 manifest 生成的 HIP Runtime 与 HIPRTC C ABI 声明 / Provides manifest-generated HIP Runtime and HIPRTC C ABI declarations.
 /// </summary>
 internal static partial class HipNativeMethods
 {
@@ -199,6 +200,213 @@ internal static partial class HipNativeMethods
 #else
     [DllImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipGetErrorString", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
     internal static extern IntPtr GetErrorString(HipError error);
+#endif
+
+    /// <summary>
+    /// 从内存 code object 加载模块 / Loads a module from an in-memory code object.
+    /// </summary>
+    /// <param name="module">方向：out，所有权：caller / Direction: out; ownership: caller.</param>
+    /// <param name="image">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleLoadData")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipError ModuleLoadData(out IntPtr module, IntPtr image);
+#else
+    [DllImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleLoadData", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipError ModuleLoadData(out IntPtr module, IntPtr image);
+#endif
+
+    /// <summary>
+    /// 卸载 HIP 模块 / Unloads a HIP module.
+    /// </summary>
+    /// <param name="module">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleUnload")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipError ModuleUnload(IntPtr module);
+#else
+    [DllImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleUnload", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipError ModuleUnload(IntPtr module);
+#endif
+
+    /// <summary>
+    /// 从模块获取 kernel function / Gets a kernel function from a module.
+    /// </summary>
+    /// <param name="function">方向：out，所有权：borrowed-module / Direction: out; ownership: borrowed-module.</param>
+    /// <param name="module">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="kernelName">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleGetFunction")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipError ModuleGetFunction(out IntPtr function, IntPtr module, IntPtr kernelName);
+#else
+    [DllImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleGetFunction", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipError ModuleGetFunction(out IntPtr function, IntPtr module, IntPtr kernelName);
+#endif
+
+    /// <summary>
+    /// 在默认或指定 stream 上提交 kernel / Submits a kernel to the default or specified stream.
+    /// </summary>
+    /// <param name="function">方向：in，所有权：borrowed-module / Direction: in; ownership: borrowed-module.</param>
+    /// <param name="gridDimX">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="gridDimY">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="gridDimZ">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="blockDimX">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="blockDimY">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="blockDimZ">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="sharedMemoryBytes">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="stream">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="kernelParameters">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <param name="extra">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleLaunchKernel")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipError ModuleLaunchKernel(IntPtr function, uint gridDimX, uint gridDimY, uint gridDimZ, uint blockDimX, uint blockDimY, uint blockDimZ, uint sharedMemoryBytes, IntPtr stream, IntPtr kernelParameters, IntPtr extra);
+#else
+    [DllImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = "hipModuleLaunchKernel", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipError ModuleLaunchKernel(IntPtr function, uint gridDimX, uint gridDimY, uint gridDimZ, uint blockDimX, uint blockDimY, uint blockDimZ, uint sharedMemoryBytes, IntPtr stream, IntPtr kernelParameters, IntPtr extra);
+#endif
+
+    /// <summary>
+    /// 获取 HIPRTC 版本 / Gets the HIPRTC version.
+    /// </summary>
+    /// <param name="major">方向：out，所有权：caller / Direction: out; ownership: caller.</param>
+    /// <param name="minor">方向：out，所有权：caller / Direction: out; ownership: caller.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcVersion")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcVersion(out int major, out int minor);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcVersion", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcVersion(out int major, out int minor);
+#endif
+
+    /// <summary>
+    /// 获取 HIPRTC 错误说明 / Gets a HIPRTC error description.
+    /// </summary>
+    /// <param name="result">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetErrorString")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial IntPtr RtcGetErrorString(HipRtcResult result);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetErrorString", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern IntPtr RtcGetErrorString(HipRtcResult result);
+#endif
+
+    /// <summary>
+    /// 创建 HIPRTC program / Creates a HIPRTC program.
+    /// </summary>
+    /// <param name="program">方向：out，所有权：caller / Direction: out; ownership: caller.</param>
+    /// <param name="source">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <param name="name">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <param name="headerCount">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="headers">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <param name="includeNames">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcCreateProgram")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcCreateProgram(out IntPtr program, IntPtr source, IntPtr name, int headerCount, IntPtr headers, IntPtr includeNames);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcCreateProgram", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcCreateProgram(out IntPtr program, IntPtr source, IntPtr name, int headerCount, IntPtr headers, IntPtr includeNames);
+#endif
+
+    /// <summary>
+    /// 销毁 HIPRTC program / Destroys a HIPRTC program.
+    /// </summary>
+    /// <param name="program">方向：inout，所有权：caller / Direction: inout; ownership: caller.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcDestroyProgram")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcDestroyProgram(ref IntPtr program);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcDestroyProgram", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcDestroyProgram(ref IntPtr program);
+#endif
+
+    /// <summary>
+    /// 编译 HIPRTC program / Compiles a HIPRTC program.
+    /// </summary>
+    /// <param name="program">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="optionCount">方向：in，所有权：value / Direction: in; ownership: value.</param>
+    /// <param name="options">方向：in，所有权：borrowed-call / Direction: in; ownership: borrowed-call.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcCompileProgram")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcCompileProgram(IntPtr program, int optionCount, IntPtr options);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcCompileProgram", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcCompileProgram(IntPtr program, int optionCount, IntPtr options);
+#endif
+
+    /// <summary>
+    /// 获取 HIPRTC 编译日志大小 / Gets the HIPRTC compilation log size.
+    /// </summary>
+    /// <param name="program">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="logSize">方向：out，所有权：caller / Direction: out; ownership: caller.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetProgramLogSize")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcGetProgramLogSize(IntPtr program, out UIntPtr logSize);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetProgramLogSize", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcGetProgramLogSize(IntPtr program, out UIntPtr logSize);
+#endif
+
+    /// <summary>
+    /// 获取 HIPRTC 编译日志 / Gets the HIPRTC compilation log.
+    /// </summary>
+    /// <param name="program">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="log">方向：out，所有权：caller-buffer / Direction: out; ownership: caller-buffer.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetProgramLog")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcGetProgramLog(IntPtr program, IntPtr log);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetProgramLog", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcGetProgramLog(IntPtr program, IntPtr log);
+#endif
+
+    /// <summary>
+    /// 获取 HIPRTC code object 大小 / Gets the HIPRTC code-object size.
+    /// </summary>
+    /// <param name="program">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="codeSize">方向：out，所有权：caller / Direction: out; ownership: caller.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetCodeSize")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcGetCodeSize(IntPtr program, out UIntPtr codeSize);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetCodeSize", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcGetCodeSize(IntPtr program, out UIntPtr codeSize);
+#endif
+
+    /// <summary>
+    /// 获取 HIPRTC code object / Gets the HIPRTC code object.
+    /// </summary>
+    /// <param name="program">方向：in，所有权：borrowed / Direction: in; ownership: borrowed.</param>
+    /// <param name="code">方向：out，所有权：caller-buffer / Direction: out; ownership: caller-buffer.</param>
+    /// <returns>原生返回值 / Native return value.</returns>
+#if NET7_0_OR_GREATER
+    [LibraryImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetCode")]
+    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]
+    internal static partial HipRtcResult RtcGetCode(IntPtr program, IntPtr code);
+#else
+    [DllImport(HipNativeLibraryNames.RtcImportName, EntryPoint = "hiprtcGetCode", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]
+    internal static extern HipRtcResult RtcGetCode(IntPtr program, IntPtr code);
 #endif
 
 }

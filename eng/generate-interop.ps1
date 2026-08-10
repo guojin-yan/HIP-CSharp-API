@@ -19,18 +19,24 @@ $lines.Add("using System;")
 $lines.Add("using System.Runtime.CompilerServices;")
 $lines.Add("using System.Runtime.InteropServices;")
 $lines.Add("using JYPPX.HipSharp.Memory;")
+$lines.Add("using JYPPX.HipSharp.Rtc;")
 $lines.Add("using JYPPX.HipSharp.Types;")
 $lines.Add("")
 $lines.Add("namespace JYPPX.HipSharp.Generated;")
 $lines.Add("")
 $lines.Add("/// <summary>")
-$lines.Add("/// 提供由 manifest 生成的 HIP Runtime C ABI 声明 / Provides manifest-generated HIP Runtime C ABI declarations.")
+$lines.Add("/// 提供由 manifest 生成的 HIP Runtime 与 HIPRTC C ABI 声明 / Provides manifest-generated HIP Runtime and HIPRTC C ABI declarations.")
 $lines.Add("/// </summary>")
 $lines.Add("internal static partial class HipNativeMethods")
 $lines.Add("{")
 
 foreach ($function in $manifest.functions) {
     $parameters = @($function.parameters | ForEach-Object { $_.declaration }) -join ", "
+    $importName = switch ($function.library) {
+        "amdhip64" { "HipNativeLibraryNames.RuntimeImportName" }
+        "hiprtc" { "HipNativeLibraryNames.RtcImportName" }
+        default { throw "Unsupported native library '$($function.library)' for $($function.entryPoint)." }
+    }
     $lines.Add("    /// <summary>")
     $lines.Add("    /// $($function.summaryZh) / $($function.summaryEn).")
     $lines.Add("    /// </summary>")
@@ -39,11 +45,11 @@ foreach ($function in $manifest.functions) {
     }
     $lines.Add("    /// <returns>原生返回值 / Native return value.</returns>")
     $lines.Add("#if NET7_0_OR_GREATER")
-    $lines.Add("    [LibraryImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = `"$($function.entryPoint)`")]")
+    $lines.Add("    [LibraryImport($importName, EntryPoint = `"$($function.entryPoint)`")]")
     $lines.Add("    [UnmanagedCallConv(CallConvs = new[] { typeof(CallConvCdecl) })]")
     $lines.Add("    internal static partial $($function.returnType) $($function.managedName)($parameters);")
     $lines.Add("#else")
-    $lines.Add("    [DllImport(HipNativeLibraryNames.RuntimeImportName, EntryPoint = `"$($function.entryPoint)`", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]")
+    $lines.Add("    [DllImport($importName, EntryPoint = `"$($function.entryPoint)`", CallingConvention = CallingConvention.Cdecl, ExactSpelling = true)]")
     $lines.Add("    internal static extern $($function.returnType) $($function.managedName)($parameters);")
     $lines.Add("#endif")
     $lines.Add("")

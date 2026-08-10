@@ -31,6 +31,23 @@ internal interface IHipNativeApi
 
     public HipError DeviceSynchronize();
 
+    public HipError ModuleLoadData(byte[] codeObject, out IntPtr module);
+
+    public HipError ModuleUnload(IntPtr module);
+
+    public HipError ModuleGetFunction(IntPtr module, string kernelName, out IntPtr function);
+
+    public HipError ModuleLaunchKernel(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr kernelParameters);
+
     public string GetErrorName(HipError error);
 
     public string GetErrorString(HipError error);

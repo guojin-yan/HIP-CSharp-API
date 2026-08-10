@@ -23,4 +23,13 @@ internal static class HipNativeLibraryNames
     /// HIPRTC 逻辑库名 / Logical library name for HIPRTC.
     /// </summary>
     internal const string Rtc = "hiprtc";
+
+    /// <summary>
+    /// P/Invoke 使用的 HIPRTC 库名 / HIPRTC library name used by P/Invoke.
+    /// </summary>
+#if NETFRAMEWORK
+    internal const string RtcImportName = "hiprtc0702.dll";
+#else
+    internal const string RtcImportName = Rtc;
+#endif
 }

@@ -13,14 +13,14 @@ def command(*arguments: str) -> str:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument("--symbols", required=True)
+    parser.add_argument("--symbols", action="append", required=True)
     parser.add_argument("--types", required=True)
-    parser.add_argument("--header", required=True)
+    parser.add_argument("--header", action="append", required=True)
     parser.add_argument("--output", required=True)
     args = parser.parse_args()
 
-    header = pathlib.Path(args.header).resolve(strict=True)
-    symbols = json.loads(pathlib.Path(args.symbols).read_text(encoding="utf-8"))
+    headers = [pathlib.Path(value).resolve(strict=True) for value in args.header]
+    symbol_reports = [json.loads(pathlib.Path(value).read_text(encoding="utf-8")) for value in args.symbols]
     type_values = json.loads(pathlib.Path(args.types).read_text(encoding="utf-8"))
     os_release = pathlib.Path("/etc/os-release").read_text(encoding="utf-8")
     pretty_name = next(
@@ -37,11 +37,21 @@ def main() -> int:
             "rocmVersion": rocm_version,
             "hipVersion": command("hipconfig", "--version"),
         },
-        "header": {
-            "path": str(header),
-            "sha256": hashlib.sha256(header.read_bytes()).hexdigest(),
-        },
-        "symbols": [item["entryPoint"] for item in symbols["symbols"] if item["found"]],
+        "headers": [
+            {
+                "path": str(header),
+                "sha256": hashlib.sha256(header.read_bytes()).hexdigest(),
+            }
+            for header in headers
+        ],
+        "libraries": [
+            {
+                "name": symbols["libraryName"],
+                "path": symbols["library"],
+                "symbols": [item["entryPoint"] for item in symbols["symbols"] if item["found"]],
+            }
+            for symbols in symbol_reports
+        ],
         "types": [{"name": name, "value": value} for name, value in type_values.items()],
     }
     output = pathlib.Path(args.output).resolve()

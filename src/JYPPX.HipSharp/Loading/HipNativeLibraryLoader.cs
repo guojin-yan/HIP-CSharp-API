@@ -5,23 +5,29 @@ using System.IO;
 namespace JYPPX.HipSharp.Loading;
 
 /// <summary>
-/// 执行 HIP Runtime 原生库定位并构造可操作的失败诊断 / Locates the HIP Runtime native library and builds actionable failure diagnostics.
+/// 执行 HIP 原生组件定位并构造可操作的失败诊断 / Locates a HIP native component and builds actionable failure diagnostics.
 /// </summary>
 internal sealed class HipNativeLibraryLoader
 {
     private readonly HipPlatformInfo _platform;
     private readonly HipLibraryLocator _locator;
     private readonly INativeLibraryBackend _backend;
+    private readonly HipNativeLibraryKind _libraryKind;
 
-    internal HipNativeLibraryLoader()
-        : this(HipPlatformInfo.Current(), null, null)
+    internal HipNativeLibraryLoader(HipNativeLibraryKind libraryKind)
+        : this(HipPlatformInfo.Current(), null, null, libraryKind)
     {
     }
 
-    internal HipNativeLibraryLoader(HipPlatformInfo platform, HipLibraryLocator? locator, INativeLibraryBackend? backend)
+    internal HipNativeLibraryLoader(
+        HipPlatformInfo platform,
+        HipLibraryLocator? locator,
+        INativeLibraryBackend? backend,
+        HipNativeLibraryKind libraryKind = HipNativeLibraryKind.Runtime)
     {
         _platform = platform;
-        _locator = locator ?? new HipLibraryLocator(platform, AppContext.BaseDirectory, Environment.GetEnvironmentVariable);
+        _libraryKind = libraryKind;
+        _locator = locator ?? new HipLibraryLocator(platform, AppContext.BaseDirectory, Environment.GetEnvironmentVariable, libraryKind);
         _backend = backend ?? new NativeLibraryBackend();
     }
 
@@ -30,7 +36,7 @@ internal sealed class HipNativeLibraryLoader
         var attempts = new List<HipLibraryLoadAttempt>();
         if (!_platform.IsWindows && !_platform.IsLinux)
         {
-            attempts.Add(new HipLibraryLoadAttempt("amdhip64", "platform-check", false, "Only Windows and Linux are supported."));
+            attempts.Add(new HipLibraryLoadAttempt(GetLogicalName(), "platform-check", false, "Only Windows and Linux are supported."));
             throw CreateException(attempts);
         }
 
@@ -60,7 +66,10 @@ internal sealed class HipNativeLibraryLoader
             _platform.ProcessArchitecture,
             _platform.TargetFramework,
             _platform.RuntimeIdentifier,
+            GetLogicalName(),
             attempts));
+
+    private string GetLogicalName() => _libraryKind == HipNativeLibraryKind.Runtime ? "amdhip64" : "hiprtc";
 
     private string RedactCandidate(HipLibraryCandidate candidate)
     {

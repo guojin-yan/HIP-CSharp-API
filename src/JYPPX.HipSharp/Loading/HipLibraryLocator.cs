@@ -5,26 +5,32 @@ using System.IO;
 namespace JYPPX.HipSharp.Loading;
 
 /// <summary>
-/// 以稳定顺序生成 HIP Runtime 库候选项 / Produces HIP Runtime library candidates in a stable order.
+/// 以稳定顺序生成 HIP 原生组件候选项 / Produces HIP native-component candidates in a stable order.
 /// </summary>
 internal sealed class HipLibraryLocator
 {
     private readonly HipPlatformInfo _platform;
     private readonly string _applicationBase;
     private readonly Func<string, string?> _environmentReader;
+    private readonly HipNativeLibraryKind _libraryKind;
 
-    internal HipLibraryLocator(HipPlatformInfo platform, string applicationBase, Func<string, string?> environmentReader)
+    internal HipLibraryLocator(
+        HipPlatformInfo platform,
+        string applicationBase,
+        Func<string, string?> environmentReader,
+        HipNativeLibraryKind libraryKind = HipNativeLibraryKind.Runtime)
     {
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
         _applicationBase = applicationBase ?? throw new ArgumentNullException(nameof(applicationBase));
         _environmentReader = environmentReader ?? throw new ArgumentNullException(nameof(environmentReader));
+        _libraryKind = libraryKind;
     }
 
     internal IList<HipLibraryCandidate> GetCandidates(string? explicitLibraryPath)
     {
         var candidates = new List<HipLibraryCandidate>();
         var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        string fileName = _platform.IsWindows ? "amdhip64_7.dll" : "libamdhip64.so";
+        string fileName = GetFileName();
 
         if (!string.IsNullOrWhiteSpace(explicitLibraryPath))
         {
@@ -44,17 +50,27 @@ internal sealed class HipLibraryLocator
 
         if (_platform.IsWindows)
         {
-            Add(candidates, seen, "amdhip64_7.dll", "operating-system-search");
+            Add(candidates, seen, fileName, "operating-system-search");
         }
         else
         {
             Add(candidates, seen, Path.Combine("/opt/rocm/lib", fileName), "standard-rocm");
             Add(candidates, seen, Path.Combine("/opt/rocm/lib64", fileName), "standard-rocm");
-            Add(candidates, seen, "libamdhip64.so.7", "operating-system-search");
+            Add(candidates, seen, _libraryKind == HipNativeLibraryKind.Runtime ? "libamdhip64.so.7" : "libhiprtc.so.7", "operating-system-search");
             Add(candidates, seen, fileName, "operating-system-search");
         }
 
         return candidates;
+    }
+
+    private string GetFileName()
+    {
+        if (_libraryKind == HipNativeLibraryKind.Runtime)
+        {
+            return _platform.IsWindows ? "amdhip64_7.dll" : "libamdhip64.so";
+        }
+
+        return _platform.IsWindows ? "hiprtc0702.dll" : "libhiprtc.so";
     }
 
     private void AddEnvironmentRoot(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string variableName, string fileName)

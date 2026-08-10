@@ -1,9 +1,21 @@
 {
-  "schemaVersion": 2,
-  "description": "Single source for the M1 HIP Runtime Direct C ABI declarations.",
+  "schemaVersion": 3,
+  "description": "Single source for the M2 HIP Runtime, Module, launch, and HIPRTC Direct C ABI declarations.",
   "header": "hip/hip_runtime_api.h",
   "headerVersion": "ROCm 7.2.1",
-  "library": "amdhip64",
+  "verifiedHeaders": [
+    {
+      "path": "hip/hip_runtime_api.h",
+      "source": "https://raw.githubusercontent.com/ROCm/HIP/refs/tags/rocm-7.2.1/include/hip/hip_runtime_api.h",
+      "sha256": "E8E8E91FFDE4C13F81B41901D63F20618B4E4B82B67A626507005FC72810493E"
+    },
+    {
+      "path": "hip/hiprtc.h",
+      "source": "https://raw.githubusercontent.com/ROCm/HIP/refs/tags/rocm-7.2.1/include/hip/hiprtc.h",
+      "sha256": "A931EB3F5C91A1361DA793847365E9460168FF01C578EE658D53BAD1AD6119CE"
+    }
+  ],
+  "libraries": [ "amdhip64", "hiprtc" ],
   "libraryImportMinimumTarget": "net7.0",
   "legacyDeclaration": "DllImport",
   "modernDeclaration": "LibraryImport",
@@ -12,6 +24,7 @@
     {
       "managedName": "Init",
       "entryPoint": "hipInit",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -27,6 +40,7 @@
     {
       "managedName": "RuntimeGetVersion",
       "entryPoint": "hipRuntimeGetVersion",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -42,6 +56,7 @@
     {
       "managedName": "DriverGetVersion",
       "entryPoint": "hipDriverGetVersion",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -57,6 +72,7 @@
     {
       "managedName": "GetDeviceCount",
       "entryPoint": "hipGetDeviceCount",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -72,6 +88,7 @@
     {
       "managedName": "GetDevice",
       "entryPoint": "hipGetDevice",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -87,6 +104,7 @@
     {
       "managedName": "SetDevice",
       "entryPoint": "hipSetDevice",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -102,6 +120,7 @@
     {
       "managedName": "DeviceGetName",
       "entryPoint": "hipDeviceGetName",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -119,6 +138,7 @@
     {
       "managedName": "Malloc",
       "entryPoint": "hipMalloc",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -135,6 +155,7 @@
     {
       "managedName": "Free",
       "entryPoint": "hipFree",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -150,6 +171,7 @@
     {
       "managedName": "Memcpy",
       "entryPoint": "hipMemcpy",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -168,6 +190,7 @@
     {
       "managedName": "DeviceSynchronize",
       "entryPoint": "hipDeviceSynchronize",
+      "library": "amdhip64",
       "returnType": "HipError",
       "returnOwnership": "value",
       "minimumHipVersion": "1.0.0",
@@ -181,6 +204,7 @@
     {
       "managedName": "GetErrorName",
       "entryPoint": "hipGetErrorName",
+      "library": "amdhip64",
       "returnType": "IntPtr",
       "returnOwnership": "borrowed",
       "minimumHipVersion": "1.0.0",
@@ -196,6 +220,7 @@
     {
       "managedName": "GetErrorString",
       "entryPoint": "hipGetErrorString",
+      "library": "amdhip64",
       "returnType": "IntPtr",
       "returnOwnership": "borrowed",
       "minimumHipVersion": "1.0.0",
@@ -206,6 +231,248 @@
       "summaryEn": "Gets a HIP error description",
       "parameters": [
         { "declaration": "HipError error", "name": "error", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "ModuleLoadData",
+      "entryPoint": "hipModuleLoadData",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "从内存 code object 加载模块",
+      "summaryEn": "Loads a module from an in-memory code object",
+      "parameters": [
+        { "declaration": "out IntPtr module", "name": "module", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr image", "name": "image", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "ModuleUnload",
+      "entryPoint": "hipModuleUnload",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "卸载 HIP 模块",
+      "summaryEn": "Unloads a HIP module",
+      "parameters": [
+        { "declaration": "IntPtr module", "name": "module", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "ModuleGetFunction",
+      "entryPoint": "hipModuleGetFunction",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "从模块获取 kernel function",
+      "summaryEn": "Gets a kernel function from a module",
+      "parameters": [
+        { "declaration": "out IntPtr function", "name": "function", "direction": "out", "ownership": "borrowed-module" },
+        { "declaration": "IntPtr module", "name": "module", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr kernelName", "name": "kernelName", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "ModuleLaunchKernel",
+      "entryPoint": "hipModuleLaunchKernel",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": false,
+      "summaryZh": "在默认或指定 stream 上提交 kernel",
+      "summaryEn": "Submits a kernel to the default or specified stream",
+      "parameters": [
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" },
+        { "declaration": "uint gridDimX", "name": "gridDimX", "direction": "in", "ownership": "value" },
+        { "declaration": "uint gridDimY", "name": "gridDimY", "direction": "in", "ownership": "value" },
+        { "declaration": "uint gridDimZ", "name": "gridDimZ", "direction": "in", "ownership": "value" },
+        { "declaration": "uint blockDimX", "name": "blockDimX", "direction": "in", "ownership": "value" },
+        { "declaration": "uint blockDimY", "name": "blockDimY", "direction": "in", "ownership": "value" },
+        { "declaration": "uint blockDimZ", "name": "blockDimZ", "direction": "in", "ownership": "value" },
+        { "declaration": "uint sharedMemoryBytes", "name": "sharedMemoryBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr kernelParameters", "name": "kernelParameters", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr extra", "name": "extra", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "RtcVersion",
+      "entryPoint": "hiprtcVersion",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC 版本",
+      "summaryEn": "Gets the HIPRTC version",
+      "parameters": [
+        { "declaration": "out int major", "name": "major", "direction": "out", "ownership": "caller" },
+        { "declaration": "out int minor", "name": "minor", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcGetErrorString",
+      "entryPoint": "hiprtcGetErrorString",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "IntPtr",
+      "returnOwnership": "borrowed",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC 错误说明",
+      "summaryEn": "Gets a HIPRTC error description",
+      "parameters": [
+        { "declaration": "HipRtcResult result", "name": "result", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "RtcCreateProgram",
+      "entryPoint": "hiprtcCreateProgram",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "创建 HIPRTC program",
+      "summaryEn": "Creates a HIPRTC program",
+      "parameters": [
+        { "declaration": "out IntPtr program", "name": "program", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr name", "name": "name", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "int headerCount", "name": "headerCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr headers", "name": "headers", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr includeNames", "name": "includeNames", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "RtcDestroyProgram",
+      "entryPoint": "hiprtcDestroyProgram",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "销毁 HIPRTC program",
+      "summaryEn": "Destroys a HIPRTC program",
+      "parameters": [
+        { "declaration": "ref IntPtr program", "name": "program", "direction": "inout", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcCompileProgram",
+      "entryPoint": "hiprtcCompileProgram",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "编译 HIPRTC program",
+      "summaryEn": "Compiles a HIPRTC program",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "int optionCount", "name": "optionCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr options", "name": "options", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "RtcGetProgramLogSize",
+      "entryPoint": "hiprtcGetProgramLogSize",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC 编译日志大小",
+      "summaryEn": "Gets the HIPRTC compilation log size",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "out UIntPtr logSize", "name": "logSize", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcGetProgramLog",
+      "entryPoint": "hiprtcGetProgramLog",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC 编译日志",
+      "summaryEn": "Gets the HIPRTC compilation log",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr log", "name": "log", "direction": "out", "ownership": "caller-buffer" }
+      ]
+    },
+    {
+      "managedName": "RtcGetCodeSize",
+      "entryPoint": "hiprtcGetCodeSize",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC code object 大小",
+      "summaryEn": "Gets the HIPRTC code-object size",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "out UIntPtr codeSize", "name": "codeSize", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcGetCode",
+      "entryPoint": "hiprtcGetCode",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC code object",
+      "summaryEn": "Gets the HIPRTC code object",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr code", "name": "code", "direction": "out", "ownership": "caller-buffer" }
       ]
     }
   ]

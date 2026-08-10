@@ -8,7 +8,7 @@
     <IsPackable>true</IsPackable>
     <PackageId>JYPPX.HIP.CSharp.API</PackageId>
     <Title>JYPPX HIP C# API</Title>
-    <Description>Direct HIP Runtime C ABI bindings and managed device and memory APIs across .NET Framework 4.6 through .NET 10.</Description>
+    <Description>Direct HIP Runtime and HIPRTC C ABI bindings with managed device, memory, runtime compilation, module, and kernel APIs across .NET Framework 4.6 through .NET 10.</Description>
     <PackageTags>AMD;HIP;ROCm;GPU;interop;CSharp</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageIcon>logo.jpg</PackageIcon>

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using JYPPX.HipSharp.Interop;
 using JYPPX.HipSharp.Memory;
+using JYPPX.HipSharp.Modules;
 using JYPPX.HipSharp.Types;
 
 namespace JYPPX.HipSharp;
@@ -122,6 +123,35 @@ public sealed class HipRuntime
         }
 
         return new HipDeviceMemory(_nativeApi, pointer, byteCount);
+    }
+
+    /// <summary>
+    /// 从内存代码对象加载 HIP module / Loads a HIP module from an in-memory code object.
+    /// </summary>
+    /// <param name="codeObject">HIPRTC 或兼容工具生成的代码对象 / A code object produced by HIPRTC or a compatible tool.</param>
+    /// <returns>拥有原生 module 的对象 / An object that owns the native module.</returns>
+    /// <exception cref="ArgumentNullException">代码对象为 null / The code object is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">代码对象为空 / The code object is empty.</exception>
+    /// <exception cref="HipException">HIP 无法加载 module / HIP cannot load the module.</exception>
+    public HipModule LoadModule(byte[] codeObject)
+    {
+        if (codeObject is null)
+        {
+            throw new ArgumentNullException(nameof(codeObject));
+        }
+
+        if (codeObject.Length == 0)
+        {
+            throw new ArgumentException("A HIP module code object cannot be empty.", nameof(codeObject));
+        }
+
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ModuleLoadData(codeObject, out IntPtr module), "hipModuleLoadData");
+        if (module == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("hipModuleLoadData succeeded but returned a null module.");
+        }
+
+        return new HipModule(_nativeApi, module);
     }
 
     /// <summary>

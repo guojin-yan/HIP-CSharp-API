@@ -70,19 +70,32 @@ public sealed class RepositoryQualityTests
         {
             "hipInit", "hipRuntimeGetVersion", "hipDriverGetVersion", "hipGetDeviceCount", "hipGetDevice",
             "hipSetDevice", "hipDeviceGetName", "hipMalloc", "hipFree", "hipMemcpy", "hipDeviceSynchronize",
-            "hipGetErrorName", "hipGetErrorString",
+            "hipGetErrorName", "hipGetErrorString", "hipModuleLoadData", "hipModuleUnload", "hipModuleGetFunction",
+            "hipModuleLaunchKernel", "hiprtcVersion", "hiprtcGetErrorString", "hiprtcCreateProgram",
+            "hiprtcDestroyProgram", "hiprtcCompileProgram", "hiprtcGetProgramLogSize", "hiprtcGetProgramLog",
+            "hiprtcGetCodeSize", "hiprtcGetCode",
         };
         JsonElement functions = manifest.RootElement.GetProperty("functions");
+        JsonElement verifiedHeaders = manifest.RootElement.GetProperty("verifiedHeaders");
+        Assert.AreEqual(2, verifiedHeaders.GetArrayLength());
+        Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
+            Regex.IsMatch(header.GetProperty("sha256").GetString()!, "^[0-9A-F]{64}$", RegexOptions.CultureInvariant)));
+        Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
+            header.GetProperty("source").GetString()!.Contains("/ROCm/HIP/", StringComparison.Ordinal)));
         Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
         CollectionAssert.AreEqual(
             expectedEntryPoints,
             functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
         Assert.IsTrue(functions.EnumerateArray().All(function => !function.GetProperty("optional").GetBoolean()));
+        Assert.AreEqual(17, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
+        Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
         string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs"));
         StringAssert.Contains(generated, "NET7_0_OR_GREATER");
         StringAssert.Contains(generated, "LibraryImport");
         StringAssert.Contains(generated, "DllImport");
+        StringAssert.Contains(generated, "HipNativeLibraryNames.RuntimeImportName");
+        StringAssert.Contains(generated, "HipNativeLibraryNames.RtcImportName");
         foreach (string entryPoint in expectedEntryPoints)
         {
             StringAssert.Contains(generated, "EntryPoint = \"" + entryPoint + "\"");
@@ -153,6 +166,8 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual("net10.0", metadata.GetProperty("properties").GetProperty("TargetFramework").GetString());
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, ".config", "dotnet-tools.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "docs", "toc.yml")));
+        Assert.IsTrue(docfx.RootElement.GetProperty("build").GetProperty("content")[1].GetProperty("files")
+            .EnumerateArray().Any(item => item.GetString() == "guides/**/*.md"));
 
         var declaration = new Regex(@"^\s*(?:internal|public)\s+(?:static\s+|sealed\s+|partial\s+)*(?:class|struct|enum|interface)\s+", RegexOptions.Multiline | RegexOptions.CultureInvariant);
         var chineseText = new Regex(@"[\u4e00-\u9fff]", RegexOptions.CultureInvariant);

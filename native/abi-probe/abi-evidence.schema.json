@@ -3,7 +3,7 @@
   "$id": "https://github.com/guojin-yan/HIP-CSharp-API/native/abi-probe/abi-evidence.schema.json",
   "title": "HipSharp ABI evidence",
   "type": "object",
-  "required": [ "gitCommit", "environment", "header", "symbols", "types" ],
+  "required": [ "gitCommit", "environment", "headers", "libraries", "types" ],
   "properties": {
     "gitCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "environment": {
@@ -16,15 +16,31 @@
         "hipVersion": { "type": "string" }
       }
     },
-    "header": {
-      "type": "object",
-      "required": [ "path", "sha256" ],
-      "properties": {
-        "path": { "type": "string" },
-        "sha256": { "type": "string", "pattern": "^[0-9A-Fa-f]{64}$" }
+    "headers": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [ "path", "sha256" ],
+        "properties": {
+          "path": { "type": "string" },
+          "sha256": { "type": "string", "pattern": "^[0-9A-Fa-f]{64}$" }
+        }
       }
     },
-    "symbols": { "type": "array", "items": { "type": "string" } },
+    "libraries": {
+      "type": "array",
+      "minItems": 2,
+      "items": {
+        "type": "object",
+        "required": [ "name", "path", "symbols" ],
+        "properties": {
+          "name": { "enum": [ "amdhip64", "hiprtc" ] },
+          "path": { "type": "string" },
+          "symbols": { "type": "array", "items": { "type": "string" } }
+        }
+      }
+    },
     "types": { "type": "array", "items": { "type": "object" } }
   }
 }
