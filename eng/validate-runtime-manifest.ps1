@@ -75,7 +75,8 @@ if (-not [string]::IsNullOrWhiteSpace($CandidateAttestation)) {
     if ($attestation.schemaVersion -ne 1 -or $attestation.mode -ne "isolated-gpu-candidate" -or $attestation.publishable) {
         throw "HIPSHARP1001: Candidate attestation mode is invalid."
     }
-    foreach ($name in @("gitSha", "manifestSha256", "sbomSha256", "stagingDigestSha256")) { Assert-HipSharpHash ([string]$attestation[$name]) "candidate attestation $name" }
+    if ([string]$attestation.gitSha -notmatch "^[0-9a-f]{40}$") { throw "HIPSHARP1001: Candidate attestation gitSha must be a lowercase 40-character Git SHA." }
+    foreach ($name in @("manifestSha256", "sbomSha256", "stagingDigestSha256")) { Assert-HipSharpHash ([string]$attestation[$name]) "candidate attestation $name" }
     if ($attestation.packageId -ne $runtimeManifest.packageId -or $attestation.packageVersion -ne $runtimeManifest.packageVersion -or $attestation.rid -ne $runtimeManifest.rid) {
         throw "HIPSHARP1001: Candidate attestation package identity does not match the manifest."
     }
