@@ -3,6 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string]$Manifest,
     [string]$StagingDirectory = "eng/native-assets/staging/linux-x64",
     [switch]$RequirePackable,
+    [string]$CandidateAttestation,
+    [string]$CandidateAttestationSha256,
     [switch]$SkipStaging
 )
 
@@ -15,6 +17,13 @@ $manifestPath = if ([System.IO.Path]::IsPathRooted($Manifest)) { $Manifest } els
 $manifestInfo = Get-HipSharpRuntimeManifest $manifestPath
 $runtimeManifest = $manifestInfo.Value
 Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:$RequirePackable
+
+if ($RequirePackable -and -not [string]::IsNullOrWhiteSpace($CandidateAttestation)) {
+    throw "HIPSHARP1001: Candidate and final-package validation modes are mutually exclusive."
+}
+if ([string]::IsNullOrWhiteSpace($CandidateAttestation) -ne [string]::IsNullOrWhiteSpace($CandidateAttestationSha256)) {
+    throw "HIPSHARP1001: Candidate attestation path and SHA-256 must be supplied together."
+}
 
 if (-not $SkipStaging -and $runtimeManifest.rid -eq "linux-x64") {
     $stagingRoot = if ([System.IO.Path]::IsPathRooted($StagingDirectory)) { [System.IO.Path]::GetFullPath($StagingDirectory) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $StagingDirectory)) }
@@ -43,6 +52,42 @@ if (-not $SkipStaging -and $runtimeManifest.rid -eq "linux-x64") {
     if ((Get-HipSharpSha256 $stagedManifest) -ne (Get-HipSharpSha256 $manifestInfo.Path)) { throw "Staged runtime manifest is stale." }
     $sbom = Join-Path $stagingRoot $runtimeManifest.sbom.path
     if ((Get-HipSharpSha256 $sbom) -ne $runtimeManifest.sbom.sha256) { throw "Staged SBOM hash mismatch." }
+}
+
+if (-not [string]::IsNullOrWhiteSpace($CandidateAttestation)) {
+    if ($SkipStaging) { throw "HIPSHARP1001: Candidate attestation validation cannot skip staging." }
+    if ($runtimeManifest.packEnabled -or $runtimeManifest.verified -or
+        $runtimeManifest.verification.packageAuditVerified -or $runtimeManifest.verification.gpuValidated) {
+        throw "HIPSHARP1001: A candidate package must retain an explicitly unverified manifest."
+    }
+    $artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))
+    $attestationPath = if ([System.IO.Path]::IsPathRooted($CandidateAttestation)) { [System.IO.Path]::GetFullPath($CandidateAttestation) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $CandidateAttestation)) }
+    if (-not $attestationPath.StartsWith($artifactsRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+        throw "HIPSHARP1001: Candidate attestation must remain under the ignored artifacts directory."
+    }
+    if (-not (Test-Path -LiteralPath $attestationPath -PathType Leaf)) { throw "HIPSHARP1001: Candidate attestation is missing." }
+    Assert-HipSharpHash $CandidateAttestationSha256 "candidate attestation SHA-256"
+    if ((Get-HipSharpSha256 $attestationPath) -ne $CandidateAttestationSha256) { throw "HIPSHARP1001: Candidate attestation hash mismatch." }
+    $attestation = Get-Content -Raw -LiteralPath $attestationPath | ConvertFrom-Json -AsHashtable
+    foreach ($name in @("schemaVersion", "mode", "publishable", "gitSha", "packageId", "packageVersion", "rid", "manifestSha256", "sbomSha256", "stagingDigestSha256")) {
+        if (-not $attestation.ContainsKey($name)) { throw "HIPSHARP1001: Candidate attestation is missing '$name'." }
+    }
+    if ($attestation.schemaVersion -ne 1 -or $attestation.mode -ne "isolated-gpu-candidate" -or $attestation.publishable) {
+        throw "HIPSHARP1001: Candidate attestation mode is invalid."
+    }
+    foreach ($name in @("gitSha", "manifestSha256", "sbomSha256", "stagingDigestSha256")) { Assert-HipSharpHash ([string]$attestation[$name]) "candidate attestation $name" }
+    if ($attestation.packageId -ne $runtimeManifest.packageId -or $attestation.packageVersion -ne $runtimeManifest.packageVersion -or $attestation.rid -ne $runtimeManifest.rid) {
+        throw "HIPSHARP1001: Candidate attestation package identity does not match the manifest."
+    }
+    if ($attestation.manifestSha256 -ne (Get-HipSharpSha256 $manifestInfo.Path) -or
+        $attestation.sbomSha256 -ne $runtimeManifest.sbom.sha256 -or
+        $attestation.stagingDigestSha256 -ne (Get-HipSharpStagingDigest $stagingRoot)) {
+        throw "HIPSHARP1001: Candidate attestation does not bind the current manifest, SBOM, and staging content."
+    }
+    $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
+    if ($LASTEXITCODE -ne 0 -or $gitSha -ne $attestation.gitSha) { throw "HIPSHARP1001: Candidate attestation does not bind the current Git SHA." }
+    $gitStatus = @(& git -C $repositoryRoot status --porcelain=v1)
+    if ($LASTEXITCODE -ne 0 -or $gitStatus.Count -ne 0) { throw "HIPSHARP1001: Candidate packaging requires a clean Git worktree." }
 }
 
 Write-Host "Runtime manifest validation passed for $($runtimeManifest.packageId)."

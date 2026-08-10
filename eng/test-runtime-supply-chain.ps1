@@ -70,4 +70,20 @@ try {
     Write-Host "Rejected as expected: Windows runtime manifest"
 }
 
+$digestRoot = Join-Path $repositoryRoot "artifacts/runtime-staging-digest-test"
+if (Test-Path -LiteralPath $digestRoot) { Remove-Item -LiteralPath $digestRoot -Recurse -Force }
+try {
+    New-Item -ItemType Directory -Force -Path (Join-Path $digestRoot "nested") | Out-Null
+    [System.IO.File]::WriteAllText((Join-Path $digestRoot "a.txt"), "alpha`n")
+    [System.IO.File]::WriteAllText((Join-Path $digestRoot "nested/b.txt"), "beta`n")
+    $firstDigest = Get-HipSharpStagingDigest $digestRoot
+    $secondDigest = Get-HipSharpStagingDigest $digestRoot
+    if ($firstDigest -ne $secondDigest) { throw "Runtime staging digest is not deterministic." }
+    [System.IO.File]::WriteAllText((Join-Path $digestRoot "nested/b.txt"), "tampered`n")
+    if ($firstDigest -eq (Get-HipSharpStagingDigest $digestRoot)) { throw "Runtime staging digest did not detect tampering." }
+    Write-Host "Runtime staging digest determinism/tamper test passed."
+} finally {
+    if (Test-Path -LiteralPath $digestRoot) { Remove-Item -LiteralPath $digestRoot -Recurse -Force }
+}
+
 Write-Host "Runtime supply-chain structural tests passed."

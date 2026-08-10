@@ -4,8 +4,14 @@ set -euo pipefail
 expected_commit="${1:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG}"
 core_package="${2:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG}"
 runtime_package="${3:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG}"
+package_mode="${4:-final}"
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 evidence_dir="${repository_root}/artifacts/radeon-runtime"
+
+[[ "${package_mode}" == "candidate" || "${package_mode}" == "final" ]] || {
+  echo "Package mode must be candidate or final." >&2
+  exit 1
+}
 
 if [[ "$(git -C "${repository_root}" rev-parse HEAD)" != "${expected_commit}" ]] ||
    git -C "${repository_root}" symbolic-ref -q HEAD >/dev/null ||
@@ -24,14 +30,16 @@ fi
 for device in /dev/kfd /dev/dri; do
   [[ -e "${device}" ]] || { echo "Required AMD device boundary is missing: ${device}" >&2; exit 1; }
 done
-for tool in dotnet pwsh readelf ldd sha256sum; do
+for tool in dotnet pwsh readelf ldd sha256sum git python3 pgrep; do
   command -v "${tool}" >/dev/null || { echo "Required runtime gate tool is unavailable: ${tool}" >&2; exit 1; }
 done
 
 mkdir -p "${evidence_dir}"
 sha256sum "${core_package}" "${runtime_package}" | tee "${evidence_dir}/package-hashes.txt"
 pwsh -NoProfile -File "${repository_root}/eng/verify-package.ps1" -PackagePath "${core_package}" | tee "${evidence_dir}/core-package-audit.txt"
-pwsh -NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${runtime_package}" | tee "${evidence_dir}/runtime-package-audit.txt"
+runtime_audit_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${runtime_package}")
+[[ "${package_mode}" == "candidate" ]] && runtime_audit_args+=(-Candidate)
+pwsh "${runtime_audit_args[@]}" | tee "${evidence_dir}/runtime-package-audit.txt"
 
 runtime_root="${evidence_dir}/consumer"
 case "${runtime_root}" in
@@ -80,7 +88,7 @@ make_consumer stream-event-vector-add HipStreamEventVectorAdd
 
 native_directory="$(find "${runtime_root}/stream-event-vector-add/bin/Release/net10.0" -type f -name 'libamdhip64.so' -printf '%h\n' -quit)"
 [[ -n "${native_directory}" ]] || { echo "NuGet native assets were not copied to the consumer output." >&2; exit 1; }
-for library in "${native_directory}"/runtimes/linux-x64/native/*.so*; do
+for library in "${native_directory}"/*.so*; do
   [[ -f "${library}" ]] || continue
   readelf -d "${library}" | tee -a "${evidence_dir}/native-loader.txt"
   ldd "${library}" | tee -a "${evidence_dir}/native-loader.txt"
@@ -89,6 +97,9 @@ if grep -E '/opt/rocm|not found' "${evidence_dir}/native-loader.txt"; then
   echo "Native loader evidence contains an undeclared path or unresolved dependency." >&2
   exit 1
 fi
+
+pwsh -NoProfile -File "${repository_root}/eng/verify-symbols.ps1" -LibraryPath "${native_directory}/libamdhip64.so" -LibraryName amdhip64 -OutputPath "${evidence_dir}/runtime-symbols.json"
+pwsh -NoProfile -File "${repository_root}/eng/verify-symbols.ps1" -LibraryPath "${native_directory}/libhiprtc.so" -LibraryName hiprtc -OutputPath "${evidence_dir}/hiprtc-symbols.json"
 
 gpu_architecture="${HIP_ARCH:?Set HIP_ARCH to the architecture reported by rocminfo in this isolated environment.}"
 for case_name in device-info memory-copy; do
@@ -143,4 +154,57 @@ if [[ ${core_only_exit} -eq 0 ]] || ! grep -q 'HipLibraryLoadException' "${evide
   exit 1
 fi
 
-echo "M5 isolated runtime gate passed for ${expected_commit}."
+tampered_package="${runtime_root}/tampered-runtime.nupkg"
+python3 - "${runtime_package}" "${tampered_package}" <<'PY'
+import pathlib
+import sys
+import zipfile
+
+source = pathlib.Path(sys.argv[1])
+target = pathlib.Path(sys.argv[2])
+with zipfile.ZipFile(source, "r") as archive, zipfile.ZipFile(target, "w", zipfile.ZIP_DEFLATED) as output:
+    for entry in archive.infolist():
+        data = archive.read(entry.filename)
+        if entry.filename == "runtimes/linux-x64/native/libhsa-runtime64.so.1":
+            data = bytes([data[0] ^ 1]) + data[1:]
+        output.writestr(entry, data)
+PY
+set +e
+tamper_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${tampered_package}")
+[[ "${package_mode}" == "candidate" ]] && tamper_args+=(-Candidate)
+pwsh "${tamper_args[@]}" >"${evidence_dir}/tampered-package-negative.txt" 2>&1
+tamper_exit=$?
+set -e
+if [[ ${tamper_exit} -eq 0 ]] || ! grep -q 'hash/size mismatch' "${evidence_dir}/tampered-package-negative.txt"; then
+  echo 'Tampered runtime package did not fail the content audit.' >&2
+  exit 1
+fi
+
+mix_directory="${runtime_root}/closure-mix"
+mkdir -p "${mix_directory}/alternate"
+cp "${native_directory}/libhiprtc.so" "${mix_directory}/alternate/libhiprtc.so"
+cat > "${mix_directory}/ClosureMix.csproj" <<EOF
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><PackageReference Include="JYPPX.HIP.CSharp.API" Version="0.0.0" /><PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="7.2.1" /></ItemGroup></Project>
+EOF
+cat > "${mix_directory}/Program.cs" <<'EOF'
+using System;
+using JYPPX.HipSharp;
+using JYPPX.HipSharp.Rtc;
+
+_ = new HipRuntime(args[0]);
+try
+{
+    _ = new HipRtc(args[1]);
+    return 1;
+}
+catch (InvalidOperationException error) when (error.Message.Contains("same user-mode closure", StringComparison.Ordinal))
+{
+    Console.WriteLine(error.Message);
+    return 0;
+}
+EOF
+dotnet restore "${mix_directory}/ClosureMix.csproj" --configfile "${runtime_root}/NuGet.config" --packages "${runtime_root}/packages" --force --no-cache >/dev/null
+dotnet build "${mix_directory}/ClosureMix.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" >/dev/null
+(cd "${mix_directory}" && dotnet run --configuration Release --no-build --no-restore -- "${native_directory}/libamdhip64.so" "${mix_directory}/alternate/libhiprtc.so") | tee "${evidence_dir}/closure-mix-negative.txt"
+
+echo "M5 isolated runtime ${package_mode} gate passed for ${expected_commit}."

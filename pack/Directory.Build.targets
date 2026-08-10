@@ -10,7 +10,17 @@
     <None Include="$(RuntimeStagingFullPath)\linux-x64.cdx.json" Pack="true" PackagePath="linux-x64.cdx.json" Condition="Exists('$(RuntimeStagingFullPath)\linux-x64.cdx.json')" />
   </ItemGroup>
   <Target Name="BlockUnverifiedRuntimePackage" BeforeTargets="GenerateNuspec">
+    <Error Code="HIPSHARP1001"
+           Condition="('$(RuntimeCandidateAttestationPath)' == '') != ('$(RuntimeCandidateAttestationSha256)' == '')"
+           Text="Runtime candidate attestation path and SHA-256 must be supplied together." />
     <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)..\eng\validate-runtime-manifest.ps1&quot; -Manifest &quot;$(RuntimeManifestFullPath)&quot; -StagingDirectory &quot;$(RuntimeStagingFullPath)&quot; -RequirePackable"
+          Condition="'$(RuntimeCandidateAttestationPath)' == ''"
+          IgnoreExitCode="true"
+          ConsoleToMSBuild="true">
+      <Output TaskParameter="ExitCode" PropertyName="RuntimeManifestValidationExitCode" />
+    </Exec>
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)..\eng\validate-runtime-manifest.ps1&quot; -Manifest &quot;$(RuntimeManifestFullPath)&quot; -StagingDirectory &quot;$(RuntimeStagingFullPath)&quot; -CandidateAttestation &quot;$(RuntimeCandidateAttestationPath)&quot; -CandidateAttestationSha256 &quot;$(RuntimeCandidateAttestationSha256)&quot;"
+          Condition="'$(RuntimeCandidateAttestationPath)' != ''"
           IgnoreExitCode="true"
           ConsoleToMSBuild="true">
       <Output TaskParameter="ExitCode" PropertyName="RuntimeManifestValidationExitCode" />

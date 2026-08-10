@@ -166,6 +166,13 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-supply-chain.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-source.ps1")));
 
+        string runtimePackScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1"));
+        StringAssert.Contains(runtimePackScript, "stagingDigestSha256");
+        StringAssert.Contains(runtimePackScript, "publishable = $false");
+        string runtimeTargets = File.ReadAllText(Path.Combine(RepositoryRoot, "pack", "Directory.Build.targets"));
+        StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationPath");
+        StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationSha256");
+
         XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.csproj"));
         Assert.AreEqual("JYPPX.HipSharp.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
         Assert.AreEqual("7.2.1", linuxProject.Descendants("PackageVersion").Single().Value);
@@ -190,6 +197,13 @@ public sealed class RepositoryQualityTests
         Assert.AreNotEqual(0, process.ExitCode, "An unverified runtime package must not be created.");
         StringAssert.Contains(output, "HIPSHARP1001");
         Assert.IsFalse(File.Exists(Path.Combine(RepositoryRoot, "pack", "bin", "JYPPX.HipSharp.Runtime.linux-x64", "Release", "JYPPX.HipSharp.Runtime.linux-x64.7.2.1.nupkg")));
+
+        startInfo.ArgumentList.Add("-p:RuntimeCandidateAttestationPath=artifacts/fake-attestation.json");
+        using Process incompleteCandidate = Process.Start(startInfo)!;
+        string incompleteOutput = incompleteCandidate.StandardOutput.ReadToEnd() + incompleteCandidate.StandardError.ReadToEnd();
+        incompleteCandidate.WaitForExit();
+        Assert.AreNotEqual(0, incompleteCandidate.ExitCode, "An incomplete candidate attestation must not bypass the guard.");
+        StringAssert.Contains(incompleteOutput, "HIPSHARP1001");
     }
 
     [TestMethod]

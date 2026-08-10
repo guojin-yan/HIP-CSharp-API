@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$PackagePath,
     [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
-    [string]$OutputDirectory = "artifacts/runtime-package-audit"
+    [string]$OutputDirectory = "artifacts/runtime-package-audit",
+    [switch]$Candidate
 )
 
 Set-StrictMode -Version Latest
@@ -12,7 +13,10 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
 $manifestInfo = Get-HipSharpRuntimeManifest (Join-Path $repositoryRoot $Manifest)
 $runtimeManifest = $manifestInfo.Value
-Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable
+Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:(-not $Candidate)
+if ($Candidate -and ($runtimeManifest.packEnabled -or $runtimeManifest.verified -or $runtimeManifest.verification.packageAuditVerified -or $runtimeManifest.verification.gpuValidated)) {
+    throw "A candidate audit requires an explicitly unverified runtime manifest."
+}
 $package = (Resolve-Path -LiteralPath $PackagePath).Path
 $audit = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { [System.IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repositoryRoot $OutputDirectory }
 New-Item -ItemType Directory -Force -Path $audit | Out-Null
@@ -60,6 +64,9 @@ try {
     $metadata = $nuspec.package.metadata
     if ($metadata.id -ne $runtimeManifest.packageId -or $metadata.version -ne $runtimeManifest.packageVersion) { throw "Runtime nuspec ID/version does not match the manifest." }
     if ($metadata.readme -ne "README.md" -or $metadata.icon -ne "logo.jpg" -or $metadata.license.type -ne "file") { throw "Runtime nuspec README/icon/license metadata is invalid." }
+    if ($metadata.repository.url -ne "https://github.com/guojin-yan/HIP-CSharp-API" -or $metadata.repository.type -ne "git") { throw "Runtime nuspec repository metadata is invalid." }
+    $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
+    if ($LASTEXITCODE -ne 0 -or $metadata.repository.commit -ne $gitSha) { throw "Runtime nuspec repository commit does not match the current Git SHA." }
     if ($null -ne $metadata.dependencies -and @($metadata.dependencies.group.dependency).Count -gt 0) { throw "Single-package runtime candidate must not have NuGet package dependencies." }
     $managed = @($entryNames | Where-Object { $_ -match "\.dll$" })
     if ($managed.Count -gt 0) { throw "Runtime package must not contain managed assemblies: $($managed -join ', ')" }
@@ -67,6 +74,6 @@ try {
 
 if ((Get-Item -LiteralPath $package).Length -ge [int64]$runtimeManifest.size.nugetLimitBytes) { throw "Runtime nupkg meets or exceeds the configured NuGet package-size gate." }
 
-$report = [ordered]@{ package = [System.IO.Path]::GetFileName($package); sha256 = Get-HipSharpSha256 $package; size = (Get-Item -LiteralPath $package).Length; contentAudit = "passed"; rid = $runtimeManifest.rid; packageId = $runtimeManifest.packageId }
+$report = [ordered]@{ package = [System.IO.Path]::GetFileName($package); sha256 = Get-HipSharpSha256 $package; size = (Get-Item -LiteralPath $package).Length; contentAudit = "passed"; mode = if ($Candidate) { "isolated-gpu-candidate" } else { "verified-final" }; publishable = -not $Candidate; rid = $runtimeManifest.rid; packageId = $runtimeManifest.packageId }
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $audit "runtime-package-audit.json") -Encoding utf8NoBOM
 Write-Host "Runtime package audit passed: $package"

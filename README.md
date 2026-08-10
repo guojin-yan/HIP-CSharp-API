@@ -49,6 +49,8 @@ The equivalent cross-platform core gate is `bash ./eng/build.sh Release`. Packag
 
 `prepare-runtime.ps1` requires `gpg`, `gpgv`, and `tar`; on Windows it also discovers the standard Git for Windows `usr/bin` copies when they are not on `PATH`. It fails closed on a missing tool, unsigned metadata, an offline cache miss, or any package/file/ELF/license/SBOM mismatch. `pack-runtime.ps1` remains blocked until every manifest verification gate is evidenced.
 
+For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` can create a non-publishable local-feed package from a clean SHA and a tool-generated attestation bound to the exact manifest, SBOM, and staging digest. Direct `dotnet pack` remains blocked; after the candidate passes, the verified final package is rebuilt and must pass the isolated gate again.
+
 ## Architecture boundary
 
 The M2 implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` is the declaration source; `eng/generate-interop.ps1` deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The two native libraries retain independent loading identities and diagnostics. Runtime errors become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, HIPRTC programs, and modules use checked `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.

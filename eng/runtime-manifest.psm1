@@ -285,4 +285,20 @@ function Get-HipSharpElfDynamicInfo {
     }
 }
 
-Export-ModuleMember -Function Get-HipSharpSha256, ConvertTo-HipSharpRelativePath, Get-HipSharpRuntimeManifest, Assert-HipSharpRuntimeManifest, Get-HipSharpElfDynamicInfo
+function Get-HipSharpStagingDigest {
+    [CmdletBinding()]
+    param([Parameter(Mandatory = $true)][string]$StagingDirectory)
+
+    $root = (Resolve-Path -LiteralPath $StagingDirectory).Path.TrimEnd([System.IO.Path]::DirectorySeparatorChar)
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($file in Get-ChildItem -LiteralPath $root -File -Recurse) {
+        $relative = $file.FullName.Substring($root.Length + 1).Replace("\", "/")
+        $lines.Add("$relative`t$($file.Length)`t$(Get-HipSharpSha256 $file.FullName)")
+    }
+    $ordered = $lines.ToArray()
+    [System.Array]::Sort($ordered, [System.StringComparer]::Ordinal)
+    $bytes = [System.Text.Encoding]::UTF8.GetBytes(($ordered -join "`n") + "`n")
+    return [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($bytes)).ToLowerInvariant()
+}
+
+Export-ModuleMember -Function Get-HipSharpSha256, ConvertTo-HipSharpRelativePath, Get-HipSharpRuntimeManifest, Assert-HipSharpRuntimeManifest, Assert-HipSharpHash, Get-HipSharpElfDynamicInfo, Get-HipSharpStagingDigest
