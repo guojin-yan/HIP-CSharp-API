@@ -10,13 +10,13 @@ HIP-CSharp-API is a .NET binding for the foundational AMD HIP Runtime Direct C A
 | --- | --- |
 | Build | The core assembly and XML documentation build for all 15 TFMs |
 | Package | The local core candidate and clean consumer builds are regression-tested |
-| Runtime-tested | Pending authorized Radeon Cloud validation; local tests use an injected fake native facade |
-| GPU-validated | Pending; this machine has no AMD GPU |
+| Runtime-tested | Passed on Radeon Cloud Ubuntu 24.04.4 with ROCm 7.2.1 and HIP 7.2.53211 |
+| GPU-validated | Passed on one `gfx1100` AMD Radeon Graphics instance: enumerate, allocate, H2D/D2D/D2H, synchronize, and free |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
 
-The core project directly targets `net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, and `net10.0`. The first planned hardware validation is Ubuntu 24.04 with ROCm 7.2.1, HIP 7.2, and a `gfx1100` GPU through Radeon Cloud. Windows HIP SDK compatibility is retained in the design but has not received AMD GPU validation.
+The core project directly targets `net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, and `net10.0`. The first hardware validation passed on Ubuntu 24.04.4 with ROCm 7.2.1, HIP 7.2.53211, and a `gfx1100` GPU through Radeon Cloud. Windows HIP SDK compatibility is retained in the design but has not received AMD GPU validation.
 
 The .NET Core 3.1, .NET 5, .NET 6, .NET 7, .NET Framework 4.6, and .NET Framework 4.6.1 targets are end-of-support upstream. They are build/package compatibility targets, not a promise of security updates. .NET 8 and .NET 9 should also be evaluated against their current upstream support status before deployment.
 
@@ -41,7 +41,7 @@ The equivalent cross-platform core gate is `bash ./eng/build.sh Release`. Packag
 
 The M1 implementation calls the foundational `amdhip64` C ABI directly. `eng/interop/interop-manifest.json` is the declaration source; `eng/generate-interop.ps1` deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The public layer converts native errors to `HipException`, records every native-library load attempt, and owns `hipMalloc` allocations through `IDisposable` plus a `SafeHandle` fallback.
 
-The `samples/DeviceInfo` and `samples/MemoryCopy` projects demonstrate the two M1 workflows. They require a working HIP Runtime and AMD GPU; local CI only compiles them and does not execute GPU calls.
+The `samples/DeviceInfo` and `samples/MemoryCopy` projects demonstrate the two M1 workflows. They require a working HIP Runtime and AMD GPU. Radeon Cloud validation executes both samples; managed-only local CI compiles them without making GPU calls.
 
 All public API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to generate the API reference and DocFX site under `_site`.
 

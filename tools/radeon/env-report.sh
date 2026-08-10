@@ -3,7 +3,8 @@ set -euo pipefail
 
 echo "== Session =="
 date -Is
-hostname
+cloud_hostname="$(hostname)"
+echo "instance: <cloud-instance>"
 echo "== Kernel =="
 uname -a
 echo "== Operating system =="
@@ -30,9 +31,9 @@ hipcc --version
 gcc --version | head -n 1
 python3 --version
 echo "== HIP =="
-hipconfig --full
+hipconfig --full | sed "s/${cloud_hostname}/<cloud-instance>/g"
 echo "== ROCm SMI =="
-rocm-smi --showproductname --showuniqueid --showmeminfo vram --showdriverversion
+rocm-smi --showproductname --showmeminfo vram --showdriverversion
 echo "== ROCm agents =="
 rocminfo | grep -E '^[[:space:]]*(Name:|Marketing Name:)' | head -n 20
 echo "== HIP library =="

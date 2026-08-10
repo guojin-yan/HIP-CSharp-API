@@ -6,6 +6,25 @@ repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 evidence_dir="${repository_root}/artifacts/radeon-cloud"
 actual_commit="$(git -C "${repository_root}" rev-parse HEAD)"
 
+if ! command -v dotnet >/dev/null 2>&1; then
+  if [[ -x /workspace/.dotnet/dotnet ]]; then
+    export DOTNET_ROOT=/workspace/.dotnet
+    export PATH="${DOTNET_ROOT}:${PATH}"
+  else
+    echo ".NET SDK is unavailable. Run: bash ./tools/radeon/bootstrap.sh" >&2
+    exit 1
+  fi
+fi
+
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_NOLOGO=1
+if [[ -d /persistent ]]; then
+  export NUGET_PACKAGES=/persistent/hipsharp/nuget/packages
+else
+  export NUGET_PACKAGES=/workspace/.nuget/packages
+fi
+echo "NuGet cache: ${NUGET_PACKAGES}"
+
 if [[ "${actual_commit}" != "${expected_commit}" ]]; then
   echo "Expected commit ${expected_commit}, found ${actual_commit}." >&2
   exit 1
@@ -20,6 +39,7 @@ if [[ -n "$(git -C "${repository_root}" status --porcelain)" ]]; then
 fi
 
 mkdir -p "${evidence_dir}"
+mkdir -p "${NUGET_PACKAGES}"
 cd "${repository_root}"
 bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
 bash ./eng/build.sh Release 0.0.0 | tee "${evidence_dir}/managed-gate.txt"
