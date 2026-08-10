@@ -1,0 +1,586 @@
+{
+  "bomFormat": "CycloneDX",
+  "specVersion": "1.5",
+  "version": 1,
+  "metadata": {
+    "component": {
+      "bom-ref": "pkg:nuget/JYPPX.HipSharp.Runtime.linux-x64@7.2.1",
+      "type": "application",
+      "name": "JYPPX.HipSharp.Runtime.linux-x64",
+      "version": "7.2.1",
+      "properties": [
+        {
+          "name": "hipsharp:rid",
+          "value": "linux-x64"
+        },
+        {
+          "name": "hipsharp:rocm",
+          "value": "7.2.1"
+        }
+      ]
+    }
+  },
+  "components": [
+    {
+      "bom-ref": "pkg:deb/comgr-rpath7.2.1@3.0.0.70201-81~24.04?arch=amd64",
+      "type": "library",
+      "name": "comgr-rpath7.2.1",
+      "version": "3.0.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "237AA75C2BD9F1C23532B5C0681E0EF01C45BFF607FDF314B05BC0CCA44E5087"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "Apache-2.0 WITH LLVM-exception"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/c/comgr-rpath7.2.1/comgr-rpath7.2.1_3.0.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "hipsharp:included-runtime-payload",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64",
+      "type": "library",
+      "name": "hip-runtime-amd-rpath7.2.1",
+      "version": "7.2.53211.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "E94B1466208E91DDEE85DB475658113C71DB565FEE6F3F39E973AB2B6C1552D8"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hip-runtime-amd-rpath7.2.1/hip-runtime-amd-rpath7.2.1_7.2.53211.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "hipsharp:included-runtime-payload",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:deb/hsa-rocr-rpath7.2.1@1.18.0.70201-81~24.04?arch=amd64",
+      "type": "library",
+      "name": "hsa-rocr-rpath7.2.1",
+      "version": "1.18.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "3485899502A1CA8B058A4AE35890F8C7713625AEBE0FB6938FF7FE3921D64B30"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "NCSA"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hsa-rocr-rpath7.2.1/hsa-rocr-rpath7.2.1_1.18.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "hipsharp:included-runtime-payload",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:deb/rocm-core-rpath7.2.1@7.2.1.70201-81~24.04?arch=amd64",
+      "type": "library",
+      "name": "rocm-core-rpath7.2.1",
+      "version": "7.2.1.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "D25EF0C49DA9AF08FB5B3D9C05EA16369A62DDB54428CDC3518C078474D45D1A"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocm-core-rpath7.2.1/rocm-core-rpath7.2.1_7.2.1.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "hipsharp:included-runtime-payload",
+          "value": "False"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:deb/rocminfo-rpath7.2.1@1.0.0.70201-81~24.04?arch=amd64",
+      "type": "library",
+      "name": "rocminfo-rpath7.2.1",
+      "version": "1.0.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "FECFD9B9F113C85B8BBF9C71FA7169FAC1819A5004F03CCD883F4C969A540346"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "NCSA"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocminfo-rpath7.2.1/rocminfo-rpath7.2.1_1.0.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "hipsharp:included-runtime-payload",
+          "value": "False"
+        }
+      ]
+    },
+    {
+      "bom-ref": "pkg:deb/rocprofiler-register-rpath7.2.1@0.6.0.70201-81~24.04?arch=amd64",
+      "type": "library",
+      "name": "rocprofiler-register-rpath7.2.1",
+      "version": "0.6.0.70201-81~24.04",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4C1D580F4DBE456B98C1965FC0C575A113F463A10055186D2BB5C5A92E6EAEFD"
+        }
+      ],
+      "licenses": [
+        {
+          "expression": "MIT"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-url",
+          "value": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocprofiler-register-rpath7.2.1/rocprofiler-register-rpath7.2.1_0.6.0.70201-81~24.04_amd64.deb"
+        },
+        {
+          "name": "hipsharp:included-runtime-payload",
+          "value": "True"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libamd_comgr.so.3",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libamd_comgr.so.3",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2B9DD9236A5E80EF2A7635CAA875BEFBE300EC0AA03A272B719E9D3FF31A8C81"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "comgr-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "160076064"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libamd_comgr.so.3.0.0",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libamd_comgr.so.3.0.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2B9DD9236A5E80EF2A7635CAA875BEFBE300EC0AA03A272B719E9D3FF31A8C81"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "comgr-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "160076064"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libamdhip64.so",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libamdhip64.so",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "942522F3019A10D6EEE3174F0DF3478401D264B60BBA4E82547B5BE4ABFFEC2A"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "27152336"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libamdhip64.so.7",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libamdhip64.so.7",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "942522F3019A10D6EEE3174F0DF3478401D264B60BBA4E82547B5BE4ABFFEC2A"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "27152336"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libamdhip64.so.7.2.70201",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libamdhip64.so.7.2.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "942522F3019A10D6EEE3174F0DF3478401D264B60BBA4E82547B5BE4ABFFEC2A"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "27152336"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "AFBBA574B1B65533D56988A7C178B22FA54AC926DF8972A3E232FB4C4BDD3666"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "603888"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhiprtc-builtins.so.7.2.70201",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhiprtc-builtins.so.7.2.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "AFBBA574B1B65533D56988A7C178B22FA54AC926DF8972A3E232FB4C4BDD3666"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "603888"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhiprtc.so",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhiprtc.so",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4C18D8AA4E8FAE8D181CF28AB9B9250AD5CA2F594BC87FFDD2C3D5D1516ED2EE"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "858952"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhiprtc.so.7",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhiprtc.so.7",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4C18D8AA4E8FAE8D181CF28AB9B9250AD5CA2F594BC87FFDD2C3D5D1516ED2EE"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "858952"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhiprtc.so.7.2.70201",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhiprtc.so.7.2.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "4C18D8AA4E8FAE8D181CF28AB9B9250AD5CA2F594BC87FFDD2C3D5D1516ED2EE"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hip-runtime-amd-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "858952"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhsa-runtime64.so.1",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhsa-runtime64.so.1",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74688682BF5F07998E38E3684D6F092473C9D96F5B1B8B4C5B32F204A29ECEEB"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hsa-rocr-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "4248144"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/libhsa-runtime64.so.1.18.70201",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/libhsa-runtime64.so.1.18.70201",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "74688682BF5F07998E38E3684D6F092473C9D96F5B1B8B4C5B32F204A29ECEEB"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "hsa-rocr-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "4248144"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/librocprofiler-register.so.0",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/librocprofiler-register.so.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2D1AD920A856F5842F9875792C61C979102BE5AECA948D7126FC39403EB3E65B"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "rocprofiler-register-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "590232"
+        }
+      ]
+    },
+    {
+      "bom-ref": "file:runtimes/linux-x64/native/librocprofiler-register.so.0.6.0",
+      "type": "file",
+      "name": "runtimes/linux-x64/native/librocprofiler-register.so.0.6.0",
+      "hashes": [
+        {
+          "alg": "SHA-256",
+          "content": "2D1AD920A856F5842F9875792C61C979102BE5AECA948D7126FC39403EB3E65B"
+        }
+      ],
+      "properties": [
+        {
+          "name": "hipsharp:source-package",
+          "value": "rocprofiler-register-rpath7.2.1"
+        },
+        {
+          "name": "hipsharp:size",
+          "value": "590232"
+        }
+      ]
+    }
+  ],
+  "dependencies": [
+    {
+      "ref": "pkg:nuget/JYPPX.HipSharp.Runtime.linux-x64@7.2.1",
+      "dependsOn": [
+        "file:runtimes/linux-x64/native/libamd_comgr.so.3",
+        "file:runtimes/linux-x64/native/libamd_comgr.so.3.0.0",
+        "file:runtimes/linux-x64/native/libamdhip64.so",
+        "file:runtimes/linux-x64/native/libamdhip64.so.7",
+        "file:runtimes/linux-x64/native/libamdhip64.so.7.2.70201",
+        "file:runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+        "file:runtimes/linux-x64/native/libhiprtc-builtins.so.7.2.70201",
+        "file:runtimes/linux-x64/native/libhiprtc.so",
+        "file:runtimes/linux-x64/native/libhiprtc.so.7",
+        "file:runtimes/linux-x64/native/libhiprtc.so.7.2.70201",
+        "file:runtimes/linux-x64/native/libhsa-runtime64.so.1",
+        "file:runtimes/linux-x64/native/libhsa-runtime64.so.1.18.70201",
+        "file:runtimes/linux-x64/native/librocprofiler-register.so.0",
+        "file:runtimes/linux-x64/native/librocprofiler-register.so.0.6.0"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libamd_comgr.so.3",
+      "dependsOn": [
+        "pkg:deb/comgr-rpath7.2.1@3.0.0.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libamd_comgr.so.3.0.0",
+      "dependsOn": [
+        "pkg:deb/comgr-rpath7.2.1@3.0.0.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libamdhip64.so",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libamdhip64.so.7",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libamdhip64.so.7.2.70201",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhiprtc-builtins.so.7.2.70201",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhiprtc.so",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhiprtc.so.7",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhiprtc.so.7.2.70201",
+      "dependsOn": [
+        "pkg:deb/hip-runtime-amd-rpath7.2.1@7.2.53211.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhsa-runtime64.so.1",
+      "dependsOn": [
+        "pkg:deb/hsa-rocr-rpath7.2.1@1.18.0.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/libhsa-runtime64.so.1.18.70201",
+      "dependsOn": [
+        "pkg:deb/hsa-rocr-rpath7.2.1@1.18.0.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/librocprofiler-register.so.0",
+      "dependsOn": [
+        "pkg:deb/rocprofiler-register-rpath7.2.1@0.6.0.70201-81~24.04?arch=amd64"
+      ]
+    },
+    {
+      "ref": "file:runtimes/linux-x64/native/librocprofiler-register.so.0.6.0",
+      "dependsOn": [
+        "pkg:deb/rocprofiler-register-rpath7.2.1@0.6.0.70201-81~24.04?arch=amd64"
+      ]
+    }
+  ]
+}

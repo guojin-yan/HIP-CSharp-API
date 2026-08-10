@@ -1,0 +1,113 @@
+{
+  "schemaVersion": 1,
+  "packageId": "JYPPX.HipSharp.Runtime.linux-x64",
+  "packageVersion": "7.2.1",
+  "rid": "linux-x64",
+  "source": {
+    "repositoryUrl": "https://repo.radeon.com/rocm/apt/7.2.1",
+    "inReleaseUrl": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/InRelease",
+    "packagesIndexUrl": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/main/binary-amd64/Packages.gz",
+    "signingKeyUrl": "https://repo.radeon.com/rocm/rocm.gpg.key",
+    "signingKeyFingerprint": "CA8BB4727A47B4D09B4EE8969386B48A1A693C5C",
+    "signingKeySha256": "2de99e2354646a90d9903e2a669fc4e36b02c1bbff7075c481e12d7edab2c88b",
+    "inReleaseSha256": "8c0a2a0a6075f0301e01deff8b6ac3dae18bbe2b115a7a3f28dd7991197671e0",
+    "packagesIndexSha256": "739224fb69cef365b96e96699073e84f066d2d8a8547273bebbca17712dc38cc"
+  },
+  "packages": [
+    {
+      "name": "comgr-rpath7.2.1",
+      "version": "3.0.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/c/comgr-rpath7.2.1/comgr-rpath7.2.1_3.0.0.70201-81~24.04_amd64.deb",
+      "sha256": "237aa75c2bd9f1c23532b5c0681e0ef01c45bff607fdf314b05bc0cca44e5087",
+      "size": 40334664,
+      "depends": [
+        "libtinfo-dev",
+        "rocm-core-rpath7.2.1",
+        "libzstd1",
+        "zlib1g",
+        "libc6",
+        "libstdc++6",
+        "libgcc-s1 | libgcc1"
+      ]
+    },
+    {
+      "name": "hip-runtime-amd-rpath7.2.1",
+      "version": "7.2.53211.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hip-runtime-amd-rpath7.2.1/hip-runtime-amd-rpath7.2.1_7.2.53211.70201-81~24.04_amd64.deb",
+      "sha256": "e94b1466208e91ddee85db475658113c71db565fee6f3f39e973ab2b6c1552d8",
+      "size": 9959856,
+      "depends": [
+        "hsa-rocr-rpath7.2.1",
+        "rocminfo-rpath7.2.1",
+        "comgr-rpath7.2.1",
+        "rocm-core-rpath7.2.1",
+        "rocprofiler-register-rpath7.2.1",
+        "libnuma1",
+        "libstdc++6",
+        "libc6",
+        "libgcc-s1"
+      ]
+    },
+    {
+      "name": "hsa-rocr-rpath7.2.1",
+      "version": "1.18.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hsa-rocr-rpath7.2.1/hsa-rocr-rpath7.2.1_1.18.0.70201-81~24.04_amd64.deb",
+      "sha256": "3485899502a1ca8b058a4ae35890f8c7713625aebe0fb6938ff7fe3921d64b30",
+      "size": 912124,
+      "depends": [
+        "libdrm-amdgpu-amdgpu1 | libdrm-amdgpu1",
+        "libnuma1",
+        "libelf1",
+        "rocm-core-rpath7.2.1",
+        "rocprofiler-register-rpath7.2.1"
+      ]
+    },
+    {
+      "name": "rocm-core-rpath7.2.1",
+      "version": "7.2.1.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocm-core-rpath7.2.1/rocm-core-rpath7.2.1_7.2.1.70201-81~24.04_amd64.deb",
+      "sha256": "d25ef0c49da9af08fb5b3d9c05ea16369a62ddb54428cdc3518c078474d45d1a",
+      "size": 29140,
+      "depends": [
+        "python3",
+        "libc6"
+      ]
+    },
+    {
+      "name": "rocminfo-rpath7.2.1",
+      "version": "1.0.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocminfo-rpath7.2.1/rocminfo-rpath7.2.1_1.0.0.70201-81~24.04_amd64.deb",
+      "sha256": "fecfd9b9f113c85b8bbf9c71fa7169fac1819a5004f03ccd883f4c969a540346",
+      "size": 22708,
+      "depends": [
+        "hsa-rocr-rpath7.2.1",
+        "rocm-core-rpath7.2.1",
+        "libdrm-amdgpu-amdgpu1 | libdrm-amdgpu1",
+        "libelf1",
+        "libnuma1",
+        "libstdc++6",
+        "libc6",
+        "libgcc-s1"
+      ]
+    },
+    {
+      "name": "rocprofiler-register-rpath7.2.1",
+      "version": "0.6.0.70201-81~24.04",
+      "architecture": "amd64",
+      "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocprofiler-register-rpath7.2.1/rocprofiler-register-rpath7.2.1_0.6.0.70201-81~24.04_amd64.deb",
+      "sha256": "4c1d580f4dbe456b98c1965fc0c575a113f463a10055186d2bb5c5a92e6eaefd",
+      "size": 194264,
+      "depends": [
+        "rocm-core-rpath7.2.1",
+        "libc6 (>= 2.38)",
+        "libgcc-s1 (>= 3.0)",
+        "libstdc++6 (>= 11)"
+      ]
+    }
+  ]
+}

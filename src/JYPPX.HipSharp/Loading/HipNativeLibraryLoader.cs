@@ -31,7 +31,7 @@ internal sealed class HipNativeLibraryLoader
         _backend = backend ?? new NativeLibraryBackend();
     }
 
-    internal IntPtr Load(string? explicitLibraryPath)
+    internal HipNativeLibraryLoadResult Load(string? explicitLibraryPath)
     {
         var attempts = new List<HipLibraryLoadAttempt>();
         if (!_platform.IsWindows && !_platform.IsLinux)
@@ -53,7 +53,7 @@ internal sealed class HipNativeLibraryLoader
             attempts.Add(new HipLibraryLoadAttempt(displayCandidate, candidate.Source, succeeded, displayDetail));
             if (succeeded)
             {
-                return handle;
+                return new HipNativeLibraryLoadResult(handle, candidate);
             }
         }
 

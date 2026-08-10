@@ -1,0 +1,22 @@
+<Project>
+  <PropertyGroup>
+    <RuntimeManifestFullPath>$([System.IO.Path]::GetFullPath('$(RuntimeManifestPath)', '$(MSBuildProjectDirectory)'))</RuntimeManifestFullPath>
+    <RuntimeStagingFullPath>$([System.IO.Path]::GetFullPath('$(RuntimeStagingPath)', '$(MSBuildProjectDirectory)'))</RuntimeStagingFullPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(RuntimeManifestFullPath)" Pack="true" PackagePath="runtime-manifest.json" />
+    <None Include="$(RuntimeStagingFullPath)\runtimes\$(RuntimeAssetRid)\native\*" Pack="true" PackagePath="runtimes\$(RuntimeAssetRid)\native\" Condition="Exists('$(RuntimeStagingFullPath)\runtimes\$(RuntimeAssetRid)\native')" />
+    <None Include="$(RuntimeStagingFullPath)\licenses\**\*" Pack="true" PackagePath="licenses\%(RecursiveDir)" Condition="Exists('$(RuntimeStagingFullPath)\licenses')" />
+    <None Include="$(RuntimeStagingFullPath)\linux-x64.cdx.json" Pack="true" PackagePath="linux-x64.cdx.json" Condition="Exists('$(RuntimeStagingFullPath)\linux-x64.cdx.json')" />
+  </ItemGroup>
+  <Target Name="BlockUnverifiedRuntimePackage" BeforeTargets="GenerateNuspec">
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)..\eng\validate-runtime-manifest.ps1&quot; -Manifest &quot;$(RuntimeManifestFullPath)&quot; -StagingDirectory &quot;$(RuntimeStagingFullPath)&quot; -RequirePackable"
+          IgnoreExitCode="true"
+          ConsoleToMSBuild="true">
+      <Output TaskParameter="ExitCode" PropertyName="RuntimeManifestValidationExitCode" />
+    </Exec>
+    <Error Code="HIPSHARP1001"
+           Condition="'$(RuntimeManifestValidationExitCode)' != '0'"
+           Text="Runtime package generation is disabled: signed provenance, dependency closure, licenses, SBOM, package content/size audit, and isolated GPU validation must all pass the manifest validator." />
+  </Target>
+</Project>

@@ -8,6 +8,8 @@
       href: guides/hiprtc-vectoradd.md
     - name: Stream/Event VectorAdd / 显式 Stream/Event VectorAdd
       href: guides/hip-stream-event-vectoradd.md
+    - name: Linux Runtime Package Audit / Linux Runtime 包审计
+      href: guides/linux-runtime-package.md
 - name: Compatibility / 兼容性
   items:
     - name: Frameworks / 目标框架
@@ -18,3 +20,5 @@
   items:
     - name: 0.0.0 M4 Local Release Candidate / M4 本地发布候选
       href: releases/0.0.0.md
+    - name: Linux Runtime 7.2.1 Candidate / Linux Runtime 7.2.1 候选
+      href: releases/7.2.1-runtime-candidate.md

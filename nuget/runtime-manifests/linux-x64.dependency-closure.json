@@ -1,0 +1,198 @@
+{
+  "schemaVersion": 1,
+  "packageId": "JYPPX.HipSharp.Runtime.linux-x64",
+  "dependencyClosure": {
+    "rootPackages": [
+      "hip-runtime-amd-rpath7.2.1"
+    ],
+    "rocmPayloadPackages": [
+      "comgr-rpath7.2.1",
+      "hip-runtime-amd-rpath7.2.1",
+      "hsa-rocr-rpath7.2.1",
+      "rocprofiler-register-rpath7.2.1"
+    ],
+    "metadataOnlyPackages": [
+      "rocm-core-rpath7.2.1",
+      "rocminfo-rpath7.2.1"
+    ],
+    "decision": "The signed Debian dependency graph is recorded in full. rocminfo and rocm-core contribute no ELF edge or runtime file to the minimal HIP/HIPRTC closure, so their binaries, headers, scripts, and development metadata are excluded."
+  },
+  "files": [
+    {
+      "path": "runtimes/linux-x64/native/libamd_comgr.so.3",
+      "soname": "libamd_comgr.so.3",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libstdc++.so.6",
+        "libz.so.1",
+        "libzstd.so.1"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HIPRTC dynamically loads COMGR for code-object compilation."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libamdhip64.so",
+      "soname": "libamdhip64.so.7",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libhsa-runtime64.so.1",
+        "libm.so.6",
+        "librocprofiler-register.so.0",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN:$ORIGIN",
+      "purpose": "HIP Runtime import library selected by the managed loader."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+      "soname": "libhiprtc-builtins.so.7",
+      "needed": [],
+      "rpath": "$ORIGIN",
+      "purpose": "HIPRTC builtins code required by the runtime compiler."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc.so",
+      "soname": "libhiprtc.so.7",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HIPRTC import library selected by the managed loader."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhsa-runtime64.so.1",
+      "soname": "libhsa-runtime64.so.1",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libdrm_amdgpu.so.1",
+        "libdrm.so.2",
+        "libelf.so.1",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libnuma.so.1",
+        "librocprofiler-register.so.0",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HSA user-mode runtime used by HIP to submit work to the AMD kernel driver."
+    },
+    {
+      "path": "runtimes/linux-x64/native/librocprofiler-register.so.0",
+      "soname": "librocprofiler-register.so.0",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HIP and HSA registration component required by their declared ELF dependencies."
+    }
+  ],
+  "systemDependencies": [
+    {
+      "soname": "ld-linux-x86-64.so.2",
+      "ubuntuPackage": "libc6",
+      "minimumVersion": "2.38",
+      "usage": "ELF interpreter"
+    },
+    {
+      "soname": "libc.so.6",
+      "ubuntuPackage": "libc6",
+      "minimumVersion": "2.38",
+      "usage": "C runtime"
+    },
+    {
+      "soname": "libdrm_amdgpu.so.1",
+      "ubuntuPackage": "libdrm-amdgpu1",
+      "minimumVersion": "2.4",
+      "usage": "HSA AMDGPU DRM interface"
+    },
+    {
+      "soname": "libdrm.so.2",
+      "ubuntuPackage": "libdrm2",
+      "minimumVersion": "2.4",
+      "usage": "HSA DRM interface"
+    },
+    {
+      "soname": "libelf.so.1",
+      "ubuntuPackage": "libelf1t64 | libelf1",
+      "minimumVersion": "0.190",
+      "usage": "HSA ELF parsing"
+    },
+    {
+      "soname": "libgcc_s.so.1",
+      "ubuntuPackage": "libgcc-s1",
+      "minimumVersion": "3.0",
+      "usage": "GCC runtime"
+    },
+    {
+      "soname": "libGL.so.1",
+      "ubuntuPackage": "libgl1",
+      "minimumVersion": "1.7",
+      "usage": "Declared optional HIP graphics lookup; not exercised by M5"
+    },
+    {
+      "soname": "libm.so.6",
+      "ubuntuPackage": "libc6",
+      "minimumVersion": "2.38",
+      "usage": "math runtime"
+    },
+    {
+      "soname": "libnuma.so.1",
+      "ubuntuPackage": "libnuma1",
+      "minimumVersion": "2.0",
+      "usage": "HSA NUMA interface"
+    },
+    {
+      "soname": "libstdc++.so.6",
+      "ubuntuPackage": "libstdc++6",
+      "minimumVersion": "11",
+      "usage": "C++ runtime"
+    },
+    {
+      "soname": "libX11.so.6",
+      "ubuntuPackage": "libx11-6",
+      "minimumVersion": "1.8",
+      "usage": "Declared optional HIP graphics lookup; not exercised by M5"
+    },
+    {
+      "soname": "libz.so.1",
+      "ubuntuPackage": "zlib1g",
+      "minimumVersion": "1.3",
+      "usage": "COMGR compression"
+    },
+    {
+      "soname": "libzstd.so.1",
+      "ubuntuPackage": "libzstd1",
+      "minimumVersion": "1.5",
+      "usage": "COMGR compression"
+    }
+  ],
+  "driverBoundary": {
+    "deviceNodes": [
+      "/dev/kfd",
+      "/dev/dri"
+    ],
+    "kernelDriver": [
+      "amdgpu",
+      "amdkfd"
+    ],
+    "excludedFromPackage": [
+      "kernel driver",
+      "firmware",
+      "DRM kernel modules",
+      "GPU device nodes"
+    ],
+    "rule": "The package carries only ROCm user-mode files. The host must provide the listed Ubuntu system libraries, device nodes, and AMD kernel driver."
+  }
+}

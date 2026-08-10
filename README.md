@@ -2,9 +2,11 @@
 
 HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABIs. The single `JYPPX.HipSharp` assembly keeps native declarations internal while exposing managed runtime, device, memory, runtime compilation, module, and kernel-launch APIs.
 
-## M4 status
+## M5 status
 
-`0.0.0` is a local release-candidate audit package, not a nuget.org release. M4 carries forward M3's deterministic official-header manifest, ABI-verified device attributes, explicit stream/event and async memory/kernel APIs, and two-stream VectorAdd sample. The local package, clean consumers, loader diagnostics, and DocFX gates pass. A new Owner-authorized Radeon Cloud session also passed official-header ABI compilation and real Runtime/Memory/Stream/Event/Module/HIPRTC execution for the final detached SHA on one Ubuntu 24.04.4/ROCm 7.2.1/gfx1100 environment; this is validation evidence, not a broad support claim.
+The M4 managed-only core candidate remains unchanged. M5 now has a signed-source lock for AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; a local preflight compressed it to 162,813,488 bytes, so the current topology decision remains one runtime package.
+
+`JYPPX.HipSharp.Runtime.linux-x64` is still blocked by `HIPSHARP1001`. No runtime nupkg is generated because this exact closure has not yet passed a newly Owner-authorized isolated GPU consumer with no system ROCm user-mode libraries. It is not published and is not a support claim.
 
 | State | Result |
 | --- | --- |
@@ -13,8 +15,10 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 | M1 runtime-tested | Passed on Radeon Cloud Ubuntu 24.04.4 with ROCm 7.2.1 and HIP 7.2.53211 |
 | M1 GPU-validated | Passed on one `gfx1100` AMD Radeon Graphics instance: enumerate, allocate, H2D/D2D/D2H, synchronize, and free |
 | M2 GPU-validated | Passed on one authorized Radeon Cloud `gfx1100` instance: HIPRTC compile/log/code, module/function, five VectorAdd lengths x 20 repeats, synchronization, D2H, CPU comparison, and expected compile failure |
-| M4 local managed gate | Passed generator/manifest checks, 24 unit tests, 7 quality tests, package audit, loader diagnostics, sample build, and DocFX |
+| Local managed gate | Passed generator/manifest checks, 25 unit tests, 7 quality tests, package audit, loader diagnostics, sample build, and DocFX |
 | M4 GPU/ABI-validated | Passed on one Owner-authorized Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / gfx1100 session; not a broad support claim |
+| M5 signed provenance/closure/licenses/SBOM | Passed locally for the pinned AMD ROCm 7.2.1 Noble index and six canonical ELF files |
+| M5 runtime package/isolated GPU | Blocked pending new Owner authorization; pack guard remains enabled |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
@@ -25,7 +29,7 @@ The .NET Core 3.1, .NET 5, .NET 6, .NET 7, .NET Framework 4.6, and .NET Framewor
 
 ## Packages
 
-The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Future runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`. Their NuGet package versions match ROCm (`7.2.1` and `7.2.0` for the current skeletons). Their manifests are deliberately disabled until official provenance, dependency closure, component licenses, hashes, package size, and clean GPU validation are complete.
+The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`, with versions `7.2.1` and `7.2.0`. Linux provenance, closure, licenses, hashes, SBOM, and preflight size are audited, but its manifest remains disabled until package audit and isolated GPU validation complete. Windows remains an empty disabled skeleton.
 
 ## Local verification
 
@@ -36,9 +40,14 @@ dotnet restore HipSharp.sln
 ./eng/build.ps1 -Configuration Release
 ./eng/test.ps1 -Configuration Release -NoBuild
 ./eng/verify-package.ps1 -PackagePath artifacts/packages/JYPPX.HIP.CSharp.API.0.0.0.nupkg
+./eng/generate-runtime-metadata.ps1 -Check
+./eng/test-runtime-supply-chain.ps1
+./eng/prepare-runtime.ps1 -Manifest ./nuget/runtime-manifests/linux-x64.json -Offline
 ```
 
 The equivalent cross-platform core gate is `bash ./eng/build.sh Release`. Package output and audit results are written below ignored `artifacts/` directories.
+
+`prepare-runtime.ps1` requires `gpg`, `gpgv`, and `tar`; on Windows it also discovers the standard Git for Windows `usr/bin` copies when they are not on `PATH`. It fails closed on a missing tool, unsigned metadata, an offline cache miss, or any package/file/ELF/license/SBOM mismatch. `pack-runtime.ps1` remains blocked until every manifest verification gate is evidenced.
 
 ## Architecture boundary
 

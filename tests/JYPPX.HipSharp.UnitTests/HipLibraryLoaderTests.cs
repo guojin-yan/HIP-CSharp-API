@@ -75,6 +75,27 @@ public sealed class HipLibraryLoaderTests
         Assert.IsFalse(exception.Diagnostics.Attempts.Any(attempt => attempt.Candidate.Contains("amdhip64", StringComparison.Ordinal)));
     }
 
+    [TestMethod]
+    public void SuccessfulLoadsRecordAClosureIdentityThatDistinguishesPackageAndSystemModes()
+    {
+        var platform = new HipPlatformInfo(false, true, "Linux test", "x64", ".NET 10", "linux-x64");
+        var localLocator = new HipLibraryLocator(platform, "/app", _ => null);
+        var localLoader = new HipNativeLibraryLoader(platform, localLocator, new FirstCandidateBackend());
+
+        HipNativeLibraryLoadResult local = localLoader.Load(null);
+
+        Assert.AreEqual("application-base", local.Candidate.Source);
+        Assert.AreEqual("directory:" + Path.GetDirectoryName(Path.GetFullPath("/app/libamdhip64.so")), local.ClosureIdentity);
+
+        var systemLocator = new HipLibraryLocator(platform, "/missing", _ => null);
+        var systemLoader = new HipNativeLibraryLoader(platform, systemLocator, new NamedCandidateBackend("libamdhip64.so"));
+        HipNativeLibraryLoadResult system = systemLoader.Load(null);
+
+        Assert.AreEqual("operating-system-search", system.Candidate.Source);
+        Assert.AreEqual("search:operating-system-search", system.ClosureIdentity);
+        Assert.AreNotEqual(local.ClosureIdentity, system.ClosureIdentity);
+    }
+
     private sealed class AlwaysFailBackend : INativeLibraryBackend
     {
         internal List<string> Candidates { get; } = new();
@@ -85,6 +106,31 @@ public sealed class HipLibraryLoaderTests
             handle = IntPtr.Zero;
             detail = "not found";
             return false;
+        }
+    }
+
+    private sealed class FirstCandidateBackend : INativeLibraryBackend
+    {
+        public bool TryLoad(string candidate, out IntPtr handle, out string detail)
+        {
+            handle = new IntPtr(1);
+            detail = "loaded";
+            return true;
+        }
+    }
+
+    private sealed class NamedCandidateBackend : INativeLibraryBackend
+    {
+        private readonly string _expected;
+
+        internal NamedCandidateBackend(string expected) => _expected = expected;
+
+        public bool TryLoad(string candidate, out IntPtr handle, out string detail)
+        {
+            bool succeeded = string.Equals(candidate, _expected, StringComparison.Ordinal);
+            handle = succeeded ? new IntPtr(2) : IntPtr.Zero;
+            detail = succeeded ? "loaded" : "not found";
+            return succeeded;
         }
     }
 }

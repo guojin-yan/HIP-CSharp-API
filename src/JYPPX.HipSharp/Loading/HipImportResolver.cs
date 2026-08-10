@@ -18,6 +18,7 @@ internal static class HipImportResolver
     private static bool _rtcLoaded;
     private static string? _runtimeExplicitLibraryPath;
     private static string? _rtcExplicitLibraryPath;
+    private static string? _closureIdentity;
 #if NETCOREAPP3_1_OR_GREATER
     private static bool _resolverInstalled;
     private static IntPtr _runtimeHandle;
@@ -41,7 +42,15 @@ internal static class HipImportResolver
                 return;
             }
 
-            IntPtr handle = new HipNativeLibraryLoader(libraryKind).Load(explicitLibraryPath);
+            HipNativeLibraryLoadResult result = new HipNativeLibraryLoader(libraryKind).Load(explicitLibraryPath);
+            if (_closureIdentity is not null && !string.Equals(_closureIdentity, result.ClosureIdentity, StringComparison.OrdinalIgnoreCase))
+            {
+                throw new InvalidOperationException(
+                    "HIP Runtime and HIPRTC must be loaded from the same user-mode closure. " +
+                    "A package-local/system ROCm mix or two different native directories is not allowed.");
+            }
+
+            IntPtr handle = result.Handle;
 #if NETCOREAPP3_1_OR_GREATER
             if (!_resolverInstalled)
             {
@@ -65,6 +74,8 @@ internal static class HipImportResolver
                 _rtcExplicitLibraryPath = explicitLibraryPath;
                 _rtcLoaded = true;
             }
+
+            _closureIdentity ??= result.ClosureIdentity;
         }
     }
 

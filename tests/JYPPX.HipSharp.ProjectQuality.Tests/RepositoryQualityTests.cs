@@ -123,28 +123,52 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
-    public void RuntimeManifestsAreExplicitlyDisabledAndPackIsBlocked()
+    public void RuntimeManifestsUseAuditedLinuxSchemaAndKeepPackagingBlocked()
     {
-        foreach (string manifestPath in Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests"), "*.json"))
+        string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
+        using (JsonDocument linux = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "linux-x64.json"))))
         {
-            using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
-            string packageId = manifest.RootElement.GetProperty("packageId").GetString()!;
-            Assert.IsTrue(packageId is "JYPPX.HipSharp.Runtime.linux-x64" or "JYPPX.HipSharp.Runtime.win-x64");
-            Assert.IsFalse(packageId.Contains("rocm", StringComparison.OrdinalIgnoreCase));
-            string expectedVersion = packageId.EndsWith("linux-x64", StringComparison.Ordinal) ? "7.2.1" : "7.2.0";
-            Assert.AreEqual(expectedVersion, manifest.RootElement.GetProperty("packageVersion").GetString());
-            Assert.IsFalse(manifest.RootElement.GetProperty("packEnabled").GetBoolean());
-            Assert.IsFalse(manifest.RootElement.GetProperty("verified").GetBoolean());
-            Assert.AreEqual(0, manifest.RootElement.GetProperty("files").GetArrayLength());
-            Assert.IsTrue(manifest.RootElement.GetProperty("nativeAssetPath").GetString()!.StartsWith("runtimes/", StringComparison.Ordinal));
-
-            string projectName = packageId.EndsWith("linux-x64", StringComparison.Ordinal)
-                ? "JYPPX.HipSharp.Runtime.linux-x64.csproj"
-                : "JYPPX.HipSharp.Runtime.win-x64.csproj";
-            XDocument runtimeProjectDocument = XDocument.Load(Path.Combine(RepositoryRoot, "pack", projectName));
-            Assert.AreEqual(packageId, runtimeProjectDocument.Descendants("PackageId").Single().Value);
-            Assert.AreEqual(expectedVersion, runtimeProjectDocument.Descendants("PackageVersion").Single().Value);
+            JsonElement root = linux.RootElement;
+            Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
+            Assert.AreEqual("JYPPX.HipSharp.Runtime.linux-x64", root.GetProperty("packageId").GetString());
+            Assert.AreEqual("7.2.1", root.GetProperty("packageVersion").GetString());
+            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
+            Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
+            Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
+            Assert.IsTrue(root.GetProperty("source").GetProperty("repositoryUrl").GetString()!.StartsWith("https://repo.radeon.com/", StringComparison.Ordinal));
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("provenanceVerified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("closureVerified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
+            Assert.IsFalse(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsFalse(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
         }
+
+        using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
+        {
+            Assert.AreEqual("JYPPX.HipSharp.Runtime.win-x64", windows.RootElement.GetProperty("packageId").GetString());
+            Assert.IsFalse(windows.RootElement.GetProperty("packEnabled").GetBoolean());
+            Assert.IsFalse(windows.RootElement.GetProperty("verified").GetBoolean());
+            Assert.AreEqual(0, windows.RootElement.GetProperty("files").GetArrayLength());
+        }
+
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "runtime-manifest.schema.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.cdx.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.provenance.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.dependency-closure.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.licenses.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.sizes.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "prepare-runtime.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-supply-chain.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-source.ps1")));
+
+        XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.csproj"));
+        Assert.AreEqual("JYPPX.HipSharp.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
+        Assert.AreEqual("7.2.1", linuxProject.Descendants("PackageVersion").Single().Value);
 
         string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.csproj");
         var startInfo = new ProcessStartInfo("dotnet")
@@ -165,6 +189,7 @@ public sealed class RepositoryQualityTests
         process.WaitForExit();
         Assert.AreNotEqual(0, process.ExitCode, "An unverified runtime package must not be created.");
         StringAssert.Contains(output, "HIPSHARP1001");
+        Assert.IsFalse(File.Exists(Path.Combine(RepositoryRoot, "pack", "bin", "JYPPX.HipSharp.Runtime.linux-x64", "Release", "JYPPX.HipSharp.Runtime.linux-x64.7.2.1.nupkg")));
     }
 
     [TestMethod]

@@ -1,25 +1,47 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "packageId": "JYPPX.HipSharp.Runtime.win-x64",
   "packageVersion": "7.2.0",
+  "rid": "win-x64",
+  "nativeAssetPath": "runtimes/win-x64/native",
   "packEnabled": false,
   "verified": false,
-  "nativeAssetPath": "runtimes/win-x64/native",
   "source": {
-    "url": null,
-    "officialPackageName": null,
-    "version": "7.2",
+    "status": "not-supplied",
+    "reason": "Windows runtime is a declared non-goal for M5."
+  },
+  "packages": [],
+  "files": [],
+  "licenses": [],
+  "dependencyClosure": {
+    "rootPackages": [],
+    "rocmPayloadPackages": [],
+    "metadataOnlyPackages": [],
+    "decision": "Windows runtime is intentionally disabled."
+  },
+  "systemDependencies": [],
+  "driverBoundary": {
+    "deviceNodes": [],
+    "kernelDriver": [],
+    "excludedFromPackage": [
+      "kernel driver",
+      "firmware"
+    ]
+  },
+  "sbom": {
+    "format": "CycloneDX-1.5",
+    "path": "win-x64.cdx.json",
     "sha256": null
   },
-  "licenses": [],
-  "dependencies": [],
-  "files": [],
-  "supportMatrix": {
-    "rid": "win-x64",
-    "os": "Windows 11 planned baseline",
-    "architecture": "x64",
-    "rocm": "7.2",
-    "hip": "7.2",
-    "gpuValidated": false
+  "verification": {
+    "provenanceVerified": false,
+    "closureVerified": false,
+    "licensesVerified": false,
+    "sbomVerified": false,
+    "packageAuditVerified": false,
+    "gpuValidated": false,
+    "validationSha256": null,
+    "environment": null,
+    "reason": "Windows runtime packaging and GPU validation are outside M5."
   }
 }

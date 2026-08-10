@@ -2,6 +2,8 @@
   <PropertyGroup>
     <PackageId>JYPPX.HipSharp.Runtime.win-x64</PackageId>
     <PackageVersion>7.2.0</PackageVersion>
+    <RuntimeAssetRid>win-x64</RuntimeAssetRid>
     <RuntimeManifestPath>..\nuget\runtime-manifests\win-x64.json</RuntimeManifestPath>
+    <RuntimeStagingPath Condition="'$(RuntimeStagingPath)' == ''">..\eng\native-assets\staging\win-x64</RuntimeStagingPath>
   </PropertyGroup>
 </Project>
