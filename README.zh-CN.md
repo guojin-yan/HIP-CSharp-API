@@ -4,7 +4,7 @@ HIP-CSharp-API 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 绑定。
 
 ## M4 状态
 
-`0.0.0` 是本地发布候选审计包，不代表已发布到 nuget.org。M4 延续 M3 的官方 header 确定性 manifest、ABI 设备属性、显式 stream/event、异步内存/kernel API 和双 stream VectorAdd sample。本地包、clean consumer、loader diagnostics 与 DocFX 门禁通过；由于没有新的 Owner Radeon Cloud 授权和 ROCm 工具链，官方 header 编译及真实 Runtime/Memory/Stream/Event/Module/HIPRTC 执行仍阻塞，不伪造 GPU 结果。
+`0.0.0` 是本地发布候选审计包，不代表已发布到 nuget.org。M4 延续 M3 的官方 header 确定性 manifest、ABI 设备属性、显式 stream/event、异步内存/kernel API 和双 stream VectorAdd sample。本地包、clean consumer、loader diagnostics 与 DocFX 门禁通过；新的 Owner 授权 Radeon Cloud 会话也已在最终 detached SHA、Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211、`gfx1100` 单一环境通过官方 header ABI 编译和真实 Runtime/Memory/Stream/Event/Module/HIPRTC 执行。该结果是验证证据，不是广泛支持声明。
 
 - Build：核心程序集、公开 API 及 XML 文档可构建全部 15 个 TFM。
 - Package：本地核心包和代表性干净消费者会执行回归验证。
@@ -13,7 +13,7 @@ HIP-CSharp-API 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 绑定。
 - M2 GPU-validated：已在一个授权的 Radeon Cloud `gfx1100` 实例通过 HIPRTC 编译/日志/code、module/function、五种长度各 20 次 VectorAdd、同步、D2H、CPU 对比和预期编译失败。
 - Supported：尚未对任何 runtime、操作系统或 GPU 组合作支持承诺。
 - M4 本地 managed gate：generator/manifest、24 个 unit tests、7 个 quality tests、package audit、loader diagnostics、sample build 和 DocFX 已通过。
-- M4 GPU/ABI-validated：阻塞，等待当次 Owner 授权的 Radeon Cloud 实例和 ROCm 工具链。
+- M4 GPU/ABI-validated：已在一个 Owner 授权的 Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / `gfx1100` 会话通过；不构成广泛支持声明。
 
 M1 与 M2 已在授权的 Radeon Cloud Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 和 `gfx1100` 实例通过。M2 验证了 17 个 Runtime/Module exports、9 个 HIPRTC exports、官方头文件 ABI，以及长度 `1`、`127`、`256`、`1000`、`1048576` 各 20 次 VectorAdd。该结果不等于广泛支持声明。Windows HIP SDK 兼容设计已保留，但尚无 AMD GPU 实测。`.NET Core 3.1`、`.NET 5/6/7`、`.NET Framework 4.6/4.6.1` 已经 EOL，仅作为构建和包兼容目标。
 

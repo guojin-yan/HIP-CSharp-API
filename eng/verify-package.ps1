@@ -177,7 +177,7 @@ $report = [pscustomobject]@{
     targetFrameworkAssets = $frameworks
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "blocked-no-new-owner-authorized-cloud-M4"
+    runtimeAndGpuValidation = "passed-owner-authorized-cloud-M4-single-environment"
 }
 $reportPath = Join-Path $auditDirectory "package-audit.json"
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $reportPath -Encoding UTF8

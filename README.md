@@ -4,7 +4,7 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 
 ## M4 status
 
-`0.0.0` is a local release-candidate audit package, not a nuget.org release. M4 carries forward M3's deterministic official-header manifest, ABI-verified device attributes, explicit stream/event and async memory/kernel APIs, and two-stream VectorAdd sample. The local package, clean consumers, loader diagnostics, and DocFX gates pass. Official-header compilation and real Runtime/Memory/Stream/Event/Module/HIPRTC execution remain blocked pending a new Owner-authorized Radeon Cloud session; no new GPU result is claimed here.
+`0.0.0` is a local release-candidate audit package, not a nuget.org release. M4 carries forward M3's deterministic official-header manifest, ABI-verified device attributes, explicit stream/event and async memory/kernel APIs, and two-stream VectorAdd sample. The local package, clean consumers, loader diagnostics, and DocFX gates pass. A new Owner-authorized Radeon Cloud session also passed official-header ABI compilation and real Runtime/Memory/Stream/Event/Module/HIPRTC execution for the final detached SHA on one Ubuntu 24.04.4/ROCm 7.2.1/gfx1100 environment; this is validation evidence, not a broad support claim.
 
 | State | Result |
 | --- | --- |
@@ -14,7 +14,7 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 | M1 GPU-validated | Passed on one `gfx1100` AMD Radeon Graphics instance: enumerate, allocate, H2D/D2D/D2H, synchronize, and free |
 | M2 GPU-validated | Passed on one authorized Radeon Cloud `gfx1100` instance: HIPRTC compile/log/code, module/function, five VectorAdd lengths x 20 repeats, synchronization, D2H, CPU comparison, and expected compile failure |
 | M4 local managed gate | Passed generator/manifest checks, 24 unit tests, 7 quality tests, package audit, loader diagnostics, sample build, and DocFX |
-| M4 GPU/ABI-validated | Blocked: no new Owner-authorized Radeon Cloud endpoint or ROCm toolchain was provided for this stage |
+| M4 GPU/ABI-validated | Passed on one Owner-authorized Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / gfx1100 session; not a broad support claim |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
