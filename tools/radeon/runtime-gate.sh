@@ -108,14 +108,22 @@ done
 (cd "${runtime_root}/hiprtc-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --length 256 --repeat 20 2>&1) | tee "${evidence_dir}/hiprtc-vector-add-run.txt"
 (cd "${runtime_root}/stream-event-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/stream-event-vector-add-run.txt"
 
-grep -R '/opt/rocm' "${evidence_dir}" && { echo 'A runtime consumer hit /opt/rocm.' >&2; exit 1; } || true
+while IFS= read -r -d '' evidence_file; do
+  if grep -q '/opt/rocm' "${evidence_file}"; then
+    echo "A runtime consumer hit /opt/rocm: ${evidence_file}." >&2
+    exit 1
+  fi
+done < <(find "${evidence_dir}" -maxdepth 1 -type f -print0)
 maps_file="${evidence_dir}/consumer-maps.txt"
-(cd "${runtime_root}/stream-event-vector-add" && dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --lifecycle-repeats 100 >/dev/null 2>&1) & stream_pid=$!
-for _ in $(seq 1 100); do
-  child_pid="$(pgrep -P "${stream_pid}" -n || true)"
-  if [[ -n "${child_pid}" && -r "/proc/${child_pid}/maps" ]]; then cat "/proc/${child_pid}/maps" >> "${maps_file}"; break; fi
+stream_dll="${runtime_root}/stream-event-vector-add/bin/Release/net10.0/Consumer.dll"
+dotnet "${stream_dll}" --arch "${gpu_architecture}" --lifecycle-repeats 5000 >/dev/null 2>&1 & stream_pid=$!
+for _ in $(seq 1 500); do
+  if [[ -r "/proc/${stream_pid}/maps" ]] && grep -q 'libamdhip64' "/proc/${stream_pid}/maps"; then
+    cat "/proc/${stream_pid}/maps" > "${maps_file}"
+    break
+  fi
   kill -0 "${stream_pid}" 2>/dev/null || break
-  sleep 0.05
+  sleep 0.01
 done
 wait "${stream_pid}"
 [[ -s "${maps_file}" ]] || { echo 'Unable to capture consumer process maps.' >&2; exit 1; }
