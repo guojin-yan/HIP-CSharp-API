@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using JYPPX.HipSharp.Loading;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -12,19 +14,26 @@ public sealed class HipLibraryLoaderTests
     [TestMethod]
     public void LocatorUsesExplicitApplicationRuntimeEnvironmentAndOsOrder()
     {
-        var platform = new HipPlatformInfo(true, false, "Windows", "x64", ".NET 10", "win-x64");
+        bool isWindows = RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
+        string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
+        string fileName = isWindows ? "amdhip64_7.dll" : "libamdhip64.so";
+        string applicationBase = Path.Combine(root, "hipsharp-app");
+        string rocmRoot = Path.Combine(root, "hipsharp-rocm");
+        string explicitPath = Path.Combine(root, "hipsharp-custom", fileName);
+        string rid = isWindows ? "win-x64" : "linux-x64";
+        var platform = new HipPlatformInfo(isWindows, !isWindows, isWindows ? "Windows" : "Linux", "x64", ".NET 10", rid);
         var locator = new HipLibraryLocator(
             platform,
-            @"C:\app",
-            name => name == "ROCM_PATH" ? @"C:\rocm" : null);
+            applicationBase,
+            name => name == "ROCM_PATH" ? rocmRoot : null);
 
-        HipLibraryCandidate[] candidates = locator.GetCandidates(@"C:\custom\amdhip64_7.dll").ToArray();
+        HipLibraryCandidate[] candidates = locator.GetCandidates(explicitPath).ToArray();
 
-        Assert.AreEqual(@"C:\custom\amdhip64_7.dll", candidates[0].Value);
+        Assert.AreEqual(explicitPath, candidates[0].Value);
         Assert.AreEqual("explicit-path", candidates[0].Source);
-        CollectionAssert.Contains(candidates.Select(candidate => candidate.Value).ToArray(), @"C:\app\runtimes\win-x64\native\amdhip64_7.dll");
-        CollectionAssert.Contains(candidates.Select(candidate => candidate.Value).ToArray(), @"C:\rocm\bin\amdhip64_7.dll");
-        Assert.AreEqual("amdhip64_7.dll", candidates[candidates.Length - 1].Value);
+        CollectionAssert.Contains(candidates.Select(candidate => candidate.Value).ToArray(), Path.Combine(applicationBase, "runtimes", rid, "native", fileName));
+        CollectionAssert.Contains(candidates.Select(candidate => candidate.Value).ToArray(), Path.Combine(rocmRoot, isWindows ? "bin" : "lib", fileName));
+        Assert.AreEqual(fileName, candidates[candidates.Length - 1].Value);
     }
 
     [TestMethod]
