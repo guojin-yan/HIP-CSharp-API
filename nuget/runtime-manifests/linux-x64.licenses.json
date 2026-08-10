@@ -27,7 +27,7 @@
       "sourcePackage": "rocm-core-rpath7.2.1",
       "expression": "MIT",
       "sourcePath": "opt/rocm-7.2.1/share/doc/rocm-core/copyright",
-      "packagePath": "licenses/rocm-core-rpath7.2.1/copyright",
+      "packagePath": "licenses/rocm-core-rpath7.2.1/copyright.txt",
       "sha256": "aa84e508c15e6ef02bfd7473e47b1c2e3d45b83581eab50af1a463e2acb6c266"
     },
     {
