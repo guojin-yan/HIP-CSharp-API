@@ -18,15 +18,15 @@ M6 增加经过选择的高级 API，同时不把原生所有权直接暴露给�
 
 ## Peer access / 设备间访问
 
-P2P state is represented by an explicit ordered device pair. `EnablePeerAccess(accessingDevice, peerDevice)`, `CopyAsync`, and an owned disable all require `accessingDevice` to be current. A returned owner distinguishes unsupported, newly enabled, and already-enabled states. Disposal disables only access first enabled by that owner; it never revokes a pre-existing enable. `CopyAsync` retains both memory owners until the stream completes.
+P2P state is represented by an explicit ordered device pair. `EnablePeerAccess(accessingDevice, peerDevice)`, `CopyAsync`, and an owned disable all require `accessingDevice` to be current. Device allocations and streams record their creation-device ordinal; `CopyAsync` derives native ordinals from those owners, rejects allocations outside the pair, and requires a stream created on `accessingDevice`. A returned owner distinguishes unsupported, newly enabled, and already-enabled states. Disposal disables only access first enabled by that owner; it never revokes a pre-existing enable. `CopyAsync` retains both memory owners until the stream completes.
 
-P2P 状态由显式、有方向的设备对表示。`EnablePeerAccess(accessingDevice, peerDevice)`、`CopyAsync` 和 owner 执行的 disable 都要求 `accessingDevice` 已成为当前设备。返回的 owner 区分 unsupported、newly enabled 和 already enabled；释放时只撤销自身首次启用的访问，不会撤销已有状态。`CopyAsync` 在 stream 完成前同时保留源、目标内存 owner。
+P2P 状态由显式、有方向的设备对表示。`EnablePeerAccess(accessingDevice, peerDevice)`、`CopyAsync` 和 owner 执行的 disable 都要求 `accessingDevice` 已成为当前设备。设备分配与 stream 会记录创建时的设备序号；`CopyAsync` 从 owner 读取原生 ordinal，拒绝设备对之外的 allocation，并要求 stream 创建于 `accessingDevice`。返回的 owner 区分 unsupported、newly enabled 和 already enabled；释放时只撤销自身首次启用的访问，不会撤销已有状态。`CopyAsync` 在 stream 完成前同时保留源、目标内存 owner。
 
 ## Graph capture / Graph 捕获
 
-`HipRuntime.CaptureGraph` balances begin/end capture and returns an independent `HipGraph` owner. `Instantiate` returns an independent `HipGraphExec`; destroying the source graph does not transfer or destroy executable ownership. `Launch` retains the executable until the target stream completes. Graph handles do not own external memory, modules, or host buffers referenced by captured operations, so callers must keep those owners alive through every executable launch and its stream completion. Capture callbacks must only submit operations accepted by HIP capture rules and must not synchronize the captured stream.
+`HipRuntime.CaptureGraph` balances begin/end capture and returns an independent `HipGraph` owner. Resources referenced by captured wrapper operations, including device memory, modules, managed arrays, and pinned buffers, are retained automatically. The graph and every executable share those leases; the last owner releases them. `Instantiate` returns an independent `HipGraphExec`, so destroying the source graph does not destroy resources still needed by an executable. `Launch` also retains the executable until the target stream completes. Capture callbacks must only submit operations accepted by HIP capture rules and must not synchronize the captured stream. Native pointers passed outside these wrapper operations remain caller-owned.
 
-`HipRuntime.CaptureGraph` 配对 begin/end capture 并返回独立 `HipGraph` owner。`Instantiate` 返回独立 `HipGraphExec`；销毁源 graph 不会转移或销毁 executable。`Launch` 在目标 stream 完成前保留 executable。graph handle 不拥有 captured operation 引用的外部 memory、module 或 host buffer，因此调用方必须让这些 owner 至少存活到每次 executable launch 及其 stream 完成。capture callback 只能提交 HIP capture 规则允许的操作，不得同步正在捕获的 stream。
+`HipRuntime.CaptureGraph` 配对 begin/end capture 并返回独立 `HipGraph` owner。通过封装层操作引用的 device memory、module、托管数组与 pinned buffer 会自动保活；graph 与每个 executable 共享这些 lease，并由最后一个 owner 释放。`Instantiate` 返回独立 `HipGraphExec`，所以销毁源 graph 不会销毁 executable 仍需要的资源。`Launch` 还会在目标 stream 完成前保留 executable。capture callback 只能提交 HIP capture 规则允许的操作，不得同步正在捕获的 stream；绕过封装层直接传入的 native pointer 仍由调用方管理。
 
 ## Availability and errors / 可用性与错误
 

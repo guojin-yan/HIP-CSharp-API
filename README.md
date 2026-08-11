@@ -4,7 +4,7 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 
 ## M6 status
 
-M6 adds selected stream-ordered allocation/free, managed-memory advice/prefetch, explicit P2P state/copy, and graph capture/instantiate/launch APIs. One normalized manifest now drives 55 declarations across the `LibraryImport` and `DllImport` branches. Managed owners retain native resources through pending stream work, and missing optional exports normalize to `HipError.NotSupported`.
+M6 adds selected stream-ordered allocation/free, managed-memory advice/prefetch, explicit P2P state/copy, and graph capture/instantiate/launch APIs. One normalized manifest now drives 55 declarations across the `LibraryImport` and `DllImport` branches. Managed owners retain native resources through pending stream work and captured graphs; P2P copies derive device ordinals from allocation and stream ownership. Missing optional exports normalize to `HipError.NotSupported`.
 
 M5 remains the signed-source/runtime-package regression baseline: AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; the validated candidate compressed to 162,891,900 bytes, so the topology remains one runtime package.
 

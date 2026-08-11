@@ -178,10 +178,20 @@ public sealed class HipKernel
             if (stream is not null)
             {
                 var memorySnapshot = acquiredMemory.ToArray();
+                int releaseIndex = memorySnapshot.Length - 1;
+                bool moduleReferencePending = true;
                 stream.AddPendingLease(new HipAsyncLease(() =>
                 {
-                    for (int index = memorySnapshot.Length - 1; index >= 0; index--) memorySnapshot[index].ReleasePointer();
-                    _module.ReleaseAsyncReference();
+                    while (releaseIndex >= 0)
+                    {
+                        memorySnapshot[releaseIndex].ReleasePointer();
+                        releaseIndex--;
+                    }
+                    if (moduleReferencePending)
+                    {
+                        _module.ReleaseAsyncReference();
+                        moduleReferencePending = false;
+                    }
                 }));
                 transferred = true;
             }

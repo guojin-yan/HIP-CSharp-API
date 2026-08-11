@@ -14,6 +14,9 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
     private readonly IHipNativeApi _nativeApi;
     private readonly HipStream _allocationStream;
     private readonly HipAsyncDeviceMemoryHandle _handle;
+    private readonly object _lifetimeSync = new();
+    private int _asyncReferences;
+    private bool _disposeRequested;
 
     internal HipAsyncDeviceMemory(IHipNativeApi nativeApi, IntPtr pointer, ulong byteLength, HipStream allocationStream, IDisposable ownerLease)
     {
@@ -29,8 +32,11 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
     /// <summary>获取创建和释放顺序所绑定的 stream / Gets the stream that owns allocation and release ordering.</summary>
     public HipStream AllocationStream => _allocationStream;
 
+    /// <summary>获取分配所在设备的序号 / Gets the ordinal of the device on which the allocation was created.</summary>
+    public int DeviceOrdinal => _allocationStream.DeviceOrdinal;
+
     /// <summary>获取资源是否已释放 / Gets whether the resource is disposed.</summary>
-    public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
+    public bool IsDisposed { get { lock (_lifetimeSync) return _disposeRequested || _handle.IsClosed || _handle.IsInvalid; } }
 
     /// <summary>获取原生指针但不转移所有权 / Gets the native pointer without transferring ownership.</summary>
     public IntPtr DangerousGetHandle()
@@ -50,21 +56,22 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
         bool transferred = false;
         try
         {
-            _handle.DangerousAddRef(ref addedReference);
-            if (!addedReference) throw new ObjectDisposedException(nameof(HipAsyncDeviceMemory));
+            AcquirePointer(out addedReference);
             HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemcpyAsync(_handle.DangerousGetHandle(), pinned.AddrOfPinnedObject(), HipDeviceMemory.ToUIntPtr((ulong)source.LongLength, nameof(source)), HipMemoryCopyKind.HostToDevice, _allocationStream.DangerousGetHandle()), "hipMemcpyAsync");
-            bool referenceTransferred = addedReference;
             _allocationStream.AddPendingLease(new HipAsyncLease(() =>
             {
-                if (referenceTransferred) _handle.DangerousRelease();
-                pinned.Free();
+                if (addedReference)
+                {
+                    ReleasePointer();
+                    addedReference = false;
+                }
+                if (pinned.IsAllocated) pinned.Free();
             }));
-            addedReference = false;
             transferred = true;
         }
         finally
         {
-            if (addedReference) _handle.DangerousRelease();
+            if (!transferred && addedReference) ReleasePointer();
             if (!transferred && pinned.IsAllocated) pinned.Free();
         }
     }
@@ -80,21 +87,22 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
         bool transferred = false;
         try
         {
-            _handle.DangerousAddRef(ref addedReference);
-            if (!addedReference) throw new ObjectDisposedException(nameof(HipAsyncDeviceMemory));
+            AcquirePointer(out addedReference);
             HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemcpyAsync(pinned.AddrOfPinnedObject(), _handle.DangerousGetHandle(), HipDeviceMemory.ToUIntPtr((ulong)destination.LongLength, nameof(destination)), HipMemoryCopyKind.DeviceToHost, _allocationStream.DangerousGetHandle()), "hipMemcpyAsync");
-            bool referenceTransferred = addedReference;
             _allocationStream.AddPendingLease(new HipAsyncLease(() =>
             {
-                if (referenceTransferred) _handle.DangerousRelease();
-                pinned.Free();
+                if (addedReference)
+                {
+                    ReleasePointer();
+                    addedReference = false;
+                }
+                if (pinned.IsAllocated) pinned.Free();
             }));
-            addedReference = false;
             transferred = true;
         }
         finally
         {
-            if (addedReference) _handle.DangerousRelease();
+            if (!transferred && addedReference) ReleasePointer();
             if (!transferred && pinned.IsAllocated) pinned.Free();
         }
     }
@@ -104,6 +112,13 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
     /// </summary>
     public void Dispose()
     {
+        lock (_lifetimeSync)
+        {
+            if (_handle.IsClosed || _handle.IsInvalid) return;
+            _disposeRequested = true;
+            if (_asyncReferences != 0) return;
+        }
+
         HipError error = _handle.ReleaseAsyncChecked();
         if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipFreeAsync");
         _handle.Dispose();
@@ -113,13 +128,36 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
 
     internal IntPtr AcquirePointer(out bool addedReference)
     {
-        ThrowIfDisposed();
-        addedReference = false;
-        _handle.DangerousAddRef(ref addedReference);
-        return _handle.DangerousGetHandle();
+        lock (_lifetimeSync)
+        {
+            ThrowIfDisposed();
+            addedReference = false;
+            _handle.DangerousAddRef(ref addedReference);
+            if (addedReference) _asyncReferences++;
+            return _handle.DangerousGetHandle();
+        }
     }
 
-    internal void ReleasePointer() => _handle.DangerousRelease();
+    internal void ReleasePointer()
+    {
+        bool releaseChecked;
+        lock (_lifetimeSync)
+        {
+            if (_asyncReferences > 0)
+            {
+                _handle.DangerousRelease();
+                _asyncReferences--;
+            }
+            releaseChecked = _disposeRequested && _asyncReferences == 0;
+        }
+
+        if (releaseChecked)
+        {
+            HipError error = _handle.ReleaseAsyncChecked();
+            if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipFreeAsync");
+            _handle.Dispose();
+        }
+    }
 
     IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
     HipStream? IHipPointerOwner.RequiredStream => _allocationStream;

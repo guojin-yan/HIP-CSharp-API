@@ -16,11 +16,11 @@ public sealed class HipGraphExec : IDisposable
     private int _asyncReferences;
     private bool _disposeRequested;
 
-    internal HipGraphExec(IHipNativeApi nativeApi, IntPtr handle)
+    internal HipGraphExec(IHipNativeApi nativeApi, IntPtr handle, IDisposable? captureReference = null)
     {
         if (handle == IntPtr.Zero) throw new ArgumentException("A HIP graph executable handle cannot be null.", nameof(handle));
         _nativeApi = nativeApi ?? throw new ArgumentNullException(nameof(nativeApi));
-        _handle = new HipGraphExecHandle(nativeApi, handle);
+        _handle = new HipGraphExecHandle(nativeApi, handle, captureReference);
     }
 
     /// <summary>获取 executable 是否已释放 / Gets whether the executable is disposed.</summary>
@@ -62,7 +62,7 @@ public sealed class HipGraphExec : IDisposable
     {
         lock (_lifetimeSync)
         {
-            if (_handle.IsClosed || _handle.IsInvalid) return;
+            if (_handle.IsClosed) return;
             _disposeRequested = true;
             if (_asyncReferences != 0)
             {

@@ -126,9 +126,10 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法创建 stream / HIP cannot create a stream.</exception>
     public HipStream CreateStream(HipStreamFlags flags = HipStreamFlags.Default)
     {
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamCreateWithFlags(out IntPtr stream, (uint)flags), "hipStreamCreateWithFlags");
         if (stream == IntPtr.Zero) throw new InvalidOperationException("hipStreamCreateWithFlags succeeded but returned a null stream.");
-        return new HipStream(_nativeApi, stream, flags);
+        return new HipStream(_nativeApi, stream, flags, deviceOrdinal);
     }
 
     /// <summary>创建拥有型 HIP event / Creates an owning HIP event.</summary>
@@ -183,13 +184,14 @@ public sealed class HipRuntime
             throw new ArgumentOutOfRangeException(nameof(byteCount));
         }
 
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.Malloc(out IntPtr pointer, nativeByteCount), "hipMalloc");
         if (pointer == IntPtr.Zero)
         {
             throw new InvalidOperationException("hipMalloc succeeded but returned a null pointer.");
         }
 
-        return new HipDeviceMemory(_nativeApi, pointer, byteCount);
+        return new HipDeviceMemory(_nativeApi, pointer, byteCount, deviceOrdinal);
     }
 
     /// <summary>

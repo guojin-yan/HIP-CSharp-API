@@ -176,7 +176,7 @@ static string ProbePeer(HipRuntime runtime, IReadOnlyList<HipDevice> devices)
         {
             throw new InvalidOperationException("Peer capability was true but access was not enabled.");
         }
-        access.CopyAsync(destination, 0, source, 1, (ulong)expected.Length, stream);
+        access.CopyAsync(destination, source, (ulong)expected.Length, stream);
         stream.Synchronize();
         byte[] actual = new byte[expected.Length];
         destination.CopyTo(actual);

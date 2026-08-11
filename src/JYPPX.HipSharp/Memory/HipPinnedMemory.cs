@@ -14,6 +14,7 @@ public sealed class HipPinnedMemory : IDisposable
     private readonly HipPinnedMemoryHandle _handle;
     private readonly object _lifetimeSync = new();
     private int _asyncReferences;
+    private bool _disposeRequested;
 
     internal HipPinnedMemory(IHipNativeApi nativeApi, IntPtr pointer, ulong byteLength)
     {
@@ -26,7 +27,7 @@ public sealed class HipPinnedMemory : IDisposable
     public ulong ByteLength { get; }
 
     /// <summary>获取是否已释放 / Gets whether this memory is disposed.</summary>
-    public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
+    public bool IsDisposed { get { lock (_lifetimeSync) return _disposeRequested || _handle.IsClosed || _handle.IsInvalid; } }
 
     /// <summary>获取 pinned 指针；调用方不得释放 / Gets the pinned pointer; callers must not free it.</summary>
     public IntPtr DangerousGetHandle()
@@ -58,9 +59,10 @@ public sealed class HipPinnedMemory : IDisposable
     {
         lock (_lifetimeSync)
         {
+            if (_handle.IsClosed || _handle.IsInvalid) return;
+            _disposeRequested = true;
             if (_asyncReferences != 0)
             {
-                _handle.Dispose();
                 return;
             }
         }
@@ -83,10 +85,22 @@ public sealed class HipPinnedMemory : IDisposable
     }
     internal void ReleaseHandle()
     {
+        bool releaseChecked;
         lock (_lifetimeSync)
         {
-            _handle.DangerousRelease();
-            if (_asyncReferences > 0) _asyncReferences--;
+            if (_asyncReferences > 0)
+            {
+                _handle.DangerousRelease();
+                _asyncReferences--;
+            }
+            releaseChecked = _disposeRequested && _asyncReferences == 0;
+        }
+
+        if (releaseChecked)
+        {
+            HipError error = _handle.ReleaseChecked();
+            if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipHostFree");
+            _handle.Dispose();
         }
     }
 

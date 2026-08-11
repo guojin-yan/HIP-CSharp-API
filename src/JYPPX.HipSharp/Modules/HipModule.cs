@@ -13,6 +13,7 @@ public sealed class HipModule : IDisposable
     private readonly HipModuleHandle _handle;
     private readonly object _sync = new();
     private int _asyncReferences;
+    private bool _disposeRequested;
 
     internal HipModule(IHipNativeApi nativeApi, IntPtr module)
     {
@@ -21,7 +22,7 @@ public sealed class HipModule : IDisposable
     }
 
     /// <summary>获取 module 是否已经释放 / Gets whether the module has been released.</summary>
-    public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
+    public bool IsDisposed { get { lock (_sync) return _disposeRequested || _handle.IsClosed || _handle.IsInvalid; } }
 
     /// <summary>
     /// 按名称获取 kernel function / Gets a kernel function by name.
@@ -64,20 +65,14 @@ public sealed class HipModule : IDisposable
     {
         lock (_sync)
         {
+            if (_handle.IsClosed || _handle.IsInvalid) return;
+            _disposeRequested = true;
             if (_asyncReferences != 0)
             {
-                _handle.Dispose();
                 return;
             }
-            HipError error = _handle.ReleaseChecked();
-            if (error == HipError.Success)
-            {
-                _handle.Dispose();
-                return;
-            }
-
-            HipCall.ThrowIfFailed(_nativeApi, error, "hipModuleUnload");
         }
+        ReleaseChecked();
     }
 
     internal IHipNativeApi NativeApi => _nativeApi;
@@ -96,11 +91,18 @@ public sealed class HipModule : IDisposable
 
     internal void ReleaseAsyncReference()
     {
+        bool releaseChecked;
         lock (_sync)
         {
-            _handle.DangerousRelease();
-            if (_asyncReferences > 0) _asyncReferences--;
+            if (_asyncReferences > 0)
+            {
+                _handle.DangerousRelease();
+                _asyncReferences--;
+            }
+            releaseChecked = _disposeRequested && _asyncReferences == 0;
         }
+
+        if (releaseChecked) ReleaseChecked();
     }
 
     internal T Invoke<T>(Func<IntPtr, T> action)
@@ -120,6 +122,13 @@ public sealed class HipModule : IDisposable
         {
             throw new ObjectDisposedException(nameof(HipModule));
         }
+    }
+
+    private void ReleaseChecked()
+    {
+        HipError error = _handle.ReleaseChecked();
+        if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipModuleUnload");
+        _handle.Dispose();
     }
 
     private static bool ContainsNull(string value)

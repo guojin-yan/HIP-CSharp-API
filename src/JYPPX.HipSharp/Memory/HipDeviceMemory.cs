@@ -15,19 +15,24 @@ public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
     private readonly HipDeviceMemoryHandle _handle;
     private readonly object _lifetimeSync = new();
     private int _asyncReferences;
+    private bool _disposeRequested;
 
-    internal HipDeviceMemory(IHipNativeApi nativeApi, IntPtr pointer, ulong byteLength)
+    internal HipDeviceMemory(IHipNativeApi nativeApi, IntPtr pointer, ulong byteLength, int deviceOrdinal)
     {
         _nativeApi = nativeApi;
         _handle = new HipDeviceMemoryHandle(nativeApi, pointer);
         ByteLength = byteLength;
+        DeviceOrdinal = deviceOrdinal;
     }
 
     /// <summary>获取分配的字节数 / Gets the allocation size in bytes.</summary>
     public ulong ByteLength { get; }
 
+    /// <summary>获取分配所在设备的序号 / Gets the ordinal of the device on which the allocation was created.</summary>
+    public int DeviceOrdinal { get; }
+
     /// <summary>获取资源是否已经释放 / Gets whether the resource has been released.</summary>
-    public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
+    public bool IsDisposed { get { lock (_lifetimeSync) return _disposeRequested || _handle.IsClosed || _handle.IsInvalid; } }
 
     /// <summary>
     /// 获取原生设备指针；调用方不得释放它 / Gets the native device pointer; the caller must not free it.
@@ -178,9 +183,10 @@ public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
     {
         lock (_lifetimeSync)
         {
+            if (_handle.IsClosed || _handle.IsInvalid) return;
+            _disposeRequested = true;
             if (_asyncReferences != 0)
             {
-                _handle.Dispose();
                 return;
             }
         }
@@ -213,10 +219,22 @@ public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
 
     internal void DangerousReleaseHandle()
     {
+        bool releaseChecked;
         lock (_lifetimeSync)
         {
-            _handle.DangerousRelease();
-            if (_asyncReferences > 0) _asyncReferences--;
+            if (_asyncReferences > 0)
+            {
+                _handle.DangerousRelease();
+                _asyncReferences--;
+            }
+            releaseChecked = _disposeRequested && _asyncReferences == 0;
+        }
+
+        if (releaseChecked)
+        {
+            HipError error = _handle.ReleaseChecked();
+            if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipFree");
+            _handle.Dispose();
         }
     }
 
@@ -273,8 +291,12 @@ public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
             if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipMemcpyAsync");
             stream.AddPendingLease(new HipAsyncLease(() =>
             {
-                pinned.Free();
-                if (deviceReference) DangerousReleaseHandle();
+                if (pinned.IsAllocated) pinned.Free();
+                if (deviceReference)
+                {
+                    DangerousReleaseHandle();
+                    deviceReference = false;
+                }
             }));
         }
         catch
@@ -308,8 +330,16 @@ public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
             if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipMemcpyAsync");
             stream.AddPendingLease(new HipAsyncLease(() =>
             {
-                if (hostReference) host.ReleaseHandle();
-                if (deviceReference) DangerousReleaseHandle();
+                if (hostReference)
+                {
+                    host.ReleaseHandle();
+                    hostReference = false;
+                }
+                if (deviceReference)
+                {
+                    DangerousReleaseHandle();
+                    deviceReference = false;
+                }
             }));
         }
         catch

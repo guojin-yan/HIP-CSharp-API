@@ -42,8 +42,8 @@ public sealed class HipPeerAccess : IDisposable
     /// <summary>
     /// 在指定 stream 上执行设备对异步复制并保留两个内存 owner / Copies asynchronously for the pair and retains both memory owners.
     /// </summary>
-    /// <remarks>AccessingDevice 必须保持为当前设备 / AccessingDevice must remain current.</remarks>
-    public void CopyAsync(HipDeviceMemory destination, int destinationDevice, HipDeviceMemory source, int sourceDevice, ulong byteCount, HipStream stream)
+    /// <remarks>AccessingDevice 必须保持为当前设备，且 stream 必须创建于该设备 / AccessingDevice must remain current and the stream must have been created on it.</remarks>
+    public void CopyAsync(HipDeviceMemory destination, HipDeviceMemory source, ulong byteCount, HipStream stream)
     {
         if (destination is null) throw new ArgumentNullException(nameof(destination));
         if (source is null) throw new ArgumentNullException(nameof(source));
@@ -52,7 +52,8 @@ public sealed class HipPeerAccess : IDisposable
         {
             ThrowIfDisposed();
             if (!IsSupported || !_isEnabled) throw new InvalidOperationException("Peer access is not supported and enabled for this device pair.");
-            if (!IsPair(destinationDevice, sourceDevice)) throw new ArgumentException("The copy devices do not match this peer-access pair.");
+            if (!IsPair(destination.DeviceOrdinal, source.DeviceOrdinal)) throw new ArgumentException("The allocation devices do not match this peer-access pair.");
+            if (stream.DeviceOrdinal != AccessingDevice) throw new ArgumentException("The copy stream must have been created on AccessingDevice.", nameof(stream));
             if (byteCount > destination.ByteLength || byteCount > source.ByteLength) throw new ArgumentOutOfRangeException(nameof(byteCount));
             if (!ReferenceEquals(_nativeApi, destination.NativeApi) || !ReferenceEquals(_nativeApi, source.NativeApi) || !ReferenceEquals(_nativeApi, stream.NativeApi))
                 throw new ArgumentException("Peer memory and stream must belong to the same HIP Runtime client.");
@@ -61,25 +62,34 @@ public sealed class HipPeerAccess : IDisposable
 
             bool destinationReference = false;
             bool sourceReference = false;
+            bool transferred = false;
             try
             {
                 IntPtr destinationPointer = destination.DangerousAcquireHandle(out destinationReference);
                 IntPtr sourcePointer = source.DangerousAcquireHandle(out sourceReference);
-                HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemcpyPeerAsync(destinationPointer, destinationDevice, sourcePointer, sourceDevice, HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount)), stream.DangerousGetHandle()), "hipMemcpyPeerAsync");
-                bool transferredDestination = destinationReference;
-                bool transferredSource = sourceReference;
+                HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemcpyPeerAsync(destinationPointer, destination.DeviceOrdinal, sourcePointer, source.DeviceOrdinal, HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount)), stream.DangerousGetHandle()), "hipMemcpyPeerAsync");
                 stream.AddPendingLease(new HipAsyncLease(() =>
                 {
-                    if (transferredSource) source.DangerousReleaseHandle();
-                    if (transferredDestination) destination.DangerousReleaseHandle();
+                    if (sourceReference)
+                    {
+                        source.DangerousReleaseHandle();
+                        sourceReference = false;
+                    }
+                    if (destinationReference)
+                    {
+                        destination.DangerousReleaseHandle();
+                        destinationReference = false;
+                    }
                 }));
-                sourceReference = false;
-                destinationReference = false;
+                transferred = true;
             }
             finally
             {
-                if (sourceReference) source.DangerousReleaseHandle();
-                if (destinationReference) destination.DangerousReleaseHandle();
+                if (!transferred)
+                {
+                    if (sourceReference) source.DangerousReleaseHandle();
+                    if (destinationReference) destination.DangerousReleaseHandle();
+                }
             }
         }
     }

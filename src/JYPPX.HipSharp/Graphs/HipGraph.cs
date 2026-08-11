@@ -12,16 +12,17 @@ public sealed class HipGraph : IDisposable
     private readonly IHipNativeApi _nativeApi;
     private readonly HipGraphHandle _handle;
     private readonly object _lifetimeSync = new();
+    private bool _disposeRequested;
 
-    internal HipGraph(IHipNativeApi nativeApi, IntPtr handle)
+    internal HipGraph(IHipNativeApi nativeApi, IntPtr handle, HipGraphCaptureResources captureResources)
     {
         if (handle == IntPtr.Zero) throw new ArgumentException("A HIP graph handle cannot be null.", nameof(handle));
         _nativeApi = nativeApi ?? throw new ArgumentNullException(nameof(nativeApi));
-        _handle = new HipGraphHandle(nativeApi, handle);
+        _handle = new HipGraphHandle(nativeApi, handle, captureResources ?? throw new ArgumentNullException(nameof(captureResources)));
     }
 
     /// <summary>获取 graph 是否已释放 / Gets whether the graph is disposed.</summary>
-    public bool IsDisposed { get { lock (_lifetimeSync) return _handle.IsClosed || _handle.IsInvalid; } }
+    public bool IsDisposed { get { lock (_lifetimeSync) return _disposeRequested || _handle.IsClosed || _handle.IsInvalid; } }
 
     /// <summary>
     /// 创建 graph executable；graph 与 executable 是独立 owner / Creates a graph executable; the graph and executable are independent owners.
@@ -34,15 +35,25 @@ public sealed class HipGraph : IDisposable
         lock (_lifetimeSync)
         {
             ThrowIfDisposed();
-            HipError error = _nativeApi.GraphInstantiateWithFlags(out IntPtr executable, _handle.DangerousGetHandle(), flags);
-            if (error != HipError.Success && executable != IntPtr.Zero)
+            IDisposable? captureReference = _handle.AcquireCaptureReference();
+            try
             {
-                var partialHandle = new HipGraphExecHandle(_nativeApi, executable);
-                if (partialHandle.ReleaseChecked() == HipError.Success) partialHandle.Dispose();
+                HipError error = _nativeApi.GraphInstantiateWithFlags(out IntPtr executable, _handle.DangerousGetHandle(), flags);
+                if (error != HipError.Success && executable != IntPtr.Zero)
+                {
+                    var partialHandle = new HipGraphExecHandle(_nativeApi, executable, null);
+                    if (partialHandle.ReleaseChecked() == HipError.Success) partialHandle.Dispose();
+                }
+                HipCall.ThrowIfFailed(_nativeApi, error, "hipGraphInstantiateWithFlags");
+                if (executable == IntPtr.Zero) throw new InvalidOperationException("hipGraphInstantiateWithFlags succeeded but returned a null executable.");
+                var result = new HipGraphExec(_nativeApi, executable, captureReference);
+                captureReference = null;
+                return result;
             }
-            HipCall.ThrowIfFailed(_nativeApi, error, "hipGraphInstantiateWithFlags");
-            if (executable == IntPtr.Zero) throw new InvalidOperationException("hipGraphInstantiateWithFlags succeeded but returned a null executable.");
-            return new HipGraphExec(_nativeApi, executable);
+            finally
+            {
+                captureReference?.Dispose();
+            }
         }
     }
 
@@ -51,6 +62,7 @@ public sealed class HipGraph : IDisposable
     {
         lock (_lifetimeSync)
         {
+            _disposeRequested = true;
             HipError error = _handle.ReleaseChecked();
             if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipGraphDestroy");
             _handle.Dispose();

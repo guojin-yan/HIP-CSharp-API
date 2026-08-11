@@ -15,18 +15,23 @@ public sealed class HipStream : IDisposable
     private readonly HipStreamHandle _handle;
     private readonly object _sync = new();
     private readonly List<IDisposable> _pending = new();
+    private List<IDisposable>? _captureLeases;
     private int _ownedResourceCount;
     private bool _captureActive;
 
-    internal HipStream(IHipNativeApi nativeApi, IntPtr handle, HipStreamFlags flags)
+    internal HipStream(IHipNativeApi nativeApi, IntPtr handle, HipStreamFlags flags, int deviceOrdinal)
     {
         _nativeApi = nativeApi;
         _handle = new HipStreamHandle(nativeApi, handle);
         Flags = flags;
+        DeviceOrdinal = deviceOrdinal;
     }
 
     /// <summary>获取创建标志 / Gets the creation flags.</summary>
     public HipStreamFlags Flags { get; }
+
+    /// <summary>获取创建 stream 的设备序号 / Gets the ordinal of the device on which the stream was created.</summary>
+    public int DeviceOrdinal { get; }
 
     /// <summary>获取 stream 是否已释放 / Gets whether the stream is disposed.</summary>
     public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
@@ -46,6 +51,7 @@ public sealed class HipStream : IDisposable
             ThrowIfDisposed();
             if (_captureActive) throw new InvalidOperationException("This stream is already capturing a graph.");
             HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamBeginCapture(_handle.DangerousGetHandle(), mode), "hipStreamBeginCapture");
+            _captureLeases = new List<IDisposable>();
             _captureActive = true;
         }
     }
@@ -65,9 +71,20 @@ public sealed class HipStream : IDisposable
                     var partialHandle = new HipGraphHandle(_nativeApi, graph);
                     if (partialHandle.ReleaseChecked() == HipError.Success) partialHandle.Dispose();
                 }
+                if (error != HipError.Success)
+                {
+                    MoveCaptureLeasesToPending();
+                }
                 HipCall.ThrowIfFailed(_nativeApi, error, "hipStreamEndCapture");
-                if (graph == IntPtr.Zero) throw new InvalidOperationException("hipStreamEndCapture succeeded but returned a null graph.");
-                return new HipGraph(_nativeApi, graph);
+                if (graph == IntPtr.Zero)
+                {
+                    MoveCaptureLeasesToPending();
+                    throw new InvalidOperationException("hipStreamEndCapture succeeded but returned a null graph.");
+                }
+
+                List<IDisposable> captureLeases = _captureLeases ?? new List<IDisposable>();
+                _captureLeases = null;
+                return new HipGraph(_nativeApi, graph, new HipGraphCaptureResources(captureLeases));
             }
             finally
             {
@@ -86,7 +103,10 @@ public sealed class HipStream : IDisposable
         {
             ThrowIfDisposed();
             HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamSynchronize(_handle.DangerousGetHandle()), "hipStreamSynchronize");
-            ClearPending();
+            if (ClearPending())
+            {
+                HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamSynchronize(_handle.DangerousGetHandle()), "hipStreamSynchronize");
+            }
         }
     }
 
@@ -101,7 +121,15 @@ public sealed class HipStream : IDisposable
         {
             ThrowIfDisposed();
             HipError error = _nativeApi.StreamQuery(_handle.DangerousGetHandle());
-            if (error == HipError.Success) { ClearPending(); return true; }
+            if (error == HipError.Success)
+            {
+                if (!ClearPending()) return true;
+                HipError afterRelease = _nativeApi.StreamQuery(_handle.DangerousGetHandle());
+                if (afterRelease == HipError.Success) return true;
+                if (afterRelease == HipError.NotReady) return false;
+                HipCall.ThrowIfFailed(_nativeApi, afterRelease, "hipStreamQuery");
+                return false;
+            }
             if (error == HipError.NotReady) return false;
             HipCall.ThrowIfFailed(_nativeApi, error, "hipStreamQuery");
             return false;
@@ -124,7 +152,10 @@ public sealed class HipStream : IDisposable
             }
             HipError syncError = _nativeApi.StreamSynchronize(_handle.DangerousGetHandle());
             if (syncError != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, syncError, "hipStreamSynchronize");
-            ClearPending();
+            if (ClearPending())
+            {
+                HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamSynchronize(_handle.DangerousGetHandle()), "hipStreamSynchronize");
+            }
             HipError error = _handle.ReleaseChecked();
             if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipStreamDestroy");
             _handle.Dispose();
@@ -140,7 +171,14 @@ public sealed class HipStream : IDisposable
         lock (_sync)
         {
             if (IsDisposed) { lease.Dispose(); throw new ObjectDisposedException(nameof(HipStream)); }
-            _pending.Add(lease);
+            if (_captureActive)
+            {
+                (_captureLeases ??= new List<IDisposable>()).Add(lease);
+            }
+            else
+            {
+                _pending.Add(lease);
+            }
         }
     }
 
@@ -173,10 +211,22 @@ public sealed class HipStream : IDisposable
         }
     }
 
-    private void ClearPending()
+    private bool ClearPending()
     {
-        for (int index = _pending.Count - 1; index >= 0; index--) _pending[index].Dispose();
-        _pending.Clear();
+        bool hadPending = _pending.Count != 0;
+        for (int index = _pending.Count - 1; index >= 0; index--)
+        {
+            _pending[index].Dispose();
+            _pending.RemoveAt(index);
+        }
+        return hadPending;
+    }
+
+    private void MoveCaptureLeasesToPending()
+    {
+        if (_captureLeases is null) return;
+        _pending.AddRange(_captureLeases);
+        _captureLeases = null;
     }
 
     private void ThrowIfDisposed()

@@ -237,13 +237,15 @@ public sealed class HipAdvancedApiTests
     {
         using var native = new FakeHipNativeApi();
         var runtime = new HipRuntime(native);
-        using HipStream stream = runtime.CreateStream();
+        runtime.GetDevice(1).MakeCurrent();
         using HipDeviceMemory source = runtime.Allocate(1);
+        runtime.GetDevice(0).MakeCurrent();
+        using HipStream stream = runtime.CreateStream();
         using HipDeviceMemory destination = runtime.Allocate(1);
         HipPeerAccess peer = runtime.EnablePeerAccess(0, 1);
         runtime.GetDevice(1).MakeCurrent();
 
-        Assert.ThrowsExactly<InvalidOperationException>(() => peer.CopyAsync(destination, 0, source, 1, 1, stream));
+        Assert.ThrowsExactly<InvalidOperationException>(() => peer.CopyAsync(destination, source, 1, stream));
         Assert.ThrowsExactly<InvalidOperationException>(() => peer.Dispose());
         Assert.AreEqual(0, native.PeerCopyCount);
         Assert.AreEqual(0, native.PeerDisableCount);
@@ -254,7 +256,7 @@ public sealed class HipAdvancedApiTests
     }
 
     [TestMethod]
-    public void PeerCopyRejectsDeviceOrdinalsOutsideTheOwnedPair()
+    public void PeerCopyRejectsAllocationsOutsideTheOwnedPair()
     {
         using var native = new FakeHipNativeApi();
         var runtime = new HipRuntime(native);
@@ -263,7 +265,23 @@ public sealed class HipAdvancedApiTests
         using HipDeviceMemory destination = runtime.Allocate(1);
         using HipPeerAccess peer = runtime.EnablePeerAccess(0, 1);
 
-        Assert.ThrowsExactly<ArgumentException>(() => peer.CopyAsync(destination, 0, source, 0, 1, stream));
+        Assert.ThrowsExactly<ArgumentException>(() => peer.CopyAsync(destination, source, 1, stream));
+        Assert.AreEqual(0, native.PeerCopyCount);
+    }
+
+    [TestMethod]
+    public void PeerCopyRejectsStreamCreatedOnThePeerDevice()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        runtime.GetDevice(1).MakeCurrent();
+        using HipDeviceMemory source = runtime.Allocate(1);
+        using HipStream peerStream = runtime.CreateStream();
+        runtime.GetDevice(0).MakeCurrent();
+        using HipDeviceMemory destination = runtime.Allocate(1);
+        using HipPeerAccess peer = runtime.EnablePeerAccess(0, 1);
+
+        Assert.ThrowsExactly<ArgumentException>(() => peer.CopyAsync(destination, source, 1, peerStream));
         Assert.AreEqual(0, native.PeerCopyCount);
     }
 
@@ -272,19 +290,24 @@ public sealed class HipAdvancedApiTests
     {
         using var native = new FakeHipNativeApi();
         var runtime = new HipRuntime(native);
-        using HipStream stream = runtime.CreateStream();
+        runtime.GetDevice(1).MakeCurrent();
         using HipDeviceMemory source = runtime.Allocate(4);
+        runtime.GetDevice(0).MakeCurrent();
+        using HipStream stream = runtime.CreateStream();
         using HipDeviceMemory destination = runtime.Allocate(4);
         using HipPeerAccess peer = runtime.EnablePeerAccess(0, 1);
         byte[] expected = { 1, 3, 5, 7 };
         source.CopyFrom(expected);
 
-        peer.CopyAsync(destination, 0, source, 1, 4, stream);
+        peer.CopyAsync(destination, source, 4, stream);
         stream.Synchronize();
         byte[] actual = new byte[4];
         destination.CopyTo(actual);
 
         CollectionAssert.AreEqual(expected, actual);
+        Assert.AreEqual(1, source.DeviceOrdinal);
+        Assert.AreEqual(0, destination.DeviceOrdinal);
+        Assert.AreEqual(0, stream.DeviceOrdinal);
         Assert.AreEqual(1, native.PeerCopyCount);
     }
 
@@ -300,7 +323,124 @@ public sealed class HipAdvancedApiTests
 
         Assert.IsFalse(peer.IsSupported);
         Assert.IsFalse(peer.IsEnabled);
-        Assert.ThrowsExactly<InvalidOperationException>(() => peer.CopyAsync(destination, 1, source, 0, 1, stream));
+        Assert.ThrowsExactly<InvalidOperationException>(() => peer.CopyAsync(destination, source, 1, stream));
+    }
+
+    [TestMethod]
+    public void CapturedResourcesOutliveStreamSynchronizationAndSourceGraph()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        HipDeviceMemory memory = runtime.Allocate(4);
+        HipPinnedMemory pinned = runtime.AllocatePinned(4);
+        HipModule module = runtime.LoadModule(new byte[] { 1 });
+        HipKernel kernel = module.GetKernel("kernel");
+        using HipGraph graph = runtime.CaptureGraph(stream, capturedStream =>
+        {
+            memory.CopyFromAsync(pinned, capturedStream, 4);
+            kernel.Launch(capturedStream, new HipLaunchDimensions(1), new HipLaunchDimensions(1), new[] { HipKernelArgument.DevicePointer(memory) });
+        });
+        HipGraphExec executable = graph.Instantiate();
+
+        memory.Dispose();
+        pinned.Dispose();
+        module.Dispose();
+        graph.Dispose();
+        stream.Synchronize();
+
+        Assert.AreEqual(0, native.FreeCount);
+        Assert.AreEqual(0, native.ModuleUnloadCount);
+
+        executable.Launch(stream);
+        executable.Dispose();
+        stream.Synchronize();
+
+        Assert.AreEqual(2, native.FreeCount);
+        Assert.AreEqual(1, native.ModuleUnloadCount);
+        Assert.AreEqual(1, native.GraphExecDestroyCount);
+    }
+
+    [TestMethod]
+    public void CapturedResourcesRemainAliveUntilEveryExecutableIsDisposed()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        HipDeviceMemory memory = runtime.Allocate(4);
+        using HipGraph graph = runtime.CaptureGraph(stream, capturedStream => memory.CopyFromAsync(new byte[4], capturedStream));
+        HipGraphExec first = graph.Instantiate();
+        HipGraphExec second = graph.Instantiate();
+
+        memory.Dispose();
+        graph.Dispose();
+        first.Dispose();
+        Assert.AreEqual(0, native.FreeCount);
+
+        second.Dispose();
+        Assert.AreEqual(1, native.FreeCount);
+        Assert.AreEqual(2, native.GraphExecDestroyCount);
+    }
+
+    [TestMethod]
+    public void CapturedAsyncAllocationDefersStreamOrderedFreeUntilGraphRelease()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        HipAsyncDeviceMemory memory = runtime.AllocateAsync(4, stream);
+        HipGraph graph = runtime.CaptureGraph(stream, _ => memory.CopyFromAsync(new byte[4]));
+
+        memory.Dispose();
+        stream.Synchronize();
+        Assert.AreEqual(0, native.FreeAsyncCallCount);
+        Assert.AreEqual(0, native.AsyncFreeCount);
+
+        graph.Dispose();
+        Assert.AreEqual(1, native.FreeAsyncCallCount);
+        stream.Synchronize();
+        Assert.AreEqual(1, native.AsyncFreeCount);
+    }
+
+    [TestMethod]
+    public void CaptureCallbackFailureReleasesCapturedReferences()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        HipDeviceMemory memory = runtime.Allocate(4);
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => runtime.CaptureGraph(stream, capturedStream =>
+        {
+            memory.CopyFromAsync(new byte[4], capturedStream);
+            throw new InvalidOperationException("capture callback failed");
+        }));
+
+        memory.Dispose();
+        Assert.AreEqual(1, native.FreeCount);
+        Assert.AreEqual(1, native.GraphDestroyCount);
+    }
+
+    [TestMethod]
+    public void CapturedResourceReleaseFailureCanBeRetriedByGraphDispose()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        HipDeviceMemory memory = runtime.Allocate(4);
+        HipGraph graph = runtime.CaptureGraph(stream, capturedStream => memory.CopyFromAsync(new byte[4], capturedStream));
+        memory.Dispose();
+        native.FreeResult = HipError.OutOfMemory;
+
+        HipException exception = Assert.ThrowsExactly<HipException>(() => graph.Dispose());
+        Assert.AreEqual("hipFree", exception.Operation);
+        Assert.AreEqual(1, native.GraphDestroyCount);
+        Assert.AreEqual(0, native.FreeCount);
+
+        native.FreeResult = HipError.Success;
+        graph.Dispose();
+        Assert.AreEqual(1, native.GraphDestroyCount);
+        Assert.AreEqual(1, native.FreeCount);
     }
 
     [TestMethod]
@@ -401,6 +541,23 @@ public sealed class HipAdvancedApiTests
     }
 
     [TestMethod]
+    public void GraphFinalizerReleasesAbandonedCapturedResources()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        AbandonCapturedResources(runtime);
+
+        for (int attempt = 0; attempt < 3; attempt++)
+        {
+            GC.Collect();
+            GC.WaitForPendingFinalizers();
+        }
+
+        Assert.AreEqual(1, native.FreeCount);
+        Assert.AreEqual(1, native.GraphDestroyCount);
+    }
+
+    [TestMethod]
     public void CaptureFailureLeavesStreamOutOfCapture()
     {
         using var native = new FakeHipNativeApi { EndCaptureResult = HipError.StreamCaptureInvalidated };
@@ -408,6 +565,23 @@ public sealed class HipAdvancedApiTests
         using HipStream stream = runtime.CreateStream();
 
         Assert.ThrowsExactly<HipException>(() => runtime.CaptureGraph(stream, _ => { }));
+        Assert.IsFalse(stream.IsCapturing);
+    }
+
+    [TestMethod]
+    public void EndCaptureFailureTransfersCapturedReferencesBackToTheStream()
+    {
+        using var native = new FakeHipNativeApi { EndCaptureResult = HipError.StreamCaptureInvalidated };
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        HipDeviceMemory memory = runtime.Allocate(4);
+
+        Assert.ThrowsExactly<HipException>(() => runtime.CaptureGraph(stream, capturedStream => memory.CopyFromAsync(new byte[4], capturedStream)));
+        memory.Dispose();
+        Assert.AreEqual(0, native.FreeCount);
+
+        stream.Synchronize();
+        Assert.AreEqual(1, native.FreeCount);
         Assert.IsFalse(stream.IsCapturing);
     }
 
@@ -420,5 +594,14 @@ public sealed class HipAdvancedApiTests
         HipStream captureStream = runtime.CreateStream();
         HipGraph graph = runtime.CaptureGraph(captureStream, _ => { });
         _ = graph.Instantiate();
+    }
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    private static void AbandonCapturedResources(HipRuntime runtime)
+    {
+        HipStream stream = runtime.CreateStream();
+        HipDeviceMemory memory = runtime.Allocate(4);
+        _ = runtime.CaptureGraph(stream, capturedStream => memory.CopyFromAsync(new byte[4], capturedStream));
+        memory.Dispose();
     }
 }
