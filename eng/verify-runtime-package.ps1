@@ -3,7 +3,8 @@ param(
     [Parameter(Mandatory = $true)][string]$PackagePath,
     [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
     [string]$OutputDirectory = "artifacts/runtime-package-audit",
-    [switch]$Candidate
+    [switch]$Candidate,
+    [string]$ExpectedRepositoryCommit
 )
 
 Set-StrictMode -Version Latest
@@ -13,6 +14,28 @@ $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
 $manifestInfo = Get-HipSharpRuntimeManifest (Join-Path $repositoryRoot $Manifest)
 $runtimeManifest = $manifestInfo.Value
+$gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
+if ($LASTEXITCODE -ne 0 -or $gitSha -notmatch "^[0-9a-f]{40}$") {
+    throw "Unable to resolve the current Git SHA."
+}
+$packageRepositoryCommit = if ([string]::IsNullOrWhiteSpace($ExpectedRepositoryCommit)) { $gitSha } else { $ExpectedRepositoryCommit }
+if ($packageRepositoryCommit -notmatch "^[0-9a-f]{40}$") {
+    throw "ExpectedRepositoryCommit must be a lowercase 40-character Git SHA."
+}
+$isRegression = $packageRepositoryCommit -ne $gitSha
+if ($Candidate -and $isRegression) {
+    throw "Candidate audits cannot target a historical repository commit."
+}
+if ($isRegression) {
+    & git -C $repositoryRoot cat-file -e "$packageRepositoryCommit^{commit}" 2>$null
+    if ($LASTEXITCODE -ne 0) {
+        throw "The historical runtime package commit is not present in this repository."
+    }
+    & git -C $repositoryRoot merge-base --is-ancestor $packageRepositoryCommit $gitSha
+    if ($LASTEXITCODE -ne 0) {
+        throw "The historical runtime package commit must be an ancestor of the current Git SHA."
+    }
+}
 Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:(-not $Candidate)
 if ($Candidate -and ($runtimeManifest.packEnabled -or $runtimeManifest.verified -or $runtimeManifest.verification.packageAuditVerified -or $runtimeManifest.verification.gpuValidated)) {
     throw "A candidate audit requires an explicitly unverified runtime manifest."
@@ -65,8 +88,7 @@ try {
     if ($metadata.id -ne $runtimeManifest.packageId -or $metadata.version -ne $runtimeManifest.packageVersion) { throw "Runtime nuspec ID/version does not match the manifest." }
     if ($metadata.readme -ne "README.md" -or $metadata.icon -ne "logo.jpg" -or $metadata.license.type -ne "file") { throw "Runtime nuspec README/icon/license metadata is invalid." }
     if ($metadata.repository.url -ne "https://github.com/guojin-yan/HIP-CSharp-API" -or $metadata.repository.type -ne "git") { throw "Runtime nuspec repository metadata is invalid." }
-    $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
-    if ($LASTEXITCODE -ne 0 -or $metadata.repository.commit -ne $gitSha) { throw "Runtime nuspec repository commit does not match the current Git SHA." }
+    if ($metadata.repository.commit -ne $packageRepositoryCommit) { throw "Runtime nuspec repository commit does not match the expected Git SHA." }
     $packageDependencies = @($metadata.SelectNodes("*[local-name()='dependencies']/*[local-name()='group']/*[local-name()='dependency']"))
     if ($packageDependencies.Count -gt 0) { throw "Single-package runtime candidate must not have NuGet package dependencies." }
     $managed = @($entryNames | Where-Object { $_ -match "\.dll$" })
@@ -75,6 +97,7 @@ try {
 
 if ((Get-Item -LiteralPath $package).Length -ge [int64]$runtimeManifest.size.nugetLimitBytes) { throw "Runtime nupkg meets or exceeds the configured NuGet package-size gate." }
 
-$report = [ordered]@{ package = [System.IO.Path]::GetFileName($package); sha256 = Get-HipSharpSha256 $package; size = (Get-Item -LiteralPath $package).Length; contentAudit = "passed"; mode = if ($Candidate) { "isolated-gpu-candidate" } else { "verified-final" }; publishable = -not $Candidate; rid = $runtimeManifest.rid; packageId = $runtimeManifest.packageId }
+$auditMode = if ($Candidate) { "isolated-gpu-candidate" } elseif ($isRegression) { "historical-regression" } else { "verified-final" }
+$report = [ordered]@{ package = [System.IO.Path]::GetFileName($package); sha256 = Get-HipSharpSha256 $package; size = (Get-Item -LiteralPath $package).Length; contentAudit = "passed"; mode = $auditMode; publishable = (-not $Candidate) -and (-not $isRegression); currentGitCommit = $gitSha; packageRepositoryCommit = $packageRepositoryCommit; rid = $runtimeManifest.rid; packageId = $runtimeManifest.packageId }
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $audit "runtime-package-audit.json") -Encoding utf8NoBOM
 Write-Host "Runtime package audit passed: $package"

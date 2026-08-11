@@ -240,6 +240,13 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(gate, "-RequireOptional");
         StringAssert.Contains(gate, "advanced-features-run.txt");
         StringAssert.Contains(gate, "M6 isolated runtime ${package_mode} gate passed");
+        StringAssert.Contains(gate, "${package_mode}\" == \"regression");
+        StringAssert.Contains(gate, "-ExpectedRepositoryCommit \"${runtime_package_commit}\"");
+
+        string verifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1"));
+        StringAssert.Contains(verifier, "merge-base --is-ancestor");
+        StringAssert.Contains(verifier, "historical-regression");
+        StringAssert.Contains(verifier, "publishable = (-not $Candidate) -and (-not $isRegression)");
 
         string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
         StringAssert.Contains(sample, "peer=passed(1->0");

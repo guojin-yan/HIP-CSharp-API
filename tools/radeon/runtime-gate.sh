@@ -1,17 +1,31 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-expected_commit="${1:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG}"
-core_package="${2:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG}"
-runtime_package="${3:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG}"
+expected_commit="${1:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG [candidate|final|regression] [RUNTIME_PACKAGE_COMMIT]}"
+core_package="${2:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG [candidate|final|regression] [RUNTIME_PACKAGE_COMMIT]}"
+runtime_package="${3:?usage: runtime-gate.sh EXPECTED_COMMIT CORE_NUPKG RUNTIME_NUPKG [candidate|final|regression] [RUNTIME_PACKAGE_COMMIT]}"
 package_mode="${4:-final}"
+runtime_package_commit="${5:-}"
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 evidence_dir="${repository_root}/artifacts/radeon-runtime"
 
-[[ "${package_mode}" == "candidate" || "${package_mode}" == "final" ]] || {
-  echo "Package mode must be candidate or final." >&2
+[[ "${package_mode}" == "candidate" || "${package_mode}" == "final" || "${package_mode}" == "regression" ]] || {
+  echo "Package mode must be candidate, final, or regression." >&2
   exit 1
 }
+if [[ "${package_mode}" == "regression" ]]; then
+  [[ "${runtime_package_commit}" =~ ^[0-9a-f]{40}$ ]] || {
+    echo "Regression mode requires the runtime package's lowercase 40-character Git SHA." >&2
+    exit 1
+  }
+  [[ "${runtime_package_commit}" != "${expected_commit}" ]] || {
+    echo "Regression mode requires a historical runtime package commit." >&2
+    exit 1
+  }
+elif [[ -n "${runtime_package_commit}" ]]; then
+  echo "A runtime package commit may only be supplied in regression mode." >&2
+  exit 1
+fi
 
 if [[ "$(git -C "${repository_root}" rev-parse HEAD)" != "${expected_commit}" ]] ||
    git -C "${repository_root}" symbolic-ref -q HEAD >/dev/null ||
@@ -39,6 +53,7 @@ sha256sum "${core_package}" "${runtime_package}" | tee "${evidence_dir}/package-
 pwsh -NoProfile -File "${repository_root}/eng/verify-package.ps1" -PackagePath "${core_package}" | tee "${evidence_dir}/core-package-audit.txt"
 runtime_audit_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${runtime_package}")
 [[ "${package_mode}" == "candidate" ]] && runtime_audit_args+=(-Candidate)
+[[ "${package_mode}" == "regression" ]] && runtime_audit_args+=(-ExpectedRepositoryCommit "${runtime_package_commit}")
 pwsh "${runtime_audit_args[@]}" | tee "${evidence_dir}/runtime-package-audit.txt"
 
 runtime_root="${evidence_dir}/consumer"
@@ -184,6 +199,7 @@ PY
 set +e
 tamper_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${tampered_package}")
 [[ "${package_mode}" == "candidate" ]] && tamper_args+=(-Candidate)
+[[ "${package_mode}" == "regression" ]] && tamper_args+=(-ExpectedRepositoryCommit "${runtime_package_commit}")
 pwsh "${tamper_args[@]}" >"${evidence_dir}/tampered-package-negative.txt" 2>&1
 tamper_exit=$?
 set -e
