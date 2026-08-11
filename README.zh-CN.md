@@ -2,7 +2,13 @@
 
 HIP-CSharp-API 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 绑定。项目只发布 `JYPPX.HipSharp` 一个程序集；原生声明保持 internal，公开托管 API 覆盖 runtime、设备、内存、运行时编译、module 与 kernel launch。
 
-## M6 状态
+## 0.9.0 发布候选状态
+
+Core `0.9.0` 是 M8.1 用于 API 冻结审查的本地发布候选，尚未发布，也未声明为稳定版。门禁会把已提交的公开 API 快照与全部 15 个 TFM 比较，并在打包时执行 NuGet package validation。正式 API、诊断 API、sample-only 代码与 internal 实现已经分类；所有权、释放顺序、线程安全边界和错误模型见 [API 冻结审查](docs/guides/api-freeze.md)。
+
+可选 Linux Runtime 版本保持 `7.2.1`。当前候选必须绑定精确 clean Git SHA，嵌入明确标记为未验证的 candidate manifest，并保持 `publishable=false`。只有该精确 Core/Runtime 包对在 Owner 新授权的隔离 host 与 PRoot GPU 门禁都通过后，才能进入发布决策。M4-M6 的 Radeon Cloud 结果仅作为历史回归证据，不能验证当前新包。Windows Runtime `7.2.0` 仍为禁用、inventory-empty、仅静态审计且未经 GPU 验证的骨架。
+
+## M6 历史基线
 
 M6 新增经过选择的 stream-ordered allocation/free、managed-memory advice/prefetch、显式 P2P 状态/复制和 graph capture/instantiate/launch API。单一 normalized manifest 现在驱动 `LibraryImport` 与 `DllImport` 两个分支的 55 个声明；托管 owner 会在 pending stream 工作与 captured graph 存活期间保留原生资源，P2P copy 则从 allocation 和 stream owner 读取设备 ordinal。缺少 optional export 时统一映射为 `HipError.NotSupported`。
 

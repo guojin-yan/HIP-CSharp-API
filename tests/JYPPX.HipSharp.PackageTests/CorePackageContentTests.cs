@@ -51,7 +51,7 @@ public sealed class CorePackageContentTests
         XNamespace ns = nuspec.Root!.Name.Namespace;
         XElement metadata = nuspec.Root.Element(ns + "metadata")!;
         Assert.AreEqual("JYPPX.HIP.CSharp.API", metadata.Element(ns + "id")!.Value);
-        Assert.AreEqual("0.0.0", metadata.Element(ns + "version")!.Value);
+        Assert.AreEqual(CoreVersion(), metadata.Element(ns + "version")!.Value);
         Assert.AreEqual("README.md", metadata.Element(ns + "readme")!.Value);
         Assert.AreEqual("logo.jpg", metadata.Element(ns + "icon")!.Value);
         Assert.AreEqual("LICENSE", metadata.Element(ns + "license")!.Value);
@@ -99,5 +99,17 @@ public sealed class CorePackageContentTests
         return Directory.EnumerateFiles(packageDirectory, "JYPPX.HIP.CSharp.API.*.nupkg")
             .OrderByDescending(File.GetLastWriteTimeUtc)
             .FirstOrDefault() ?? throw new AssertFailedException("Build the core candidate package before running package tests.");
+    }
+
+    private static string CoreVersion()
+    {
+        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "HipSharp.sln")))
+        {
+            directory = directory.Parent;
+        }
+
+        XDocument versions = XDocument.Load(Path.Combine(directory?.FullName ?? throw new InvalidOperationException("Could not locate repository root."), "eng", "Versions.props"));
+        return versions.Descendants("HipSharpCoreVersion").Single().Value;
     }
 }

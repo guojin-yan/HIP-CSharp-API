@@ -52,7 +52,8 @@ mkdir -p "${NUGET_PACKAGES}"
 echo "Evidence directory: ${evidence_dir}"
 cd "${repository_root}"
 bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
-bash ./eng/build.sh Release 0.0.0 | tee "${evidence_dir}/managed-gate.txt"
+core_version="$(dotnet msbuild ./src/JYPPX.HipSharp/JYPPX.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion | python3 -c 'import json,sys; print(json.load(sys.stdin)["Properties"]["HipSharpCoreVersion"])')"
+bash ./eng/build.sh Release "${core_version}" | tee "${evidence_dir}/managed-gate.txt"
 
 hip_library="$(readlink -f /opt/rocm/lib/libamdhip64.so)"
 hiprtc_candidate=""
@@ -131,7 +132,9 @@ if ! command -v pwsh >/dev/null 2>&1; then
   exit 1
 fi
 pwsh -NoProfile -File ./eng/verify-package.ps1 \
-  -PackagePath "${repository_root}/artifacts/packages/JYPPX.HIP.CSharp.API.0.0.0.nupkg" \
+  -PackagePath "${repository_root}/artifacts/packages/JYPPX.HIP.CSharp.API.${core_version}.nupkg" \
+  -ExpectedVersion "${core_version}" \
+  -ExpectedRepositoryCommit "${actual_commit}" \
   | tee "${evidence_dir}/package-audit.txt"
 
 dotnet run --project ./samples/DeviceInfo/DeviceInfo.csproj -c Release | tee "${evidence_dir}/device-info.txt"

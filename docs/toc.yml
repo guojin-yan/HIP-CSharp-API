@@ -10,6 +10,8 @@
       href: guides/hip-stream-event-vectoradd.md
     - name: Advanced HIP APIs / HIP 高级 API
       href: guides/advanced-apis.md
+    - name: 0.9 API Freeze / 0.9 API 冻结
+      href: guides/api-freeze.md
     - name: Linux Runtime Package Audit / Linux Runtime 包审计
       href: guides/linux-runtime-package.md
     - name: Windows Runtime Static Audit / Windows Runtime 静态审计
@@ -22,6 +24,8 @@
       href: compatibility/platforms.md
 - name: Releases / 版本
   items:
+    - name: 0.9.0 Linux Release Candidate / Linux 发布候选
+      href: releases/0.9.0-rc.md
     - name: 0.0.0 M4 Local Release Candidate / M4 本地发布候选
       href: releases/0.0.0.md
     - name: Linux Runtime 7.2.1 Candidate / Linux Runtime 7.2.1 候选

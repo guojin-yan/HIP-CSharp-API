@@ -57,7 +57,30 @@ export UseSharedCompilation=false
 
 mkdir -p "${evidence_dir}"
 sha256sum "${core_package}" "${runtime_package}" | tee "${evidence_dir}/package-hashes.txt"
-pwsh -NoProfile -File "${repository_root}/eng/verify-package.ps1" -PackagePath "${core_package}" | tee "${evidence_dir}/core-package-audit.txt"
+
+read_package_version() {
+  python3 - "$1" "$2" <<'PY'
+import sys
+import zipfile
+import xml.etree.ElementTree as ET
+
+package, expected_id = sys.argv[1:]
+with zipfile.ZipFile(package) as archive:
+    names = [name for name in archive.namelist() if name.lower().endswith('.nuspec')]
+    if len(names) != 1:
+        raise SystemExit('Expected exactly one nuspec in ' + package)
+    root = ET.fromstring(archive.read(names[0]))
+metadata = next(node for node in root.iter() if node.tag.rsplit('}', 1)[-1] == 'metadata')
+values = {node.tag.rsplit('}', 1)[-1]: (node.text or '').strip() for node in metadata}
+if values.get('id') != expected_id or not values.get('version'):
+    raise SystemExit('Unexpected package identity: ' + package)
+print(values['version'])
+PY
+}
+
+core_version="$(read_package_version "${core_package}" JYPPX.HIP.CSharp.API)"
+runtime_version="$(read_package_version "${runtime_package}" JYPPX.HipSharp.Runtime.linux-x64)"
+pwsh -NoProfile -File "${repository_root}/eng/verify-package.ps1" -PackagePath "${core_package}" -ExpectedVersion "${core_version}" -ExpectedRepositoryCommit "${expected_commit}" | tee "${evidence_dir}/core-package-audit.txt"
 runtime_audit_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${runtime_package}")
 [[ "${package_mode}" == "candidate" ]] && runtime_audit_args+=(-Candidate)
 [[ "${package_mode}" == "regression" ]] && runtime_audit_args+=(-ExpectedRepositoryCommit "${runtime_package_commit}")
@@ -94,8 +117,8 @@ make_consumer() {
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JYPPX.HIP.CSharp.API" Version="0.0.0" />
-    <PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="7.2.1" />
+    <PackageReference Include="JYPPX.HIP.CSharp.API" Version="${core_version}" />
+    <PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="${runtime_version}" />
   </ItemGroup>
 </Project>
 EOF
@@ -220,7 +243,7 @@ mix_directory="${runtime_root}/closure-mix"
 mkdir -p "${mix_directory}/alternate"
 cp "${native_directory}/libhiprtc.so" "${mix_directory}/alternate/libhiprtc.so"
 cat > "${mix_directory}/ClosureMix.csproj" <<EOF
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><PackageReference Include="JYPPX.HIP.CSharp.API" Version="0.0.0" /><PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="7.2.1" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><PackageReference Include="JYPPX.HIP.CSharp.API" Version="${core_version}" /><PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="${runtime_version}" /></ItemGroup></Project>
 EOF
 cat > "${mix_directory}/Program.cs" <<'EOF'
 using System;
@@ -243,4 +266,4 @@ dotnet restore "${mix_directory}/ClosureMix.csproj" --configfile "${runtime_root
 dotnet build "${mix_directory}/ClosureMix.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" >/dev/null
 (cd "${mix_directory}" && dotnet run --configuration Release --no-build --no-restore -- "${native_directory}/libamdhip64.so" "${mix_directory}/alternate/libhiprtc.so") | tee "${evidence_dir}/closure-mix-negative.txt"
 
-echo "M6 isolated runtime ${package_mode} gate passed for ${expected_commit}."
+echo "M8.1 isolated runtime ${package_mode} gate passed for ${expected_commit}."

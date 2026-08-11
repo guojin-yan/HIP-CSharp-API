@@ -1,0 +1,20 @@
+{
+  "formalNamespacePrefixes": [
+    "JYPPX.HipSharp"
+  ],
+  "diagnosticNamespacePrefixes": [
+    "JYPPX.HipSharp.Diagnostics",
+    "JYPPX.HipSharp.Loading"
+  ],
+  "sampleOnlyRoots": [
+    "samples/DeviceInfo",
+    "samples/MemoryCopy",
+    "samples/HipRtcVectorAdd",
+    "samples/HipStreamEventVectorAdd",
+    "samples/HipAdvancedFeatures"
+  ],
+  "internalNamespacePrefixes": [
+    "JYPPX.HipSharp.Generated",
+    "JYPPX.HipSharp.Interop"
+  ]
+}

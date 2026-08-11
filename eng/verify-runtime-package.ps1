@@ -12,7 +12,24 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
-$manifestInfo = Get-HipSharpRuntimeManifest (Join-Path $repositoryRoot $Manifest)
+$package = (Resolve-Path -LiteralPath $PackagePath).Path
+$audit = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { [System.IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repositoryRoot $OutputDirectory }
+New-Item -ItemType Directory -Force -Path $audit | Out-Null
+
+if ($Candidate) {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    $candidateManifestPath = Join-Path $audit "embedded-candidate-manifest.json"
+    $candidateArchive = [System.IO.Compression.ZipFile]::OpenRead($package)
+    try {
+        $candidateEntry = @($candidateArchive.Entries | Where-Object { $_.FullName.Replace("\", "/") -eq "runtime-manifest.json" })
+        if ($candidateEntry.Count -ne 1) { throw "Candidate package must contain exactly one runtime-manifest.json." }
+        [System.IO.Compression.ZipFileExtensions]::ExtractToFile($candidateEntry[0], $candidateManifestPath, $true)
+    } finally { $candidateArchive.Dispose() }
+    $manifestPath = $candidateManifestPath
+} else {
+    $manifestPath = if ([System.IO.Path]::IsPathRooted($Manifest)) { $Manifest } else { Join-Path $repositoryRoot $Manifest }
+}
+$manifestInfo = Get-HipSharpRuntimeManifest $manifestPath
 $runtimeManifest = $manifestInfo.Value
 $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
 if ($LASTEXITCODE -ne 0 -or $gitSha -notmatch "^[0-9a-f]{40}$") {
@@ -40,9 +57,9 @@ Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:(-not $Candidat
 if ($Candidate -and ($runtimeManifest.packEnabled -or $runtimeManifest.verified -or $runtimeManifest.verification.packageAuditVerified -or $runtimeManifest.verification.gpuValidated)) {
     throw "A candidate audit requires an explicitly unverified runtime manifest."
 }
-$package = (Resolve-Path -LiteralPath $PackagePath).Path
-$audit = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { [System.IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repositoryRoot $OutputDirectory }
-New-Item -ItemType Directory -Force -Path $audit | Out-Null
+if ($Candidate -and ($runtimeManifest.candidate.gitSha -ne $gitSha -or $runtimeManifest.candidate.publishable -or $runtimeManifest.candidate.status -ne "local-unverified-internal-candidate")) {
+    throw "Candidate manifest does not bind the current Git SHA and non-publishable status."
+}
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
 $archive = [System.IO.Compression.ZipFile]::OpenRead($package)
@@ -98,6 +115,21 @@ try {
 if ((Get-Item -LiteralPath $package).Length -ge [int64]$runtimeManifest.size.nugetLimitBytes) { throw "Runtime nupkg meets or exceeds the configured NuGet package-size gate." }
 
 $auditMode = if ($Candidate) { "isolated-gpu-candidate" } elseif ($isRegression) { "historical-regression" } else { "verified-final" }
-$report = [ordered]@{ package = [System.IO.Path]::GetFileName($package); sha256 = Get-HipSharpSha256 $package; size = (Get-Item -LiteralPath $package).Length; contentAudit = "passed"; mode = $auditMode; publishable = (-not $Candidate) -and (-not $isRegression); currentGitCommit = $gitSha; packageRepositoryCommit = $packageRepositoryCommit; rid = $runtimeManifest.rid; packageId = $runtimeManifest.packageId }
+$report = [ordered]@{
+    package = [System.IO.Path]::GetFileName($package)
+    packageVersion = $runtimeManifest.packageVersion
+    sha256 = Get-HipSharpSha256 $package
+    size = (Get-Item -LiteralPath $package).Length
+    contentAudit = "passed"
+    mode = $auditMode
+    publishable = (-not $Candidate) -and (-not $isRegression)
+    currentGitCommit = $gitSha
+    packageRepositoryCommit = $packageRepositoryCommit
+    rid = $runtimeManifest.rid
+    packageId = $runtimeManifest.packageId
+    manifestSha256 = Get-HipSharpSha256 $manifestInfo.Path
+    sbomSha256 = $runtimeManifest.sbom.sha256
+    sourceManifestSha256 = if ($Candidate) { $runtimeManifest.candidate.sourceManifestSha256 } else { $null }
+}
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $audit "runtime-package-audit.json") -Encoding utf8NoBOM
 Write-Host "Runtime package audit passed: $package"

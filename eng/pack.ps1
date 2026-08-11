@@ -2,7 +2,7 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [string]$Version = "0.0.0",
+    [string]$Version,
     [string]$OutputDirectory = "artifacts/packages",
     [switch]$NoBuild
 )
@@ -11,6 +11,8 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
+$Version = Get-HipSharpVersion -Kind Core -Override $Version -RepositoryRoot $repositoryRoot
 $project = Join-Path $repositoryRoot "src/JYPPX.HipSharp/JYPPX.HipSharp.csproj"
 $outputPath = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
@@ -40,6 +42,7 @@ try {
         --configuration $Configuration `
         --no-build `
         --output $outputPath `
+        -p:Version=$Version `
         -p:PackageVersion=$Version `
         -p:RepositoryCommit=$repositoryCommit `
         -p:RepositoryBranch=main

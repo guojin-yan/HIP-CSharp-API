@@ -4,13 +4,21 @@ param(
     [string]$PackagePath,
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [string]$OutputDirectory = "artifacts/package-audit"
+    [string]$OutputDirectory = "artifacts/package-audit",
+    [string]$ExpectedVersion,
+    [string]$ExpectedRepositoryCommit
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
+$ExpectedVersion = Get-HipSharpVersion -Kind Core -Override $ExpectedVersion -RepositoryRoot $repositoryRoot
+if ([string]::IsNullOrWhiteSpace($ExpectedRepositoryCommit)) {
+    $ExpectedRepositoryCommit = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
+}
+if ($ExpectedRepositoryCommit -notmatch '^[0-9a-f]{40}$') { throw "ExpectedRepositoryCommit must be a lowercase 40-character Git SHA." }
 $resolvedPackage = (Resolve-Path -LiteralPath $PackagePath).Path
 $auditDirectory = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
@@ -67,17 +75,15 @@ try {
     $metadata = $nuspec.package.metadata
 
     if ($metadata.id -ne "JYPPX.HIP.CSharp.API") { throw "Unexpected package ID: $($metadata.id)" }
-    if ([string]::IsNullOrWhiteSpace($metadata.version)) { throw "Package version is missing." }
+    if ($metadata.version -ne $ExpectedVersion) { throw "Package version must be $ExpectedVersion; found $($metadata.version)." }
     if ($metadata.readme -ne "README.md") { throw "Package README metadata is invalid." }
     if ($metadata.icon -ne "logo.jpg") { throw "Package icon metadata is invalid." }
     if ($metadata.license.'#text' -ne "LICENSE" -or $metadata.license.type -ne "file") { throw "Package license metadata is invalid." }
     if ($metadata.repository.url -ne "https://github.com/guojin-yan/HIP-CSharp-API") { throw "Repository URL metadata is invalid." }
     if ($metadata.repository.type -ne "git") { throw "Repository type metadata is invalid." }
     if ($metadata.repository.commit -notmatch '^[0-9a-fA-F]{40}$') { throw "Repository commit metadata must be a 40-character Git SHA." }
-    $global:LASTEXITCODE = 0
-    $currentCommit = (& git -C $repositoryRoot rev-parse HEAD 2>$null)
-    if ($LASTEXITCODE -eq 0 -and -not [string]::IsNullOrWhiteSpace($currentCommit) -and $metadata.repository.commit -ne $currentCommit.Trim()) {
-        throw "Repository commit metadata is stale. Package: $($metadata.repository.commit); current HEAD: $($currentCommit.Trim())."
+    if ($metadata.repository.commit -ne $ExpectedRepositoryCommit) {
+        throw "Repository commit metadata is stale. Package: $($metadata.repository.commit); expected: $ExpectedRepositoryCommit."
     }
     if ($nuspecText -match '[A-Za-z]:\\' -or $nuspecText -match 'E:/GitSpace') { throw "The nuspec contains a local absolute path." }
 }
@@ -173,11 +179,15 @@ $packageHash = (Get-FileHash -LiteralPath $resolvedPackage -Algorithm SHA256).Ha
 $report = [pscustomobject]@{
     package = $resolvedPackage
     packageVersion = [string]$metadata.version
+    repositoryCommit = [string]$metadata.repository.commit
     sha256 = $packageHash
+    size = (Get-Item -LiteralPath $resolvedPackage).Length
     targetFrameworkAssets = $frameworks
+    assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "passed-owner-authorized-cloud-M4-single-environment"
+    runtimeAndGpuValidation = "pending-owner-authorized-m8.1-exact-candidate"
+    publishable = $false
 }
 $reportPath = Join-Path $auditDirectory "package-audit.json"
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $reportPath -Encoding UTF8

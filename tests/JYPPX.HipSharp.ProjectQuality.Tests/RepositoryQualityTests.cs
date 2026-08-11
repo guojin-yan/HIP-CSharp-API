@@ -31,10 +31,14 @@ public sealed class RepositoryQualityTests
     {
         XDocument project = XDocument.Load(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "JYPPX.HipSharp.csproj"));
         XDocument props = XDocument.Load(Path.Combine(RepositoryRoot, "Directory.Build.props"));
+        XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
 
         Assert.AreEqual("JYPPX.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.HipSharp", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.0.0", props.Descendants("VersionPrefix").Single().Value);
+        Assert.AreEqual("0.9.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
+        Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
+        Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
         Assert.AreEqual("$(VersionPrefix)", props.Descendants("PackageVersion").Single().Value);
         Assert.IsFalse(props.Descendants("VersionSuffix").Any());
         Assert.AreEqual("https://github.com/guojin-yan/HIP-CSharp-API", props.Descendants("RepositoryUrl").Single().Value);
@@ -131,12 +135,13 @@ public sealed class RepositoryQualityTests
     public void RuntimeManifestsUseAuditedLinuxSchemaAndEnableOnlyVerifiedLinuxPackaging()
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
+        XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
         using (JsonDocument linux = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "linux-x64.json"))))
         {
             JsonElement root = linux.RootElement;
             Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
             Assert.AreEqual("JYPPX.HipSharp.Runtime.linux-x64", root.GetProperty("packageId").GetString());
-            Assert.AreEqual("7.2.1", root.GetProperty("packageVersion").GetString());
+            Assert.AreEqual(versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value, root.GetProperty("packageVersion").GetString());
             Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
             Assert.IsTrue(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
@@ -187,7 +192,7 @@ public sealed class RepositoryQualityTests
 
         XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.csproj"));
         Assert.AreEqual("JYPPX.HipSharp.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
-        Assert.AreEqual("7.2.1", linuxProject.Descendants("PackageVersion").Single().Value);
+        Assert.AreEqual("$(HipSharpLinuxRuntimeVersion)", linuxProject.Descendants("PackageVersion").Single().Value);
 
         string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.HipSharp.Runtime.linux-x64.csproj");
         var startInfo = new ProcessStartInfo("dotnet")
@@ -208,7 +213,8 @@ public sealed class RepositoryQualityTests
         process.WaitForExit();
         Assert.AreEqual(0, process.ExitCode, "A verified runtime manifest must allow guarded package creation.\n" + output);
         StringAssert.Contains(output, "Runtime manifest validation passed");
-        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "pack", "bin", "JYPPX.HipSharp.Runtime.linux-x64", "Release", "JYPPX.HipSharp.Runtime.linux-x64.7.2.1.nupkg")));
+        string runtimeVersion = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props")).Descendants("HipSharpLinuxRuntimeVersion").Single().Value;
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "pack", "bin", "JYPPX.HipSharp.Runtime.linux-x64", "Release", $"JYPPX.HipSharp.Runtime.linux-x64.{runtimeVersion}.nupkg")));
 
         startInfo.ArgumentList.Add("-p:RuntimeCandidateAttestationPath=artifacts/fake-attestation.json");
         using Process incompleteCandidate = Process.Start(startInfo)!;
@@ -241,7 +247,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(gate, "advanced-features-run.txt");
         StringAssert.Contains(gate, "advanced-features-stress-run.txt");
         StringAssert.Contains(gate, "--stress-rounds 10 --stress-streams 4 --stress-length 4194304");
-        StringAssert.Contains(gate, "M6 isolated runtime ${package_mode} gate passed");
+        StringAssert.Contains(gate, "M8.1 isolated runtime ${package_mode} gate passed");
         StringAssert.Contains(gate, "${package_mode}\" == \"regression");
         StringAssert.Contains(gate, "-ExpectedRepositoryCommit \"${runtime_package_commit}\"");
         StringAssert.Contains(gate, "DOTNET_CLI_USE_MSBUILD_SERVER=0");
@@ -304,6 +310,25 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(chineseText.IsMatch(source), $"Missing Chinese API documentation in {file}");
             StringAssert.Contains(source, " / ", $"Missing Chinese/English documentation separator in {file}");
         }
+    }
+
+    [TestMethod]
+    public void PublicApiFreezeInputsAreVersionedAndReproducible()
+    {
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.HipSharp.0.9.0.txt");
+        Assert.IsTrue(File.Exists(snapshot));
+        StringAssert.StartsWith(File.ReadAllText(snapshot), "# HipSharp public API snapshot schema 1");
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "public-api", "categories.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-public-api.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "JYPPX.HipSharp.ApiSurface", "Program.cs")));
+
+        string suppressionsPath = Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "CompatibilitySuppressions.xml");
+        XDocument suppressions = XDocument.Load(suppressionsPath);
+        XElement[] entries = suppressions.Descendants("Suppression").ToArray();
+        Assert.AreEqual(9, entries.Length);
+        Assert.IsTrue(entries.All(entry => entry.Element("DiagnosticId")?.Value == "CP0008"));
+        Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.HipSharp.dll"));
+        Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.HipSharp.dll"));
     }
 
     [TestMethod]

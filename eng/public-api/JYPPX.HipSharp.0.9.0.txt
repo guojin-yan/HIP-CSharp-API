@@ -1,0 +1,264 @@
+# HipSharp public API snapshot schema 1
+# Generated from exported types and declared public/protected members.
+C|formal|public|JYPPX.HipSharp.HipRuntime(System.String nativeLibraryPath=null)
+C|formal|public|JYPPX.HipSharp.Modules.HipLaunchDimensions(System.UInt32 x,System.UInt32 y=1,System.UInt32 z=1)
+C|formal|public|JYPPX.HipSharp.Rtc.HipRtc(System.String nativeLibraryPath=null)
+C|formal|public|JYPPX.HipSharp.Rtc.HipRtcVersion(System.Int32 major,System.Int32 minor)
+C|formal|public|JYPPX.HipSharp.Types.HipVersion(System.Int32 rawValue)
+F|formal|public const|JYPPX.HipSharp.Memory.HipMemoryCopyKind JYPPX.HipSharp.Memory.HipMemoryCopyKind.Default=4
+F|formal|public const|JYPPX.HipSharp.Memory.HipMemoryCopyKind JYPPX.HipSharp.Memory.HipMemoryCopyKind.DeviceToDevice=3
+F|formal|public const|JYPPX.HipSharp.Memory.HipMemoryCopyKind JYPPX.HipSharp.Memory.HipMemoryCopyKind.DeviceToHost=2
+F|formal|public const|JYPPX.HipSharp.Memory.HipMemoryCopyKind JYPPX.HipSharp.Memory.HipMemoryCopyKind.HostToDevice=1
+F|formal|public const|JYPPX.HipSharp.Memory.HipMemoryCopyKind JYPPX.HipSharp.Memory.HipMemoryCopyKind.HostToHost=0
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.BuiltinOperationFailure=7
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.Compilation=6
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.InternalError=11
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.InvalidInput=3
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.InvalidOption=5
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.InvalidProgram=4
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.Linking=100
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.NameExpressionNotValid=10
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.NoLoweredNamesBeforeCompilation=9
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.NoNameExpressionsAfterCompilation=8
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.OutOfMemory=1
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.ProgramCreationFailure=2
+F|formal|public const|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcResult.Success=0
+F|formal|public const|JYPPX.HipSharp.Types.HipDeviceAttribute JYPPX.HipSharp.Types.HipDeviceAttribute.ClockRate=13
+F|formal|public const|JYPPX.HipSharp.Types.HipDeviceAttribute JYPPX.HipSharp.Types.HipDeviceAttribute.ComputeCapabilityMajor=75
+F|formal|public const|JYPPX.HipSharp.Types.HipDeviceAttribute JYPPX.HipSharp.Types.HipDeviceAttribute.ComputeCapabilityMinor=76
+F|formal|public const|JYPPX.HipSharp.Types.HipDeviceAttribute JYPPX.HipSharp.Types.HipDeviceAttribute.MaxSharedMemoryPerBlock=8
+F|formal|public const|JYPPX.HipSharp.Types.HipDeviceAttribute JYPPX.HipSharp.Types.HipDeviceAttribute.MaxThreadsPerBlock=1
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.Deinitialized=4
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.InvalidDevice=101
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.InvalidMemcpyDirection=21
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.InvalidValue=1
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.NoDevice=100
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.NotInitialized=3
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.NotReady=600
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.NotSupported=801
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.OutOfMemory=2
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.PeerAccessAlreadyEnabled=704
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.PeerAccessNotEnabled=705
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.StreamCaptureInvalidated=901
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.StreamCaptureUnmatched=903
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.StreamCaptureUnsupported=900
+F|formal|public const|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.Types.HipError.Success=0
+F|formal|public const|JYPPX.HipSharp.Types.HipEventFlags JYPPX.HipSharp.Types.HipEventFlags.Default=0
+F|formal|public const|JYPPX.HipSharp.Types.HipEventFlags JYPPX.HipSharp.Types.HipEventFlags.DisableTiming=2
+F|formal|public const|JYPPX.HipSharp.Types.HipEventFlags JYPPX.HipSharp.Types.HipEventFlags.Interprocess=4
+F|formal|public const|JYPPX.HipSharp.Types.HipManagedMemoryFlags JYPPX.HipSharp.Types.HipManagedMemoryFlags.Global=1
+F|formal|public const|JYPPX.HipSharp.Types.HipManagedMemoryFlags JYPPX.HipSharp.Types.HipManagedMemoryFlags.Host=2
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.SetAccessedBy=5
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.SetCoarseGrain=100
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.SetPreferredLocation=3
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.SetReadMostly=1
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.UnsetAccessedBy=6
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.UnsetCoarseGrain=101
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.UnsetPreferredLocation=4
+F|formal|public const|JYPPX.HipSharp.Types.HipMemoryAdvise JYPPX.HipSharp.Types.HipMemoryAdvise.UnsetReadMostly=2
+F|formal|public const|JYPPX.HipSharp.Types.HipStreamCaptureMode JYPPX.HipSharp.Types.HipStreamCaptureMode.Global=0
+F|formal|public const|JYPPX.HipSharp.Types.HipStreamCaptureMode JYPPX.HipSharp.Types.HipStreamCaptureMode.Relaxed=2
+F|formal|public const|JYPPX.HipSharp.Types.HipStreamCaptureMode JYPPX.HipSharp.Types.HipStreamCaptureMode.ThreadLocal=1
+F|formal|public const|JYPPX.HipSharp.Types.HipStreamFlags JYPPX.HipSharp.Types.HipStreamFlags.Default=0
+F|formal|public const|JYPPX.HipSharp.Types.HipStreamFlags JYPPX.HipSharp.Types.HipStreamFlags.NonBlocking=1
+M|diagnostic|public override|System.String JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.ToString()
+M|formal|public override|System.Boolean JYPPX.HipSharp.Modules.HipLaunchDimensions.Equals(System.Object obj)
+M|formal|public override|System.Boolean JYPPX.HipSharp.Rtc.HipRtcVersion.Equals(System.Object obj)
+M|formal|public override|System.Boolean JYPPX.HipSharp.Types.HipVersion.Equals(System.Object obj)
+M|formal|public override|System.Int32 JYPPX.HipSharp.Modules.HipLaunchDimensions.GetHashCode()
+M|formal|public override|System.Int32 JYPPX.HipSharp.Rtc.HipRtcVersion.GetHashCode()
+M|formal|public override|System.Int32 JYPPX.HipSharp.Types.HipVersion.GetHashCode()
+M|formal|public override|System.String JYPPX.HipSharp.HipDevice.ToString()
+M|formal|public override|System.String JYPPX.HipSharp.Modules.HipLaunchDimensions.ToString()
+M|formal|public override|System.String JYPPX.HipSharp.Rtc.HipRtcVersion.ToString()
+M|formal|public override|System.String JYPPX.HipSharp.Types.HipVersion.ToString()
+M|formal|public static|JYPPX.HipSharp.Modules.HipKernelArgument JYPPX.HipSharp.Modules.HipKernelArgument.DevicePointer(JYPPX.HipSharp.Memory.HipAsyncDeviceMemory memory)
+M|formal|public static|JYPPX.HipSharp.Modules.HipKernelArgument JYPPX.HipSharp.Modules.HipKernelArgument.DevicePointer(JYPPX.HipSharp.Memory.HipDeviceMemory memory)
+M|formal|public static|JYPPX.HipSharp.Modules.HipKernelArgument JYPPX.HipSharp.Modules.HipKernelArgument.DevicePointer(JYPPX.HipSharp.Memory.HipManagedMemory memory)
+M|formal|public static|JYPPX.HipSharp.Modules.HipKernelArgument JYPPX.HipSharp.Modules.HipKernelArgument.Scalar32(System.Int32 value)
+M|formal|public static|System.Boolean JYPPX.HipSharp.Modules.HipLaunchDimensions.op_Equality(JYPPX.HipSharp.Modules.HipLaunchDimensions left,JYPPX.HipSharp.Modules.HipLaunchDimensions right)
+M|formal|public static|System.Boolean JYPPX.HipSharp.Modules.HipLaunchDimensions.op_Inequality(JYPPX.HipSharp.Modules.HipLaunchDimensions left,JYPPX.HipSharp.Modules.HipLaunchDimensions right)
+M|formal|public static|System.Boolean JYPPX.HipSharp.Rtc.HipRtcVersion.op_Equality(JYPPX.HipSharp.Rtc.HipRtcVersion left,JYPPX.HipSharp.Rtc.HipRtcVersion right)
+M|formal|public static|System.Boolean JYPPX.HipSharp.Rtc.HipRtcVersion.op_Inequality(JYPPX.HipSharp.Rtc.HipRtcVersion left,JYPPX.HipSharp.Rtc.HipRtcVersion right)
+M|formal|public static|System.Single JYPPX.HipSharp.Streams.HipEvent.ElapsedTime(JYPPX.HipSharp.Streams.HipEvent start,JYPPX.HipSharp.Streams.HipEvent end)
+M|formal|public virtual|System.Boolean JYPPX.HipSharp.Modules.HipLaunchDimensions.Equals(JYPPX.HipSharp.Modules.HipLaunchDimensions other)
+M|formal|public virtual|System.Boolean JYPPX.HipSharp.Rtc.HipRtcVersion.Equals(JYPPX.HipSharp.Rtc.HipRtcVersion other)
+M|formal|public virtual|System.Boolean JYPPX.HipSharp.Types.HipVersion.Equals(JYPPX.HipSharp.Types.HipVersion other)
+M|formal|public virtual|System.Void JYPPX.HipSharp.Graphs.HipGraph.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Graphs.HipGraphExec.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Memory.HipManagedMemory.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Memory.HipPinnedMemory.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Memory.HipTypedMemory<T>.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Modules.HipModule.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Peer.HipPeerAccess.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Rtc.HipRtcProgram.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Streams.HipEvent.Dispose()
+M|formal|public virtual|System.Void JYPPX.HipSharp.Streams.HipStream.Dispose()
+M|formal|public|HipTypedMemory<T> JYPPX.HipSharp.HipRuntime.Allocate<T>(System.UInt64 elementCount);where=T:struct&System.ValueType
+M|formal|public|JYPPX.HipSharp.Graphs.HipGraph JYPPX.HipSharp.HipRuntime.CaptureGraph(JYPPX.HipSharp.Streams.HipStream stream,System.Action<JYPPX.HipSharp.Streams.HipStream> capture,JYPPX.HipSharp.Types.HipStreamCaptureMode mode=Global)
+M|formal|public|JYPPX.HipSharp.Graphs.HipGraph JYPPX.HipSharp.Streams.HipStream.EndCapture()
+M|formal|public|JYPPX.HipSharp.Graphs.HipGraphExec JYPPX.HipSharp.Graphs.HipGraph.Instantiate(System.UInt64 flags=0)
+M|formal|public|JYPPX.HipSharp.HipDevice JYPPX.HipSharp.HipRuntime.GetCurrentDevice()
+M|formal|public|JYPPX.HipSharp.HipDevice JYPPX.HipSharp.HipRuntime.GetDevice(System.Int32 ordinal)
+M|formal|public|JYPPX.HipSharp.Memory.HipAsyncDeviceMemory JYPPX.HipSharp.HipRuntime.AllocateAsync(System.UInt64 byteCount,JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|JYPPX.HipSharp.Memory.HipDeviceMemory JYPPX.HipSharp.HipRuntime.Allocate(System.UInt64 byteCount)
+M|formal|public|JYPPX.HipSharp.Memory.HipManagedMemory JYPPX.HipSharp.HipRuntime.AllocateManaged(System.UInt64 byteCount,JYPPX.HipSharp.Types.HipManagedMemoryFlags flags=Global)
+M|formal|public|JYPPX.HipSharp.Memory.HipPinnedMemory JYPPX.HipSharp.HipRuntime.AllocatePinned(System.UInt64 byteCount)
+M|formal|public|JYPPX.HipSharp.Modules.HipKernel JYPPX.HipSharp.Modules.HipModule.GetKernel(System.String name)
+M|formal|public|JYPPX.HipSharp.Modules.HipModule JYPPX.HipSharp.HipRuntime.LoadModule(System.Byte[] codeObject)
+M|formal|public|JYPPX.HipSharp.Peer.HipPeerAccess JYPPX.HipSharp.HipRuntime.EnablePeerAccess(System.Int32 accessingDevice,System.Int32 peerDevice)
+M|formal|public|JYPPX.HipSharp.Rtc.HipRtcCompilation JYPPX.HipSharp.Rtc.HipRtcProgram.Compile(System.Collections.Generic.IEnumerable<System.String> options=null)
+M|formal|public|JYPPX.HipSharp.Rtc.HipRtcProgram JYPPX.HipSharp.Rtc.HipRtc.CreateProgram(System.String source,System.String name="kernel.hip")
+M|formal|public|JYPPX.HipSharp.Rtc.HipRtcVersion JYPPX.HipSharp.Rtc.HipRtc.GetVersion()
+M|formal|public|JYPPX.HipSharp.Streams.HipEvent JYPPX.HipSharp.HipRuntime.CreateEvent(JYPPX.HipSharp.Types.HipEventFlags flags=Default)
+M|formal|public|JYPPX.HipSharp.Streams.HipStream JYPPX.HipSharp.HipRuntime.CreateStream(JYPPX.HipSharp.Types.HipStreamFlags flags=Default)
+M|formal|public|JYPPX.HipSharp.Types.HipRuntimeVersionInfo JYPPX.HipSharp.HipRuntime.GetVersionInfo()
+M|formal|public|System.Boolean JYPPX.HipSharp.HipRuntime.CanAccessPeer(System.Int32 accessingDevice,System.Int32 peerDevice)
+M|formal|public|System.Boolean JYPPX.HipSharp.Streams.HipEvent.Query()
+M|formal|public|System.Boolean JYPPX.HipSharp.Streams.HipStream.Query()
+M|formal|public|System.Byte[] JYPPX.HipSharp.Rtc.HipRtcCompilation.GetCodeObject()
+M|formal|public|System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.HipDevice> JYPPX.HipSharp.HipRuntime.GetDevices()
+M|formal|public|System.Int32 JYPPX.HipSharp.HipRuntime.GetDeviceAttribute(JYPPX.HipSharp.Types.HipDeviceAttribute attribute,System.Int32 ordinal=-1)
+M|formal|public|System.IntPtr JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.HipSharp.Memory.HipDeviceMemory.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.HipSharp.Memory.HipManagedMemory.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.HipSharp.Memory.HipPinnedMemory.DangerousGetHandle()
+M|formal|public|System.Void JYPPX.HipSharp.Graphs.HipGraphExec.Launch(JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.HipDevice.MakeCurrent()
+M|formal|public|System.Void JYPPX.HipSharp.HipRuntime.Initialize(System.UInt32 flags=0)
+M|formal|public|System.Void JYPPX.HipSharp.HipRuntime.Synchronize()
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.CopyFromAsync(System.Byte[] source)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.CopyToAsync(System.Byte[] destination)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyFrom(System.Byte[] source)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyFromAsync(JYPPX.HipSharp.Memory.HipPinnedMemory source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount=0)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyFromAsync(System.Byte[] source,JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyTo(JYPPX.HipSharp.Memory.HipDeviceMemory destination,System.UInt64 byteCount)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyTo(System.Byte[] destination)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyToAsync(JYPPX.HipSharp.Memory.HipPinnedMemory destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount=0)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipDeviceMemory.CopyToAsync(System.Byte[] destination,JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipManagedMemory.Advise(JYPPX.HipSharp.Types.HipMemoryAdvise advice,System.Int32 device,System.UInt64 byteCount=0)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipManagedMemory.CopyFromHost(System.Byte[] source)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipManagedMemory.CopyToHost(System.Byte[] destination)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipManagedMemory.PrefetchAsync(System.Int32 device,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount=0)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipPinnedMemory.CopyFrom(System.Byte[] source)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipPinnedMemory.CopyTo(System.Byte[] destination)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipTypedMemory<T>.CopyFrom(T[] source)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipTypedMemory<T>.CopyFromAsync(T[] source,JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipTypedMemory<T>.CopyTo(T[] destination)
+M|formal|public|System.Void JYPPX.HipSharp.Memory.HipTypedMemory<T>.CopyToAsync(T[] destination,JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipKernel.Launch(JYPPX.HipSharp.Modules.HipLaunchDimensions grid,JYPPX.HipSharp.Modules.HipLaunchDimensions block,System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.Modules.HipKernelArgument> arguments,System.UInt32 sharedMemoryBytes=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipKernel.Launch(JYPPX.HipSharp.Streams.HipStream stream,JYPPX.HipSharp.Modules.HipLaunchDimensions grid,JYPPX.HipSharp.Modules.HipLaunchDimensions block,System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.Modules.HipKernelArgument> arguments,System.UInt32 sharedMemoryBytes=0)
+M|formal|public|System.Void JYPPX.HipSharp.Peer.HipPeerAccess.CopyAsync(JYPPX.HipSharp.Memory.HipDeviceMemory destination,JYPPX.HipSharp.Memory.HipDeviceMemory source,System.UInt64 byteCount,JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.Streams.HipEvent.Record(JYPPX.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.HipSharp.Streams.HipEvent.Synchronize()
+M|formal|public|System.Void JYPPX.HipSharp.Streams.HipStream.BeginCapture(JYPPX.HipSharp.Types.HipStreamCaptureMode mode=Global)
+M|formal|public|System.Void JYPPX.HipSharp.Streams.HipStream.Synchronize()
+P|diagnostic|get:public,set:none|JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics JYPPX.HipSharp.Loading.HipLibraryLoadException.Diagnostics
+P|diagnostic|get:public,set:none|System.Boolean JYPPX.HipSharp.Loading.HipLibraryLoadAttempt.Succeeded
+P|diagnostic|get:public,set:none|System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.Loading.HipLibraryLoadAttempt> JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.Attempts
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadAttempt.Candidate
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadAttempt.Detail
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadAttempt.Source
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.LibraryName
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.OperatingSystem
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.ProcessArchitecture
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.RuntimeIdentifier
+P|diagnostic|get:public,set:none|System.String JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics.TargetFramework
+P|formal|get:public,set:none|JYPPX.HipSharp.Rtc.HipRtcResult JYPPX.HipSharp.Rtc.HipRtcException.Result
+P|formal|get:public,set:none|JYPPX.HipSharp.Streams.HipStream JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.AllocationStream
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipDeviceInfo JYPPX.HipSharp.HipDevice.Info
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipError JYPPX.HipSharp.HipException.Error
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipEventFlags JYPPX.HipSharp.Streams.HipEvent.Flags
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipManagedMemoryFlags JYPPX.HipSharp.Memory.HipManagedMemory.Flags
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipStreamFlags JYPPX.HipSharp.Streams.HipStream.Flags
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipVersion JYPPX.HipSharp.Types.HipRuntimeVersionInfo.DriverVersion
+P|formal|get:public,set:none|JYPPX.HipSharp.Types.HipVersion JYPPX.HipSharp.Types.HipRuntimeVersionInfo.RuntimeVersion
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Graphs.HipGraph.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Graphs.HipGraphExec.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipDeviceMemory.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipManagedMemory.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipPinnedMemory.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Modules.HipModule.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Peer.HipPeerAccess.IsEnabled
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Peer.HipPeerAccess.IsSupported
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Peer.HipPeerAccess.WasAlreadyEnabled
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Rtc.HipRtcProgram.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Streams.HipEvent.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Streams.HipStream.IsCapturing
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Streams.HipStream.IsDisposed
+P|formal|get:public,set:none|System.Collections.Generic.IReadOnlyList<System.String> JYPPX.HipSharp.Rtc.HipRtcCompilation.Options
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.HipDevice.Ordinal
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.HipException.NativeErrorCode
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.DeviceOrdinal
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Memory.HipDeviceMemory.DeviceOrdinal
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Peer.HipPeerAccess.AccessingDevice
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Peer.HipPeerAccess.PeerDevice
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Rtc.HipRtcVersion.Major
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Rtc.HipRtcVersion.Minor
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Streams.HipStream.DeviceOrdinal
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Types.HipDeviceInfo.Ordinal
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Types.HipVersion.Major
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Types.HipVersion.Minor
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Types.HipVersion.Patch
+P|formal|get:public,set:none|System.Int32 JYPPX.HipSharp.Types.HipVersion.RawValue
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipDevice.Name
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipException.ErrorName
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipException.NativeMessage
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipException.Operation
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Modules.HipKernel.Name
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcCompilation.CodeSha256
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcCompilation.Log
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcException.CompilationLog
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcException.NativeDescription
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcException.Operation
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Types.HipDeviceInfo.Name
+P|formal|get:public,set:none|System.UInt32 JYPPX.HipSharp.Modules.HipLaunchDimensions.X
+P|formal|get:public,set:none|System.UInt32 JYPPX.HipSharp.Modules.HipLaunchDimensions.Y
+P|formal|get:public,set:none|System.UInt32 JYPPX.HipSharp.Modules.HipLaunchDimensions.Z
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Memory.HipAsyncDeviceMemory.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Memory.HipDeviceMemory.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Memory.HipManagedMemory.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Memory.HipPinnedMemory.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Memory.HipTypedMemory<T>.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Memory.HipTypedMemory<T>.ElementCount
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Rtc.HipRtcCompilation.CodeSize
+T|diagnostic|public sealed class|JYPPX.HipSharp.Loading.HipLibraryLoadAttempt;interfaces=
+T|diagnostic|public sealed class|JYPPX.HipSharp.Loading.HipLibraryLoadDiagnostics;interfaces=
+T|diagnostic|public sealed class|JYPPX.HipSharp.Loading.HipLibraryLoadException;base=System.Exception;interfaces=System.Runtime.Serialization.ISerializable
+T|formal|public sealed class|JYPPX.HipSharp.Graphs.HipGraph;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Graphs.HipGraphExec;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.HipDevice;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.HipException;base=System.Exception;interfaces=System.Runtime.Serialization.ISerializable
+T|formal|public sealed class|JYPPX.HipSharp.HipRuntime;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Memory.HipAsyncDeviceMemory;interfaces=JYPPX.HipSharp.Memory.IHipPointerOwner,System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Memory.HipDeviceMemory;interfaces=JYPPX.HipSharp.Memory.IHipPointerOwner,System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Memory.HipManagedMemory;interfaces=JYPPX.HipSharp.Memory.IHipPointerOwner,System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Memory.HipPinnedMemory;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Memory.HipTypedMemory<T>;interfaces=System.IDisposable;where=T:struct&System.ValueType
+T|formal|public sealed class|JYPPX.HipSharp.Modules.HipKernel;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Modules.HipKernelArgument;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Modules.HipModule;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Peer.HipPeerAccess;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Rtc.HipRtc;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Rtc.HipRtcCompilation;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Rtc.HipRtcException;base=System.Exception;interfaces=System.Runtime.Serialization.ISerializable
+T|formal|public sealed class|JYPPX.HipSharp.Rtc.HipRtcProgram;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Streams.HipEvent;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Streams.HipStream;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Types.HipDeviceInfo;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Types.HipRuntimeVersionInfo;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Types.HipVersion;interfaces=System.IEquatable<JYPPX.HipSharp.Types.HipVersion>
+T|formal|public sealed enum|JYPPX.HipSharp.Memory.HipMemoryCopyKind;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Rtc.HipRtcResult;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipDeviceAttribute;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipError;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipEventFlags;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipManagedMemoryFlags;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipMemoryAdvise;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipStreamCaptureMode;interfaces=
+T|formal|public sealed enum|JYPPX.HipSharp.Types.HipStreamFlags;interfaces=
+T|formal|public sealed readonly struct|JYPPX.HipSharp.Modules.HipLaunchDimensions;interfaces=System.IEquatable<JYPPX.HipSharp.Modules.HipLaunchDimensions>
+T|formal|public sealed readonly struct|JYPPX.HipSharp.Rtc.HipRtcVersion;interfaces=System.IEquatable<JYPPX.HipSharp.Rtc.HipRtcVersion>

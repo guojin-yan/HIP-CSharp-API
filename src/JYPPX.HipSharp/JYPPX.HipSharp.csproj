@@ -18,6 +18,9 @@
     <IncludeSymbols>false</IncludeSymbols>
     <IncludeSource>false</IncludeSource>
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
+    <EnablePackageValidation>true</EnablePackageValidation>
+    <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
+    <PackageReleaseNotes>$(HipSharpCoreVersion) release candidate for API-freeze review. This package is not a published stable release.</PackageReleaseNotes>
     <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->

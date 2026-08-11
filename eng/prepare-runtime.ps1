@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$Manifest,
-    [string]$CacheDirectory = "eng/native-assets/cache/rocm-7.2.1-noble",
+    [string]$CacheDirectory,
     [string]$StagingDirectory = "eng/native-assets/staging/linux-x64",
     [switch]$Offline,
     [switch]$VerifyOnly,
@@ -18,6 +18,7 @@ $manifestInfo = Get-HipSharpRuntimeManifest $Manifest
 $runtimeManifest = $manifestInfo.Value
 Assert-HipSharpRuntimeManifest $runtimeManifest
 if ($runtimeManifest.rid -ne "linux-x64") { throw "prepare-runtime.ps1 only prepares linux-x64." }
+if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = "eng/native-assets/cache/rocm-$($runtimeManifest.packageVersion)-noble" }
 
 function Resolve-UnderRepository([string]$value) {
     $path = if ([System.IO.Path]::IsPathRooted($value)) { [System.IO.Path]::GetFullPath($value) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $value)) }

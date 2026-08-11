@@ -2,7 +2,7 @@
 param(
     [ValidateSet("Debug", "Release")]
     [string]$Configuration = "Release",
-    [string]$Version = "0.0.0",
+    [string]$Version,
     [switch]$NoRestore
 )
 
@@ -10,6 +10,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+$versionModule = Join-Path $PSScriptRoot "version.psm1"
+Import-Module $versionModule -Force
+$Version = Get-HipSharpVersion -Kind Core -Override $Version -RepositoryRoot $repositoryRoot
 $solution = Join-Path $repositoryRoot "HipSharp.sln"
 $frameworks = @(
     "net46", "net461", "net462", "net47", "net471", "net472", "net48", "net481",
@@ -25,7 +28,7 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE." }
     }
 
-    & dotnet build $solution --configuration $Configuration --no-restore -p:PackageVersion=$Version
+    & dotnet build $solution --configuration $Configuration --no-restore -p:Version=$Version -p:PackageVersion=$Version
     if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE." }
 
     $missing = [System.Collections.Generic.List[string]]::new()

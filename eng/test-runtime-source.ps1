@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
-    [string]$CacheDirectory = "eng/native-assets/cache/rocm-7.2.1-noble",
+    [string]$CacheDirectory,
     [string]$GpgPath = "gpg",
     [string]$GpgvPath = "gpgv"
 )
@@ -11,6 +11,8 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $manifestPath = if ([System.IO.Path]::IsPathRooted($Manifest)) { $Manifest } else { Join-Path $repositoryRoot $Manifest }
+$runtimeVersion = (Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json).packageVersion
+if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = "eng/native-assets/cache/rocm-$runtimeVersion-noble" }
 $cacheRoot = if ([System.IO.Path]::IsPathRooted($CacheDirectory)) { $CacheDirectory } else { Join-Path $repositoryRoot $CacheDirectory }
 $testRoot = Join-Path $repositoryRoot "artifacts/runtime-source-tests"
 
