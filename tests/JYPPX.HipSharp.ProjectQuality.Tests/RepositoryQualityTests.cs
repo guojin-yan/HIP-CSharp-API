@@ -242,6 +242,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(gate, "M6 isolated runtime ${package_mode} gate passed");
         StringAssert.Contains(gate, "${package_mode}\" == \"regression");
         StringAssert.Contains(gate, "-ExpectedRepositoryCommit \"${runtime_package_commit}\"");
+        StringAssert.Contains(gate, "DOTNET_CLI_USE_MSBUILD_SERVER=0");
+        StringAssert.Contains(gate, "UseSharedCompilation=false");
 
         string verifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1"));
         StringAssert.Contains(verifier, "merge-base --is-ancestor");

@@ -48,6 +48,13 @@ for tool in dotnet pwsh readelf ldd sha256sum git python3 pgrep; do
   command -v "${tool}" >/dev/null || { echo "Required runtime gate tool is unavailable: ${tool}" >&2; exit 1; }
 done
 
+# Persistent build servers keep PRoot tracing sessions alive after every gate has finished.
+export DOTNET_CLI_TELEMETRY_OPTOUT=1
+export DOTNET_NOLOGO=1
+export DOTNET_CLI_USE_MSBUILD_SERVER=0
+export MSBUILDDISABLENODEREUSE=1
+export UseSharedCompilation=false
+
 mkdir -p "${evidence_dir}"
 sha256sum "${core_package}" "${runtime_package}" | tee "${evidence_dir}/package-hashes.txt"
 pwsh -NoProfile -File "${repository_root}/eng/verify-package.ps1" -PackagePath "${core_package}" | tee "${evidence_dir}/core-package-audit.txt"
