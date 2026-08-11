@@ -1,6 +1,6 @@
 # HIP-CSharp-API
 
-HIP-CSharp-API 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 绑定。项目只发布 `JYPPX.HipSharp` 一个程序集；原生声明保持 internal，公开托管 API 覆盖 runtime、设备、内存、运行时编译、module 与 kernel launch。
+HIP-CSharp-API 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 绑定。项目只发布 `JYPPX.HipSharp` 一个程序集，同时提供带生命周期管理的高层 owner API，以及由固定 HIP 7.2.1 头文件生成的完整低层原生入口。
 
 ## 0.9.0 发布候选状态
 
@@ -11,6 +11,8 @@ Core `0.9.0` 是 M8.1 用于 API 冻结审查的本地发布候选，尚未发�
 ## M6 历史基线
 
 M6 新增经过选择的 stream-ordered allocation/free、managed-memory advice/prefetch、显式 P2P 状态/复制和 graph capture/instantiate/launch API。单一 normalized manifest 现在驱动 `LibraryImport` 与 `DllImport` 两个分支的 55 个声明；托管 owner 会在 pending stream 工作与 captured graph 存活期间保留原生资源，P2P copy 则从 allocation 和 stream owner 读取设备 ordinal。缺少 optional export 时统一映射为 `HipError.NotSupported`。
+
+当前源码还增加了 `HipRuntimeNativeApi` 和 `HipRtcNativeApi`：固定哈希的 `hip_runtime_api.h`、`hiprtc.h` 分别生成 459 和 18 个公开 C ABI 入口。低层 API 将指针、回调和复杂结构体指针暴露为 `IntPtr`，保留原生所有权语义；高层 `HipRuntime`、`HipRtc` owner 仍是一般业务代码的推荐入口。完整接口的云端 ABI/GPU 验证按计划集中到后续一次执行，当前结果只表示生成覆盖与 15 TFM 本地编译通过。
 
 M5 继续作为已验证的供应链/runtime package 回归基线：固定 AMD 官方 ROCm 7.2.1 Noble 签名仓库，得到 HIP/HIPRTC/HSA/COMGR/rocprofiler-register 六个真实 ELF 的最小闭包，并记录包级/文件级 SHA-256、组件许可证、system/driver 边界、确定性报告和 CycloneDX SBOM。由于 NuGet 不保留 Debian symlink，必要 loader/SONAME alias 以同哈希文件保存；allowlist 解包体积为 415,070,520 bytes，verified final 包为 162,892,126 bytes，因此保留单包方案。
 

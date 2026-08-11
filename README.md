@@ -1,6 +1,6 @@
 # HIP-CSharp-API
 
-HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABIs. The single `JYPPX.HipSharp` assembly keeps native declarations internal while exposing managed runtime, device, memory, runtime compilation, module, and kernel-launch APIs.
+HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABIs. The single `JYPPX.HipSharp` assembly exposes both lifecycle-oriented managed owners and complete low-level native entry points for the pinned HIP 7.2.1 C headers.
 
 ## 0.9.0 release-candidate status
 
@@ -12,7 +12,7 @@ The optional Linux Runtime remains version `7.2.1`. Its signed AMD Noble provena
 | --- | --- |
 | Core candidate | `JYPPX.HIP.CSharp.API` `0.9.0`; local only, unpublished, and not yet declared stable |
 | Public API | Frozen snapshot plus identical-surface comparison across all 15 TFMs; formal and diagnostic API are distinguished from sample-only and internal code |
-| Interop ABI | One normalized manifest drives 55 declarations across `LibraryImport` and `DllImport` branches |
+| Interop ABI | The selected owner manifest drives 55 declarations; the pinned-header complete model drives 459 Runtime + 18 HIPRTC low-level declarations across `LibraryImport` and `DllImport` branches |
 | Linux Runtime candidate | `JYPPX.HipSharp.Runtime.linux-x64` `7.2.1`; guarded, exact-SHA, non-publishable candidate |
 | Historical Linux evidence | M4-M6 passed on separately authorized Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / `gfx1100` sessions; historical evidence does not validate the current packages |
 | Current Linux cloud gate | Pending fresh Owner authorization for the exact candidate packages |
@@ -54,7 +54,7 @@ For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` creates
 
 ## Architecture boundary
 
-The implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` is the declaration source; the binding generator deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The two native libraries retain independent loading identities and diagnostics. Runtime errors become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, stream-ordered allocations, managed memory, graphs, graph executables, HIPRTC programs, and modules use explicit `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.
+The implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` remains the declaration source for the 55 lifecycle-oriented owner calls; `eng/interop/complete-api-model.json` is the reproducible source for all 477 low-level C ABI declarations. The binding generator deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. `HipRuntimeNativeApi` and `HipRtcNativeApi` load the verified logical library through the same resolver and preserve raw pointer ownership as `IntPtr`; callers that need ergonomic lifetime and error handling should use `HipRuntime` and `HipRtc`. Runtime errors in those owner APIs become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, stream-ordered allocations, managed memory, graphs, graph executables, HIPRTC programs, and modules use explicit `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.
 
 `samples/HipRtcVectorAdd` retains the M2 path. `samples/HipStreamEventVectorAdd` retains the M4 stream/event path. `samples/HipAdvancedFeatures` adds stream-ordered allocations, graph replay, managed-memory hints, CPU/GPU comparison for five lengths, 100 owner lifecycles, and a verified P2P copy-or-skip path. Its optional stress mode submits large vector operations to multiple streams before synchronization, validates every lane against the CPU, and repeats allocation/release without reporting performance figures. These GPU paths require an explicit architecture and never write the code object to disk. Managed-only tests use replaceable native boundaries and make no GPU calls.
 

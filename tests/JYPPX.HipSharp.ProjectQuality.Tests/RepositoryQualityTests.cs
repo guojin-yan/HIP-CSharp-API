@@ -118,8 +118,42 @@ public sealed class RepositoryQualityTests
             StringAssert.Contains(generated, "EntryPoint = \"" + entryPoint + "\"");
         }
 
+        string completeModelPath = Path.Combine(RepositoryRoot, "eng", "interop", "complete-api-model.json");
+        using JsonDocument completeModel = JsonDocument.Parse(File.ReadAllText(completeModelPath));
+        JsonElement completeRoot = completeModel.RootElement;
+        JsonElement runtimeFunctions = completeRoot.GetProperty("runtimeFunctions");
+        JsonElement rtcFunctions = completeRoot.GetProperty("rtcFunctions");
+        Assert.AreEqual(1, completeRoot.GetProperty("schemaVersion").GetInt32());
+        Assert.AreEqual("rocm-7.2.1", completeRoot.GetProperty("rocmTag").GetString());
+        Assert.AreEqual(459, runtimeFunctions.GetArrayLength());
+        Assert.AreEqual(18, rtcFunctions.GetArrayLength());
+        CollectionAssert.AreEqual(
+            manifest.RootElement.GetProperty("verifiedHeaders").EnumerateArray()
+                .Select(header => header.GetProperty("sha256").GetString()).OrderBy(value => value).ToArray(),
+            completeRoot.GetProperty("headers").EnumerateArray()
+                .Select(header => header.GetProperty("sha256").GetString()).OrderBy(value => value).ToArray());
+        Assert.AreEqual(459, runtimeFunctions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).Distinct().Count());
+        Assert.AreEqual(18, rtcFunctions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).Distinct().Count());
+        Assert.IsFalse(runtimeFunctions.EnumerateArray().Any(function =>
+            function.GetProperty("entryPoint").GetString()!.StartsWith("__hip", StringComparison.Ordinal) ||
+            function.GetProperty("entryPoint").GetString() == "hip_init"));
+
+        string completeRuntimeGenerated = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipRuntimeNativeApi.g.cs"));
+        string completeRtcGenerated = File.ReadAllText(Path.Combine(
+            RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipRtcNativeApi.g.cs"));
+        foreach (JsonElement function in runtimeFunctions.EnumerateArray())
+        {
+            StringAssert.Contains(completeRuntimeGenerated, "EntryPoint = \"" + function.GetProperty("entryPoint").GetString() + "\"");
+        }
+        foreach (JsonElement function in rtcFunctions.EnumerateArray())
+        {
+            StringAssert.Contains(completeRtcGenerated, "EntryPoint = \"" + function.GetProperty("entryPoint").GetString() + "\"");
+        }
+
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "generate-interop.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "interop", "normalized-model.json")));
+        Assert.IsTrue(File.Exists(completeModelPath));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-symbols.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "native", "abi-probe", "abi-evidence.schema.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "JYPPX.HipSharp.BindingGenerator", "JYPPX.HipSharp.BindingGenerator.csproj")));

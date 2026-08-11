@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Position = 0)]
-    [ValidateSet("generate", "probe-manifest")]
+    [ValidateSet("generate", "extract-headers", "probe-manifest")]
     [string]$Command = "generate",
     [Alias("Verify")]
     [switch]$Check,
@@ -52,9 +52,30 @@ if ($Command -eq "probe-manifest") {
         headerRootSupplied = -not [string]::IsNullOrWhiteSpace($HeaderRoot)
         headers = $headerResults
         functionCount = [int]$probe.functionCount
+        completeRuntimeFunctionCount = [int]$probe.completeRuntimeFunctionCount
+        completeRtcFunctionCount = [int]$probe.completeRtcFunctionCount
         libraries = @($probe.libraries)
     } | ConvertTo-Json -Depth 10
     exit 0
+}
+
+if (-not [string]::IsNullOrWhiteSpace($HeaderRoot)) {
+    $null = @(Test-Headers $HeaderRoot)
+    $extractArguments = [System.Collections.Generic.List[string]]::new()
+    $extractArguments.Add("run")
+    $extractArguments.Add("--project")
+    $extractArguments.Add($generatorProject)
+    $extractArguments.Add("--")
+    $extractArguments.Add("extract-headers")
+    $extractArguments.Add("--header-root")
+    $extractArguments.Add([System.IO.Path]::GetFullPath($HeaderRoot))
+    if ($Check) { $extractArguments.Add("--check") }
+    & dotnet @extractArguments
+    if ($LASTEXITCODE -ne 0) { throw "Official header extraction failed with exit code $LASTEXITCODE." }
+    if ($Command -eq "extract-headers") { exit 0 }
+}
+elseif ($Command -eq "extract-headers") {
+    throw "extract-headers requires -HeaderRoot."
 }
 
 $arguments = [System.Collections.Generic.List[string]]::new()

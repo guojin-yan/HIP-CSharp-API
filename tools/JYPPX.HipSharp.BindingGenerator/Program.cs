@@ -5,7 +5,7 @@ using System.Text.Json;
 
 if (args.Length == 0)
 {
-    Console.Error.WriteLine("Usage: generate [--check] | probe-manifest");
+    Console.Error.WriteLine("Usage: generate [--check] | extract-headers --header-root <path> [--check] | probe-manifest");
     return 2;
 }
 
@@ -13,6 +13,56 @@ string repositoryRoot = FindRepositoryRoot();
 string manifestPath = Path.Combine(repositoryRoot, "eng", "interop", "interop-manifest.json");
 string normalizedPath = Path.Combine(repositoryRoot, "eng", "interop", "normalized-model.json");
 string generatedPath = Path.Combine(repositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs");
+string completeModelPath = Path.Combine(repositoryRoot, "eng", "interop", "complete-api-model.json");
+string completeRuntimePath = Path.Combine(repositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipRuntimeNativeApi.g.cs");
+string completeRtcPath = Path.Combine(repositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipRtcNativeApi.g.cs");
+string command = args[0].ToLowerInvariant();
+bool check = args.Any(value => value is "--check" or "check");
+
+if (command is "extract-headers" or "extract")
+{
+    string? headerRoot = GetOption(args, "--header-root");
+    if (string.IsNullOrWhiteSpace(headerRoot))
+    {
+        Console.Error.WriteLine("extract-headers requires --header-root <path>.");
+        return 2;
+    }
+
+    CompleteApiModel extracted = CompleteApiGenerator.Extract(headerRoot, "rocm-7.2.1");
+    string extractedJson = CompleteApiGenerator.Serialize(extracted);
+    if (check)
+    {
+        if (!File.Exists(completeModelPath) ||
+            !JsonEquivalent(File.ReadAllText(completeModelPath), extractedJson))
+        {
+            Console.Error.WriteLine("Complete API model drift detected against the supplied official headers.");
+            return 1;
+        }
+
+        if (!GeneratedFileMatches(completeRuntimePath, CompleteApiGenerator.RenderRuntime(extracted)) ||
+            !GeneratedFileMatches(completeRtcPath, CompleteApiGenerator.RenderRtc(extracted)))
+        {
+            Console.Error.WriteLine("Complete API generated source drift detected.");
+            return 1;
+        }
+
+        Console.WriteLine($"Official header coverage passed: Runtime={extracted.RuntimeFunctions.Count}, HIPRTC={extracted.RtcFunctions.Count}.");
+        return 0;
+    }
+
+    File.WriteAllText(completeModelPath, extractedJson, new UTF8Encoding(false));
+    WriteCompleteGeneratedFiles(extracted, completeRuntimePath, completeRtcPath);
+    Console.WriteLine($"Complete API model written: Runtime={extracted.RuntimeFunctions.Count}, HIPRTC={extracted.RtcFunctions.Count}.");
+    return 0;
+}
+
+if (!File.Exists(completeModelPath))
+{
+    Console.Error.WriteLine("Complete API model is missing. Run extract-headers with an explicit official header root.");
+    return 1;
+}
+
+CompleteApiModel completeModel = CompleteApiGenerator.Deserialize(File.ReadAllText(completeModelPath));
 using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(manifestPath));
 string candidateNormalized = Canonicalize(manifest.RootElement) + "\n";
 string normalized = candidateNormalized;
@@ -31,9 +81,6 @@ if (File.Exists(normalizedPath))
     }
 }
 string hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(normalized)));
-string command = args[0].ToLowerInvariant();
-bool check = args.Any(value => value is "--check" or "check");
-
 if (command is "probe-manifest" or "probe")
 {
     JsonElement root = manifest.RootElement;
@@ -43,6 +90,8 @@ if (command is "probe-manifest" or "probe")
         generatorVersion = root.GetProperty("generatorVersion").GetString(),
         normalizedManifestSha256 = hash,
         functionCount = root.GetProperty("functions").GetArrayLength(),
+        completeRuntimeFunctionCount = completeModel.RuntimeFunctions.Count,
+        completeRtcFunctionCount = completeModel.RtcFunctions.Count,
         libraries = root.GetProperty("libraries").EnumerateArray().Select(value => value.GetString()).ToArray(),
     }, new JsonSerializerOptions { WriteIndented = true }));
     return 0;
@@ -68,14 +117,43 @@ if (check)
         Console.Error.WriteLine("Generated interop source drift detected.");
         return 1;
     }
+    if (!GeneratedFileMatches(completeRuntimePath, CompleteApiGenerator.RenderRuntime(completeModel)) ||
+        !GeneratedFileMatches(completeRtcPath, CompleteApiGenerator.RenderRtc(completeModel)))
+    {
+        Console.Error.WriteLine("Complete API generated source drift detected.");
+        return 1;
+    }
     Console.WriteLine("Binding generator check passed: " + hash);
     return 0;
 }
 
 File.WriteAllText(normalizedPath, candidateNormalized, new UTF8Encoding(false));
 File.WriteAllText(generatedPath, RenderDeclarations(manifest.RootElement, hash), new UTF8Encoding(false));
+WriteCompleteGeneratedFiles(completeModel, completeRuntimePath, completeRtcPath);
 Console.WriteLine("Normalized model written: " + hash);
 return 0;
+
+static string? GetOption(string[] arguments, string option)
+{
+    int index = Array.FindIndex(arguments, value => string.Equals(value, option, StringComparison.OrdinalIgnoreCase));
+    return index >= 0 && index + 1 < arguments.Length ? arguments[index + 1] : null;
+}
+
+static bool JsonEquivalent(string first, string second)
+{
+    using JsonDocument firstDocument = JsonDocument.Parse(first);
+    using JsonDocument secondDocument = JsonDocument.Parse(second);
+    return JsonElement.DeepEquals(firstDocument.RootElement, secondDocument.RootElement);
+}
+
+static bool GeneratedFileMatches(string path, string expected) =>
+    File.Exists(path) && string.Equals(File.ReadAllText(path).Replace("\r\n", "\n"), expected, StringComparison.Ordinal);
+
+static void WriteCompleteGeneratedFiles(CompleteApiModel model, string runtimePath, string rtcPath)
+{
+    File.WriteAllText(runtimePath, CompleteApiGenerator.RenderRuntime(model), new UTF8Encoding(false));
+    File.WriteAllText(rtcPath, CompleteApiGenerator.RenderRtc(model), new UTF8Encoding(false));
+}
 
 static string RenderDeclarations(JsonElement root, string hash)
 {

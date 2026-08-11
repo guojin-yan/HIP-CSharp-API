@@ -1,11 +1,13 @@
 using System;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using JYPPX.HipSharp.Loading;
 using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Memory;
 using JYPPX.HipSharp.Modules;
 using JYPPX.HipSharp.Peer;
+using JYPPX.HipSharp.Interop;
 using JYPPX.HipSharp.Rtc;
 using JYPPX.HipSharp.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -36,11 +38,27 @@ public sealed class AssemblyBaselineTests
                 typeof(HipAsyncDeviceMemory), typeof(HipManagedMemory), typeof(HipMemoryAdvise),
                 typeof(HipManagedMemoryFlags), typeof(HipStreamCaptureMode), typeof(HipGraph),
                 typeof(HipGraphExec), typeof(HipPeerAccess),
+                typeof(HipRuntimeNativeApi), typeof(HipRtcNativeApi), typeof(HipDim3), typeof(HipExtent),
+                typeof(HipPitchedPtr), typeof(HipMemLocation), typeof(HipIpcMemHandle), typeof(HipIpcEventHandle),
             },
             managed.GetExportedTypes());
+        Assert.AreEqual(459, typeof(HipRuntimeNativeApi).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length);
+        Assert.AreEqual(18, typeof(HipRtcNativeApi).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length);
         Assert.AreEqual("M6-advanced-api-static-windows", ReadMetadata(managed, "HipSharpStage"));
         Assert.AreEqual("true", ReadMetadata(managed, "HipApiImplemented"));
         Assert.AreEqual("eng/interop/interop-manifest.json", ReadMetadata(managed, "InteropSource"));
+        Assert.AreEqual("eng/interop/complete-api-model.json", ReadMetadata(managed, "CompleteInteropSource"));
+    }
+
+    [TestMethod]
+    public void CompleteNativeApiByValueTypesMatchTheX64Abi()
+    {
+        Assert.AreEqual(12, Marshal.SizeOf<HipDim3>());
+        Assert.AreEqual(24, Marshal.SizeOf<HipExtent>());
+        Assert.AreEqual(32, Marshal.SizeOf<HipPitchedPtr>());
+        Assert.AreEqual(8, Marshal.SizeOf<HipMemLocation>());
+        Assert.AreEqual(64, Marshal.SizeOf<HipIpcMemHandle>());
+        Assert.AreEqual(64, Marshal.SizeOf<HipIpcEventHandle>());
     }
 
     private static string? ReadMetadata(Assembly assembly, string key)

@@ -10,6 +10,8 @@
       href: guides/hip-stream-event-vectoradd.md
     - name: Advanced HIP APIs / HIP 高级 API
       href: guides/advanced-apis.md
+    - name: Complete Native API / 完整原生 API
+      href: guides/complete-native-api.md
     - name: 0.9 API Freeze / 0.9 API 冻结
       href: guides/api-freeze.md
     - name: Linux Runtime Package Audit / Linux Runtime 包审计
