@@ -45,8 +45,53 @@ internal sealed class NativeLibraryBackend : INativeLibraryBackend
 #endif
     }
 
+    public bool TryGetExport(IntPtr handle, string entryPoint, out IntPtr address, out string detail)
+    {
+#if NETCOREAPP3_1_OR_GREATER
+        bool found = System.Runtime.InteropServices.NativeLibrary.TryGetExport(handle, entryPoint, out address);
+        detail = found ? "export-found" : "export-not-found: " + entryPoint;
+        return found;
+#else
+        IntPtr nativeEntryPoint = Marshal.StringToHGlobalAnsi(entryPoint);
+        try
+        {
+            address = GetProcAddress(handle, nativeEntryPoint);
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(nativeEntryPoint);
+        }
+        if (address != IntPtr.Zero)
+        {
+            detail = "export-found";
+            return true;
+        }
+
+        int error = Marshal.GetLastWin32Error();
+        detail = "export-not-found: " + entryPoint + "; Win32Error " + error + ": " + new Win32Exception(error).Message;
+        return false;
+#endif
+    }
+
+    public void Free(IntPtr handle)
+    {
+        if (handle == IntPtr.Zero) return;
+#if NETCOREAPP3_1_OR_GREATER
+        System.Runtime.InteropServices.NativeLibrary.Free(handle);
+#else
+        _ = FreeLibrary(handle);
+#endif
+    }
+
 #if NETFRAMEWORK
     [DllImport("kernel32", CharSet = CharSet.Unicode, SetLastError = true, EntryPoint = "LoadLibraryExW")]
     private static extern IntPtr LoadLibraryEx(string fileName, IntPtr file, uint flags);
+
+    [DllImport("kernel32", SetLastError = true, ExactSpelling = true)]
+    private static extern IntPtr GetProcAddress(IntPtr module, IntPtr procedureName);
+
+    [DllImport("kernel32", SetLastError = true, ExactSpelling = true)]
+    [return: MarshalAs(UnmanagedType.Bool)]
+    private static extern bool FreeLibrary(IntPtr module);
 #endif
 }

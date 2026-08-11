@@ -8,10 +8,10 @@ namespace JYPPX.HipSharp.Modules;
 /// </summary>
 public sealed class HipKernelArgument
 {
-    private HipKernelArgument(HipKernelArgumentKind kind, HipDeviceMemory? deviceMemory, int int32Value)
+    private HipKernelArgument(HipKernelArgumentKind kind, IHipPointerOwner? pointerOwner, int int32Value)
     {
         Kind = kind;
-        DeviceMemory = deviceMemory;
+        PointerOwner = pointerOwner;
         Int32Value = int32Value;
     }
 
@@ -24,6 +24,14 @@ public sealed class HipKernelArgument
     public static HipKernelArgument DevicePointer(HipDeviceMemory memory) =>
         new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
 
+    /// <summary>创建 managed-memory 指针参数 / Creates a managed-memory pointer argument.</summary>
+    public static HipKernelArgument DevicePointer(HipManagedMemory memory) =>
+        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
+
+    /// <summary>创建 stream-ordered 内存指针参数 / Creates a stream-ordered memory pointer argument.</summary>
+    public static HipKernelArgument DevicePointer(HipAsyncDeviceMemory memory) =>
+        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
+
     /// <summary>
     /// 创建 32 位有符号整数参数 / Creates a signed 32-bit integer argument.
     /// </summary>
@@ -33,7 +41,7 @@ public sealed class HipKernelArgument
 
     internal HipKernelArgumentKind Kind { get; }
 
-    internal HipDeviceMemory? DeviceMemory { get; }
+    internal IHipPointerOwner? PointerOwner { get; }
 
     internal int Int32Value { get; }
 }

@@ -105,7 +105,7 @@ public sealed class HipKernel
         uint sharedMemoryBytes)
     {
         var valueStorage = new List<IntPtr>(arguments.Count);
-        var acquiredMemory = new List<HipDeviceMemory>();
+        var acquiredMemory = new List<IHipPointerOwner>();
         IntPtr parameterArray = IntPtr.Zero;
         bool moduleReference = false;
         bool transferred = false;
@@ -127,17 +127,21 @@ public sealed class HipKernel
                 IntPtr valuePointer;
                 if (argument.Kind == HipKernelArgumentKind.DevicePointer)
                 {
-                    HipDeviceMemory memory = argument.DeviceMemory!;
+                    IHipPointerOwner memory = argument.PointerOwner!;
                     if (!ReferenceEquals(_module.NativeApi, memory.NativeApi))
                     {
                         throw new ArgumentException("Kernel device-memory arguments must belong to the same HIP Runtime client as the module.", nameof(arguments));
                     }
+                    if (memory.RequiredStream is not null && !ReferenceEquals(stream, memory.RequiredStream))
+                    {
+                        throw new ArgumentException("Stream-ordered memory arguments must be launched on their allocation stream.", nameof(arguments));
+                    }
 
                     bool addedReference = false;
-                    IntPtr devicePointer = memory.DangerousAcquireHandle(out addedReference);
+                    IntPtr devicePointer = memory.AcquirePointer(out addedReference);
                     if (!addedReference)
                     {
-                        throw new ObjectDisposedException(nameof(HipDeviceMemory));
+                        throw new ObjectDisposedException(nameof(HipKernelArgument));
                     }
 
                     acquiredMemory.Add(memory);
@@ -176,7 +180,7 @@ public sealed class HipKernel
                 var memorySnapshot = acquiredMemory.ToArray();
                 stream.AddPendingLease(new HipAsyncLease(() =>
                 {
-                    for (int index = memorySnapshot.Length - 1; index >= 0; index--) memorySnapshot[index].DangerousReleaseHandle();
+                    for (int index = memorySnapshot.Length - 1; index >= 0; index--) memorySnapshot[index].ReleasePointer();
                     _module.ReleaseAsyncReference();
                 }));
                 transferred = true;
@@ -188,7 +192,7 @@ public sealed class HipKernel
             {
                 for (int index = acquiredMemory.Count - 1; index >= 0; index--)
                 {
-                    acquiredMemory[index].DangerousReleaseHandle();
+                    acquiredMemory[index].ReleasePointer();
                 }
                 if (moduleReference) _module.ReleaseAsyncReference();
             }

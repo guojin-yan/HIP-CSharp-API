@@ -43,6 +43,13 @@ internal sealed class HipNativeLibraryLoader
         foreach (HipLibraryCandidate candidate in _locator.GetCandidates(explicitLibraryPath))
         {
             bool succeeded = _backend.TryLoad(candidate.Value, out IntPtr handle, out string detail);
+            if (succeeded && !_backend.TryGetExport(handle, GetProbeExport(), out _, out string exportDetail))
+            {
+                _backend.Free(handle);
+                handle = IntPtr.Zero;
+                succeeded = false;
+                detail += "; " + exportDetail;
+            }
             string displayCandidate = RedactCandidate(candidate);
             string displayDetail = detail.Replace(candidate.Value, displayCandidate);
             if (Path.IsPathRooted(candidate.Value) && File.Exists(candidate.Value))
@@ -70,6 +77,8 @@ internal sealed class HipNativeLibraryLoader
             attempts));
 
     private string GetLogicalName() => _libraryKind == HipNativeLibraryKind.Runtime ? "amdhip64" : "hiprtc";
+
+    private string GetProbeExport() => _libraryKind == HipNativeLibraryKind.Runtime ? "hipInit" : "hiprtcVersion";
 
     private string RedactCandidate(HipLibraryCandidate candidate)
     {

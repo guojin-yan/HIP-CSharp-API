@@ -2,9 +2,11 @@
 
 HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABIs. The single `JYPPX.HipSharp` assembly keeps native declarations internal while exposing managed runtime, device, memory, runtime compilation, module, and kernel-launch APIs.
 
-## M5 status
+## M6 status
 
-The M4 managed-only core candidate remains unchanged. M5 has a signed-source lock for AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; the validated candidate compressed to 162,891,900 bytes, so the topology remains one runtime package.
+M6 adds selected stream-ordered allocation/free, managed-memory advice/prefetch, explicit P2P state/copy, and graph capture/instantiate/launch APIs. One normalized manifest now drives 55 declarations across the `LibraryImport` and `DllImport` branches. Managed owners retain native resources through pending stream work, and missing optional exports normalize to `HipError.NotSupported`.
+
+M5 remains the signed-source/runtime-package regression baseline: AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; the validated candidate compressed to 162,891,900 bytes, so the topology remains one runtime package.
 
 `JYPPX.HipSharp.Runtime.linux-x64` is enabled for guarded local packaging after its exact candidate passed a newly Owner-authorized isolated GPU consumer with no system ROCm user-mode libraries. The package is not published, direct `dotnet pack` remains guarded, and one validated environment is not a broad support claim.
 
@@ -19,6 +21,8 @@ The M4 managed-only core candidate remains unchanged. M5 has a signed-source loc
 | M4 GPU/ABI-validated | Passed on one Owner-authorized Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / gfx1100 session; not a broad support claim |
 | M5 signed provenance/closure/licenses/SBOM | Passed locally for the pinned AMD ROCm 7.2.1 Noble index and six canonical ELF files |
 | M5 runtime package/isolated GPU | Candidate passed package-local loader/maps, 31 Runtime and 9 HIPRTC exports, four GPU workloads, and four fail-closed negatives; final package is rebuilt and revalidated |
+| M6 local advanced API | 55-function generated ABI, ownership/error tests, advanced sample build, and Windows static-audit fixtures pass locally |
+| M6 real GPU/ABI | Pending a newly Owner-authorized Radeon Cloud session; prior M4/M5 evidence is not reused as M6 evidence |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
@@ -29,7 +33,7 @@ The .NET Core 3.1, .NET 5, .NET 6, .NET 7, .NET Framework 4.6, and .NET Framewor
 
 ## Packages
 
-The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`, with versions `7.2.1` and `7.2.0`. Linux provenance, closure, licenses, hashes, SBOM, package content, and one isolated `gfx1100` GPU environment are audited. Windows remains an empty disabled skeleton.
+The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`, with versions `7.2.1` and `7.2.0`. Linux provenance, closure, licenses, hashes, SBOM, package content, and one isolated `gfx1100` GPU environment are audited. Windows remains a disabled, inventory-empty M6 static skeleton; it is not a redistribution or support claim.
 
 ## Local verification
 
@@ -37,11 +41,13 @@ On Windows PowerShell, with the .NET 10 SDK installed:
 
 ```powershell
 dotnet restore HipSharp.sln
+./eng/generate-interop.ps1 generate -Check
 ./eng/build.ps1 -Configuration Release
 ./eng/test.ps1 -Configuration Release -NoBuild
 ./eng/verify-package.ps1 -PackagePath artifacts/packages/JYPPX.HIP.CSharp.API.0.0.0.nupkg
 ./eng/generate-runtime-metadata.ps1 -Check
 ./eng/test-runtime-supply-chain.ps1
+./eng/test-windows-runtime-skeleton.ps1
 ./eng/prepare-runtime.ps1 -Manifest ./nuget/runtime-manifests/linux-x64.json -Offline
 ```
 
@@ -53,9 +59,9 @@ For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` creates
 
 ## Architecture boundary
 
-The M2 implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` is the declaration source; `eng/generate-interop.ps1` deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The two native libraries retain independent loading identities and diagnostics. Runtime errors become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, HIPRTC programs, and modules use checked `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.
+The implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` is the declaration source; the binding generator deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The two native libraries retain independent loading identities and diagnostics. Runtime errors become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, stream-ordered allocations, managed memory, graphs, graph executables, HIPRTC programs, and modules use explicit `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.
 
-`samples/HipRtcVectorAdd` retains the M2 path. `samples/HipStreamEventVectorAdd` adds two explicit streams, events, async H2D/kernel/D2H, CPU comparison for five lengths, and 100 lifecycle repetitions. It requires an explicit GPU architecture and never writes the code object to disk. Managed-only tests use replaceable native boundaries and make no GPU calls.
+`samples/HipRtcVectorAdd` retains the M2 path. `samples/HipStreamEventVectorAdd` retains the M4 stream/event path. `samples/HipAdvancedFeatures` adds stream-ordered allocations, graph replay, managed-memory hints, CPU/GPU comparison for five lengths, 100 owner lifecycles, and a P2P enable-or-skip path. These GPU paths require an explicit architecture and never write the code object to disk. Managed-only tests use replaceable native boundaries and make no GPU calls.
 
 All public API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to generate the API reference and DocFX site under `_site`.
 

@@ -1,9 +1,9 @@
 {
-  "schemaVersion": 4,
-  "generatorVersion": "3.0.0",
+  "schemaVersion": 5,
+  "generatorVersion": "4.0.0",
   "rocmTag": "rocm-7.2.1",
   "hipTag": "hip-7.2.1",
-  "description": "Single source for the M3 HIP Runtime, Memory, Stream, Event, Module, launch, and HIPRTC Direct C ABI declarations.",
+  "description": "Single source for the M6 HIP Runtime, ordered allocation, managed memory, peer, graph, core, and HIPRTC Direct C ABI declarations.",
   "header": "hip/hip_runtime_api.h",
   "headerVersion": "ROCm 7.2.1",
   "verifiedHeaders": [
@@ -168,6 +168,279 @@
         { "declaration": "HipDeviceAttribute attribute", "name": "attribute", "direction": "in", "ownership": "value" },
         { "declaration": "int deviceId", "name": "deviceId", "direction": "in", "ownership": "value" }
       ]
+    },
+    {
+      "managedName": "MallocManaged",
+      "entryPoint": "hipMallocManaged",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "分配 HIP managed memory",
+      "summaryEn": "Allocates HIP managed memory",
+      "parameters": [
+        { "declaration": "out IntPtr pointer", "name": "pointer", "direction": "out", "ownership": "caller" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "MemPrefetchAsync",
+      "entryPoint": "hipMemPrefetchAsync",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "在 stream 上预取 managed memory",
+      "summaryEn": "Prefetches managed memory on a stream",
+      "parameters": [
+        { "declaration": "IntPtr pointer", "name": "pointer", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "int device", "name": "device", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "MemAdvise",
+      "entryPoint": "hipMemAdvise",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "为 managed memory 设置使用提示",
+      "summaryEn": "Sets a usage hint for managed memory",
+      "parameters": [
+        { "declaration": "IntPtr pointer", "name": "pointer", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryAdvise advice", "name": "advice", "direction": "in", "ownership": "value" },
+        { "declaration": "int device", "name": "device", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "MallocAsync",
+      "entryPoint": "hipMallocAsync",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "按 stream 顺序分配设备内存",
+      "summaryEn": "Allocates device memory with stream ordering",
+      "parameters": [
+        { "declaration": "out IntPtr pointer", "name": "pointer", "direction": "out", "ownership": "caller" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "FreeAsync",
+      "entryPoint": "hipFreeAsync",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "按 stream 顺序释放设备内存",
+      "summaryEn": "Frees device memory with stream ordering",
+      "parameters": [
+        { "declaration": "IntPtr pointer", "name": "pointer", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "DeviceCanAccessPeer",
+      "entryPoint": "hipDeviceCanAccessPeer",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "查询设备对的 peer capability",
+      "summaryEn": "Queries peer capability for a device pair",
+      "parameters": [
+        { "declaration": "out int canAccessPeer", "name": "canAccessPeer", "direction": "out", "ownership": "caller" },
+        { "declaration": "int deviceId", "name": "deviceId", "direction": "in", "ownership": "value" },
+        { "declaration": "int peerDeviceId", "name": "peerDeviceId", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "DeviceEnablePeerAccess",
+      "entryPoint": "hipDeviceEnablePeerAccess",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "启用当前设备到 peer 的访问",
+      "summaryEn": "Enables access from the current device to a peer",
+      "parameters": [
+        { "declaration": "int peerDeviceId", "name": "peerDeviceId", "direction": "in", "ownership": "value" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "DeviceDisablePeerAccess",
+      "entryPoint": "hipDeviceDisablePeerAccess",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "禁用当前设备到 peer 的访问",
+      "summaryEn": "Disables access from the current device to a peer",
+      "parameters": [ { "declaration": "int peerDeviceId", "name": "peerDeviceId", "direction": "in", "ownership": "value" } ]
+    },
+    {
+      "managedName": "MemcpyPeerAsync",
+      "entryPoint": "hipMemcpyPeerAsync",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "在 stream 上执行 peer copy",
+      "summaryEn": "Copies memory between peers on a stream",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "out", "ownership": "borrowed-call" },
+        { "declaration": "int destinationDevice", "name": "destinationDevice", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "int sourceDevice", "name": "sourceDevice", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "StreamBeginCapture",
+      "entryPoint": "hipStreamBeginCapture",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "开始 stream graph capture",
+      "summaryEn": "Begins graph capture on a stream",
+      "parameters": [
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "HipStreamCaptureMode mode", "name": "mode", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "StreamEndCapture",
+      "entryPoint": "hipStreamEndCapture",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "结束 stream graph capture",
+      "summaryEn": "Ends graph capture on a stream",
+      "parameters": [
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "out IntPtr graph", "name": "graph", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "GraphDestroy",
+      "entryPoint": "hipGraphDestroy",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "销毁 HIP graph",
+      "summaryEn": "Destroys a HIP graph",
+      "parameters": [ { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" } ]
+    },
+    {
+      "managedName": "GraphInstantiateWithFlags",
+      "entryPoint": "hipGraphInstantiateWithFlags",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "创建 graph executable",
+      "summaryEn": "Instantiates a graph executable",
+      "parameters": [
+        { "declaration": "out IntPtr graphExec", "name": "graphExec", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "ulong flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphLaunch",
+      "entryPoint": "hipGraphLaunch",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "在 stream 上启动 graph executable",
+      "summaryEn": "Launches a graph executable on a stream",
+      "parameters": [
+        { "declaration": "IntPtr graphExec", "name": "graphExec", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "GraphExecDestroy",
+      "entryPoint": "hipGraphExecDestroy",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "销毁 graph executable",
+      "summaryEn": "Destroys a graph executable",
+      "parameters": [ { "declaration": "IntPtr graphExec", "name": "graphExec", "direction": "in", "ownership": "borrowed" } ]
     },
     {
       "managedName": "StreamCreateWithFlags",

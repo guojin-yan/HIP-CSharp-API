@@ -21,6 +21,21 @@ static_assert(std::is_same<decltype(&hipGetDevice), hipError_t (*)(int*)>::value
 static_assert(std::is_same<decltype(&hipSetDevice), hipError_t (*)(int)>::value, "hipSetDevice signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceGetName), hipError_t (*)(char*, int, int)>::value, "hipDeviceGetName signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceGetAttribute), hipError_t (*)(int*, hipDeviceAttribute_t, int)>::value, "hipDeviceGetAttribute signature mismatch");
+static_assert(std::is_same<decltype(&hipMallocManaged), hipError_t (*)(void**, std::size_t, unsigned int)>::value, "hipMallocManaged signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPrefetchAsync), hipError_t (*)(const void*, std::size_t, int, hipStream_t)>::value, "hipMemPrefetchAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipMemAdvise), hipError_t (*)(const void*, std::size_t, hipMemoryAdvise, int)>::value, "hipMemAdvise signature mismatch");
+static_assert(std::is_same<decltype(&hipMallocAsync), hipError_t (*)(void**, std::size_t, hipStream_t)>::value, "hipMallocAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipFreeAsync), hipError_t (*)(void*, hipStream_t)>::value, "hipFreeAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipDeviceCanAccessPeer), hipError_t (*)(int*, int, int)>::value, "hipDeviceCanAccessPeer signature mismatch");
+static_assert(std::is_same<decltype(&hipDeviceEnablePeerAccess), hipError_t (*)(int, unsigned int)>::value, "hipDeviceEnablePeerAccess signature mismatch");
+static_assert(std::is_same<decltype(&hipDeviceDisablePeerAccess), hipError_t (*)(int)>::value, "hipDeviceDisablePeerAccess signature mismatch");
+static_assert(std::is_same<decltype(&hipMemcpyPeerAsync), hipError_t (*)(void*, int, const void*, int, std::size_t, hipStream_t)>::value, "hipMemcpyPeerAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipStreamBeginCapture), hipError_t (*)(hipStream_t, hipStreamCaptureMode)>::value, "hipStreamBeginCapture signature mismatch");
+static_assert(std::is_same<decltype(&hipStreamEndCapture), hipError_t (*)(hipStream_t, hipGraph_t*)>::value, "hipStreamEndCapture signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphDestroy), hipError_t (*)(hipGraph_t)>::value, "hipGraphDestroy signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphInstantiateWithFlags), hipError_t (*)(hipGraphExec_t*, hipGraph_t, unsigned long long)>::value, "hipGraphInstantiateWithFlags signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphLaunch), hipError_t (*)(hipGraphExec_t, hipStream_t)>::value, "hipGraphLaunch signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphExecDestroy), hipError_t (*)(hipGraphExec_t)>::value, "hipGraphExecDestroy signature mismatch");
 static_assert(std::is_same<decltype(&hipMalloc), hipError_t (*)(void**, std::size_t)>::value, "hipMalloc signature mismatch");
 static_assert(std::is_same<decltype(&hipFree), hipError_t (*)(void*)>::value, "hipFree signature mismatch");
 static_assert(std::is_same<decltype(&hipMemcpy), hipError_t (*)(void*, const void*, std::size_t, hipMemcpyKind)>::value, "hipMemcpy signature mismatch");
@@ -62,7 +77,7 @@ int main()
 {
     std::printf(
         "{\n"
-        "  \"schemaVersion\": 2,\n"
+        "  \"schemaVersion\": 3,\n"
         "  \"normalizedManifestHash\": \"%s\",\n"
         "  \"headerHash\": \"%s\",\n"
         "  \"staticAssertions\": true,\n"
@@ -70,6 +85,10 @@ int main()
         "  \"hipErrorAlignment\": %zu,\n"
         "  \"hipMemcpyKindSize\": %zu,\n"
         "  \"hipMemcpyKindAlignment\": %zu,\n"
+        "  \"hipMemoryAdviseSize\": %zu,\n"
+        "  \"hipMemoryAdviseAlignment\": %zu,\n"
+        "  \"hipStreamCaptureModeSize\": %zu,\n"
+        "  \"hipStreamCaptureModeAlignment\": %zu,\n"
         "  \"pointerSize\": %zu,\n"
         "  \"pointerAlignment\": %zu,\n"
         "  \"hiprtcResultSize\": %zu,\n"
@@ -77,6 +96,8 @@ int main()
         "  \"hiprtcProgramSize\": %zu,\n"
         "  \"hipModuleHandleSize\": %zu,\n"
         "  \"hipFunctionHandleSize\": %zu,\n"
+        "  \"hipGraphHandleSize\": %zu,\n"
+        "  \"hipGraphExecHandleSize\": %zu,\n"
         "  \"sizeTSize\": %zu,\n"
         "  \"sizeTAlignment\": %zu,\n"
         "  \"dim3Size\": %zu,\n"
@@ -91,7 +112,17 @@ int main()
         "  \"hiprtcLinkingError\": %d,\n"
         "  \"hipMemcpyHostToDevice\": %d,\n"
         "  \"hipMemcpyDeviceToHost\": %d,\n"
-        "  \"hipMemcpyDeviceToDevice\": %d\n"
+        "  \"hipMemcpyDeviceToDevice\": %d,\n"
+        "  \"hipMemAdviseSetReadMostly\": %d,\n"
+        "  \"hipMemAdviseSetCoarseGrain\": %d,\n"
+        "  \"hipStreamCaptureModeGlobal\": %d,\n"
+        "  \"hipStreamCaptureModeRelaxed\": %d,\n"
+        "  \"hipErrorPeerAccessAlreadyEnabled\": %d,\n"
+        "  \"hipErrorPeerAccessNotEnabled\": %d,\n"
+        "  \"hipErrorNotSupported\": %d,\n"
+        "  \"hipMemAttachGlobal\": %u,\n"
+        "  \"hipMemAttachHost\": %u,\n"
+        "  \"hipCpuDeviceId\": %d\n"
         "}\n",
         HIPSHARP_NORMALIZED_MANIFEST_SHA256,
         HIPSHARP_HEADER_SHA256,
@@ -99,6 +130,10 @@ int main()
         alignof(hipError_t),
         sizeof(hipMemcpyKind),
         alignof(hipMemcpyKind),
+        sizeof(hipMemoryAdvise),
+        alignof(hipMemoryAdvise),
+        sizeof(hipStreamCaptureMode),
+        alignof(hipStreamCaptureMode),
         sizeof(void*),
         alignof(void*),
         sizeof(hiprtcResult),
@@ -106,6 +141,8 @@ int main()
         sizeof(hiprtcProgram),
         sizeof(hipModule_t),
         sizeof(hipFunction_t),
+        sizeof(hipGraph_t),
+        sizeof(hipGraphExec_t),
         sizeof(std::size_t),
         alignof(std::size_t),
         sizeof(dim3),
@@ -120,6 +157,16 @@ int main()
         static_cast<int>(HIPRTC_ERROR_LINKING),
         static_cast<int>(hipMemcpyHostToDevice),
         static_cast<int>(hipMemcpyDeviceToHost),
-        static_cast<int>(hipMemcpyDeviceToDevice));
+        static_cast<int>(hipMemcpyDeviceToDevice),
+        static_cast<int>(hipMemAdviseSetReadMostly),
+        static_cast<int>(hipMemAdviseSetCoarseGrain),
+        static_cast<int>(hipStreamCaptureModeGlobal),
+        static_cast<int>(hipStreamCaptureModeRelaxed),
+        static_cast<int>(hipErrorPeerAccessAlreadyEnabled),
+        static_cast<int>(hipErrorPeerAccessNotEnabled),
+        static_cast<int>(hipErrorNotSupported),
+        static_cast<unsigned int>(hipMemAttachGlobal),
+        static_cast<unsigned int>(hipMemAttachHost),
+        static_cast<int>(hipCpuDeviceId));
     return 0;
 }

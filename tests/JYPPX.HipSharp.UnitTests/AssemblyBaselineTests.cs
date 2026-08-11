@@ -2,8 +2,10 @@ using System;
 using System.Linq;
 using System.Reflection;
 using JYPPX.HipSharp.Loading;
+using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Memory;
 using JYPPX.HipSharp.Modules;
+using JYPPX.HipSharp.Peer;
 using JYPPX.HipSharp.Rtc;
 using JYPPX.HipSharp.Types;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
@@ -14,7 +16,7 @@ namespace JYPPX.HipSharp.UnitTests;
 public sealed class AssemblyBaselineTests
 {
     [TestMethod]
-    public void CoreAssemblyExposesM4ApiAndMetadata()
+    public void CoreAssemblyExposesM6ApiAndMetadata()
     {
         Assembly managed = Assembly.Load("JYPPX.HipSharp");
 
@@ -31,9 +33,12 @@ public sealed class AssemblyBaselineTests
                 typeof(JYPPX.HipSharp.Streams.HipStream), typeof(JYPPX.HipSharp.Streams.HipEvent),
                 typeof(HipStreamFlags), typeof(HipEventFlags), typeof(HipDeviceAttribute),
                 typeof(HipPinnedMemory), typeof(HipTypedMemory<>),
+                typeof(HipAsyncDeviceMemory), typeof(HipManagedMemory), typeof(HipMemoryAdvise),
+                typeof(HipManagedMemoryFlags), typeof(HipStreamCaptureMode), typeof(HipGraph),
+                typeof(HipGraphExec), typeof(HipPeerAccess),
             },
             managed.GetExportedTypes());
-        Assert.AreEqual("M4-release-candidate", ReadMetadata(managed, "HipSharpStage"));
+        Assert.AreEqual("M6-advanced-api-static-windows", ReadMetadata(managed, "HipSharpStage"));
         Assert.AreEqual("true", ReadMetadata(managed, "HipApiImplemented"));
         Assert.AreEqual("eng/interop/interop-manifest.json", ReadMetadata(managed, "InteropSource"));
     }

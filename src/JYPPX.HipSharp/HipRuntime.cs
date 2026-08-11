@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using JYPPX.HipSharp.Interop;
+using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Memory;
 using JYPPX.HipSharp.Modules;
+using JYPPX.HipSharp.Peer;
 using JYPPX.HipSharp.Streams;
 using JYPPX.HipSharp.Types;
 
@@ -141,6 +143,32 @@ public sealed class HipRuntime
     }
 
     /// <summary>
+    /// 在指定 stream 上捕获操作并返回独立 graph owner / Captures operations on a stream and returns an independent graph owner.
+    /// </summary>
+    public HipGraph CaptureGraph(HipStream stream, Action<HipStream> capture, HipStreamCaptureMode mode = HipStreamCaptureMode.Global)
+    {
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+        if (capture is null) throw new ArgumentNullException(nameof(capture));
+        if (!ReferenceEquals(_nativeApi, stream.NativeApi)) throw new ArgumentException("Stream belongs to a different HIP Runtime client.", nameof(stream));
+        stream.BeginCapture(mode);
+        try
+        {
+            capture(stream);
+            return stream.EndCapture();
+        }
+        catch
+        {
+            if (stream.IsCapturing)
+            {
+                try { stream.EndCapture().Dispose(); }
+                catch (HipException) { }
+                catch (InvalidOperationException) { }
+            }
+            throw;
+        }
+    }
+
+    /// <summary>
     /// 在当前设备上分配内存 / Allocates memory on the current device.
     /// </summary>
     /// <param name="byteCount">分配字节数，必须大于零 / Number of bytes to allocate; must be greater than zero.</param>
@@ -162,6 +190,85 @@ public sealed class HipRuntime
         }
 
         return new HipDeviceMemory(_nativeApi, pointer, byteCount);
+    }
+
+    /// <summary>
+    /// 在 stream 上按顺序分配设备内存；owner 必须先于 stream 释放 / Allocates stream-ordered device memory; the owner must be disposed before the stream.
+    /// </summary>
+    public HipAsyncDeviceMemory AllocateAsync(ulong byteCount, HipStream stream)
+    {
+        if (stream is null) throw new ArgumentNullException(nameof(stream));
+        if (!ReferenceEquals(_nativeApi, stream.NativeApi)) throw new ArgumentException("Stream belongs to a different HIP Runtime client.", nameof(stream));
+        if (byteCount == 0) throw new ArgumentOutOfRangeException(nameof(byteCount));
+        UIntPtr nativeByteCount = HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount));
+        IDisposable ownerLease = stream.RegisterOwnedResource();
+        bool ownerLeaseTransferred = false;
+        try
+        {
+            IntPtr streamHandle = stream.DangerousGetHandle();
+            HipError error = _nativeApi.MallocAsync(out IntPtr pointer, nativeByteCount, streamHandle);
+            if (error != HipError.Success && pointer != IntPtr.Zero)
+            {
+                var partialHandle = new HipAsyncDeviceMemoryHandle(_nativeApi, pointer, streamHandle, ownerLease);
+                ownerLeaseTransferred = true;
+                if (partialHandle.ReleaseAsyncChecked() == HipError.Success) partialHandle.Dispose();
+            }
+            HipCall.ThrowIfFailed(_nativeApi, error, "hipMallocAsync");
+            if (pointer == IntPtr.Zero) throw new InvalidOperationException("hipMallocAsync succeeded but returned a null pointer.");
+            var memory = new HipAsyncDeviceMemory(_nativeApi, pointer, byteCount, stream, ownerLease);
+            ownerLeaseTransferred = true;
+            return memory;
+        }
+        catch
+        {
+            if (!ownerLeaseTransferred) ownerLease.Dispose();
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 分配 CPU/GPU 可见的 managed memory；平台不支持时报告原生错误 / Allocates CPU/GPU-visible managed memory and reports native capability failures.
+    /// </summary>
+    public HipManagedMemory AllocateManaged(ulong byteCount, HipManagedMemoryFlags flags = HipManagedMemoryFlags.Global)
+    {
+        if (byteCount == 0) throw new ArgumentOutOfRangeException(nameof(byteCount));
+        if (flags != HipManagedMemoryFlags.Global && flags != HipManagedMemoryFlags.Host) throw new ArgumentOutOfRangeException(nameof(flags));
+        HipError error = _nativeApi.MallocManaged(out IntPtr pointer, HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount)), (uint)flags);
+        if (error != HipError.Success && pointer != IntPtr.Zero)
+        {
+            var partialHandle = new HipDeviceMemoryHandle(_nativeApi, pointer);
+            if (partialHandle.ReleaseChecked() == HipError.Success) partialHandle.Dispose();
+        }
+        HipCall.ThrowIfFailed(_nativeApi, error, "hipMallocManaged");
+        if (pointer == IntPtr.Zero) throw new InvalidOperationException("hipMallocManaged succeeded but returned a null pointer.");
+        return new HipManagedMemory(_nativeApi, pointer, byteCount, flags);
+    }
+
+    /// <summary>查询显式设备对的 peer capability / Queries peer capability for an explicit device pair.</summary>
+    public bool CanAccessPeer(int accessingDevice, int peerDevice)
+    {
+        if (accessingDevice < 0) throw new ArgumentOutOfRangeException(nameof(accessingDevice));
+        if (peerDevice < 0) throw new ArgumentOutOfRangeException(nameof(peerDevice));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceCanAccessPeer(out int canAccess, accessingDevice, peerDevice), "hipDeviceCanAccessPeer");
+        return canAccess != 0;
+    }
+
+    /// <summary>
+    /// 为当前设备创建显式 peer-access owner；当前设备必须等于 accessingDevice / Creates an explicit peer-access owner; the current device must equal accessingDevice.
+    /// </summary>
+    public HipPeerAccess EnablePeerAccess(int accessingDevice, int peerDevice)
+    {
+        if (accessingDevice < 0) throw new ArgumentOutOfRangeException(nameof(accessingDevice));
+        if (peerDevice < 0) throw new ArgumentOutOfRangeException(nameof(peerDevice));
+        if (accessingDevice == peerDevice) return new HipPeerAccess(_nativeApi, accessingDevice, peerDevice, false, false, false, false);
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int currentDevice), "hipGetDevice");
+        if (currentDevice != accessingDevice) throw new InvalidOperationException("The current HIP device does not match accessingDevice. Make the device current explicitly before enabling peer access.");
+        if (!CanAccessPeer(accessingDevice, peerDevice)) return new HipPeerAccess(_nativeApi, accessingDevice, peerDevice, false, false, false, false);
+        HipError error = _nativeApi.DeviceEnablePeerAccess(peerDevice, 0);
+        if (error == HipError.PeerAccessAlreadyEnabled)
+            return new HipPeerAccess(_nativeApi, accessingDevice, peerDevice, true, true, false, true);
+        HipCall.ThrowIfFailed(_nativeApi, error, "hipDeviceEnablePeerAccess");
+        return new HipPeerAccess(_nativeApi, accessingDevice, peerDevice, true, true, true, false);
     }
 
     /// <summary>分配 typed device memory / Allocates typed device memory.</summary>

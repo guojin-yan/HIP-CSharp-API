@@ -76,6 +76,34 @@ public sealed class HipLibraryLoaderTests
     }
 
     [TestMethod]
+    public void WindowsLocatorUsesPinnedRocm72NamesAndStableSdkOrder()
+    {
+        string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
+        string programFiles = Path.Combine(root, "Program Files");
+        string rocmRoot = Path.Combine(programFiles, "AMD", "ROCm");
+        string installed72 = Path.Combine(rocmRoot, "7.2");
+        string installed710 = Path.Combine(rocmRoot, "7.1.0");
+        var platform = new HipPlatformInfo(true, false, "Windows test", "x64", ".NET 10", "win-x64");
+        var runtimeLocator = new HipLibraryLocator(platform, Path.Combine(root, "app"),
+            name => name == "ProgramFiles" ? programFiles : null,
+            directoryEnumerator: _ => new[] { installed710, installed72 });
+        var rtcLocator = new HipLibraryLocator(platform, Path.Combine(root, "app"),
+            name => name == "ProgramFiles" ? programFiles : null, HipNativeLibraryKind.Rtc,
+            _ => new[] { installed710, installed72 });
+
+        HipLibraryCandidate[] runtime = runtimeLocator.GetCandidates(null).ToArray();
+        HipLibraryCandidate[] rtc = rtcLocator.GetCandidates(null).ToArray();
+
+        CollectionAssert.Contains(runtime.Select(candidate => candidate.Value).ToArray(),
+            Path.Combine(installed72, "bin", "amdhip64_7.dll"));
+        Assert.IsTrue(Array.FindIndex(runtime, candidate => candidate.Value == Path.Combine(installed72, "bin", "amdhip64_7.dll")) <
+            Array.FindIndex(runtime, candidate => candidate.Value == Path.Combine(installed710, "bin", "amdhip64_7.dll")));
+        Assert.AreEqual("amdhip64_7.dll", runtime[^1].Value);
+        Assert.AreEqual("hiprtc0702.dll", rtc[^1].Value);
+        Assert.IsTrue(runtime.Take(runtime.Length - 1).All(candidate => candidate.Source != "operating-system-search"));
+    }
+
+    [TestMethod]
     public void SuccessfulLoadsRecordAClosureIdentityThatDistinguishesPackageAndSystemModes()
     {
         var platform = new HipPlatformInfo(false, true, "Linux test", "x64", ".NET 10", "linux-x64");
@@ -96,6 +124,22 @@ public sealed class HipLibraryLoaderTests
         Assert.AreNotEqual(local.ClosureIdentity, system.ClosureIdentity);
     }
 
+    [TestMethod]
+    public void LoaderFreesALoadedCandidateWhenItsIdentityExportIsMissing()
+    {
+        var platform = new HipPlatformInfo(false, true, "Linux test", "x64", ".NET 10", "linux-x64");
+        var locator = new HipLibraryLocator(platform, "/app", _ => null);
+        var backend = new MissingFirstExportBackend();
+        var loader = new HipNativeLibraryLoader(platform, locator, backend);
+
+        HipNativeLibraryLoadResult result = loader.Load(null);
+        string[] expectedProbes = { "hipInit", "hipInit" };
+
+        Assert.AreEqual("runtime-asset", result.Candidate.Source);
+        Assert.AreEqual(1, backend.FreeCount);
+        CollectionAssert.AreEqual(expectedProbes, backend.Probes);
+    }
+
     private sealed class AlwaysFailBackend : INativeLibraryBackend
     {
         internal List<string> Candidates { get; } = new();
@@ -107,6 +151,15 @@ public sealed class HipLibraryLoaderTests
             detail = "not found";
             return false;
         }
+
+        public bool TryGetExport(IntPtr handle, string entryPoint, out IntPtr address, out string detail)
+        {
+            address = IntPtr.Zero;
+            detail = "not loaded";
+            return false;
+        }
+
+        public void Free(IntPtr handle) { }
     }
 
     private sealed class FirstCandidateBackend : INativeLibraryBackend
@@ -117,6 +170,15 @@ public sealed class HipLibraryLoaderTests
             detail = "loaded";
             return true;
         }
+
+        public bool TryGetExport(IntPtr handle, string entryPoint, out IntPtr address, out string detail)
+        {
+            address = new IntPtr(2);
+            detail = "export-found";
+            return true;
+        }
+
+        public void Free(IntPtr handle) { }
     }
 
     private sealed class NamedCandidateBackend : INativeLibraryBackend
@@ -132,5 +194,41 @@ public sealed class HipLibraryLoaderTests
             detail = succeeded ? "loaded" : "not found";
             return succeeded;
         }
+
+        public bool TryGetExport(IntPtr handle, string entryPoint, out IntPtr address, out string detail)
+        {
+            address = new IntPtr(3);
+            detail = "export-found";
+            return true;
+        }
+
+        public void Free(IntPtr handle) { }
+    }
+
+    private sealed class MissingFirstExportBackend : INativeLibraryBackend
+    {
+        private int _loadCount;
+        internal int FreeCount { get; private set; }
+        internal string[] Probes => _probes.ToArray();
+        private readonly List<string> _probes = new();
+
+        public bool TryLoad(string candidate, out IntPtr handle, out string detail)
+        {
+            _loadCount++;
+            handle = new IntPtr(_loadCount);
+            detail = "loaded";
+            return true;
+        }
+
+        public bool TryGetExport(IntPtr handle, string entryPoint, out IntPtr address, out string detail)
+        {
+            _probes.Add(entryPoint);
+            bool found = handle == new IntPtr(2);
+            address = found ? new IntPtr(10) : IntPtr.Zero;
+            detail = found ? "export-found" : "export-not-found";
+            return found;
+        }
+
+        public void Free(IntPtr handle) => FreeCount++;
     }
 }

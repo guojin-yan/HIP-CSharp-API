@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace JYPPX.HipSharp.Loading;
 
@@ -12,18 +13,21 @@ internal sealed class HipLibraryLocator
     private readonly HipPlatformInfo _platform;
     private readonly string _applicationBase;
     private readonly Func<string, string?> _environmentReader;
+    private readonly Func<string, IEnumerable<string>> _directoryEnumerator;
     private readonly HipNativeLibraryKind _libraryKind;
 
     internal HipLibraryLocator(
         HipPlatformInfo platform,
         string applicationBase,
         Func<string, string?> environmentReader,
-        HipNativeLibraryKind libraryKind = HipNativeLibraryKind.Runtime)
+        HipNativeLibraryKind libraryKind = HipNativeLibraryKind.Runtime,
+        Func<string, IEnumerable<string>>? directoryEnumerator = null)
     {
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
         _applicationBase = applicationBase ?? throw new ArgumentNullException(nameof(applicationBase));
         _environmentReader = environmentReader ?? throw new ArgumentNullException(nameof(environmentReader));
         _libraryKind = libraryKind;
+        _directoryEnumerator = directoryEnumerator ?? EnumerateDirectories;
     }
 
     internal IList<HipLibraryCandidate> GetCandidates(string? explicitLibraryPath)
@@ -50,6 +54,7 @@ internal sealed class HipLibraryLocator
 
         if (_platform.IsWindows)
         {
+            AddWindowsSdkCandidates(candidates, seen, fileName);
             Add(candidates, seen, fileName, "operating-system-search");
         }
         else
@@ -67,11 +72,41 @@ internal sealed class HipLibraryLocator
     {
         if (_libraryKind == HipNativeLibraryKind.Runtime)
         {
-            return _platform.IsWindows ? "amdhip64_7.dll" : "libamdhip64.so";
+            return _platform.IsWindows ? HipWindowsSdkLayout.RuntimeFileName : "libamdhip64.so";
         }
 
-        return _platform.IsWindows ? "hiprtc0702.dll" : "libhiprtc.so";
+        return _platform.IsWindows ? HipWindowsSdkLayout.RtcFileName : "libhiprtc.so";
     }
+
+    private void AddWindowsSdkCandidates(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string fileName)
+    {
+        string? programFiles = _environmentReader("ProgramFiles");
+        if (string.IsNullOrWhiteSpace(programFiles) || !Path.IsPathRooted(programFiles)) return;
+
+        string rocmRoot = Path.Combine(programFiles, "AMD", "ROCm");
+        string[] installedRoots;
+        try
+        {
+            installedRoots = _directoryEnumerator(rocmRoot)
+                .Where(Path.IsPathRooted)
+                .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+                .ToArray();
+        }
+        catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
+        {
+            installedRoots = Array.Empty<string>();
+        }
+
+        foreach (string installedRoot in installedRoots)
+        {
+            Add(candidates, seen, Path.Combine(installedRoot, "bin", fileName), "standard-rocm");
+        }
+
+        Add(candidates, seen, Path.Combine(rocmRoot, "bin", fileName), "standard-rocm");
+    }
+
+    private static IEnumerable<string> EnumerateDirectories(string path) =>
+        Directory.Exists(path) ? Directory.EnumerateDirectories(path) : Array.Empty<string>();
 
     private void AddEnvironmentRoot(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string variableName, string fileName)
     {

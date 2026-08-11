@@ -9,7 +9,7 @@ namespace JYPPX.HipSharp.Memory;
 /// <summary>
 /// 拥有一段 HIP 设备内存并提供同步复制操作 / Owns a HIP device-memory allocation and provides synchronous copy operations.
 /// </summary>
-public sealed class HipDeviceMemory : IDisposable
+public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
 {
     private readonly IHipNativeApi _nativeApi;
     private readonly HipDeviceMemoryHandle _handle;
@@ -196,6 +196,9 @@ public sealed class HipDeviceMemory : IDisposable
 
     internal IHipNativeApi NativeApi => _nativeApi;
 
+    IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
+    HipStream? IHipPointerOwner.RequiredStream => null;
+
     internal IntPtr DangerousAcquireHandle(out bool addedReference)
     {
         lock (_lifetimeSync)
@@ -216,6 +219,9 @@ public sealed class HipDeviceMemory : IDisposable
             if (_asyncReferences > 0) _asyncReferences--;
         }
     }
+
+    IntPtr IHipPointerOwner.AcquirePointer(out bool addedReference) => DangerousAcquireHandle(out addedReference);
+    void IHipPointerOwner.ReleasePointer() => DangerousReleaseHandle();
 
     internal static UIntPtr ToUIntPtr(ulong value, string parameterName)
     {

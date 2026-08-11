@@ -49,6 +49,69 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
     public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId) =>
         HipNativeMethods.DeviceGetAttribute(out value, attribute, deviceId);
 
+    public HipError MallocManaged(out IntPtr pointer, UIntPtr byteCount, uint flags)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.MallocManaged(out value, byteCount, flags));
+        pointer = value;
+        return error;
+    }
+
+    public HipError MemPrefetchAsync(IntPtr pointer, UIntPtr byteCount, int device, IntPtr stream) =>
+        Optional(() => HipNativeMethods.MemPrefetchAsync(pointer, byteCount, device, stream));
+
+    public HipError MemAdvise(IntPtr pointer, UIntPtr byteCount, HipMemoryAdvise advice, int device) =>
+        Optional(() => HipNativeMethods.MemAdvise(pointer, byteCount, advice, device));
+
+    public HipError MallocAsync(out IntPtr pointer, UIntPtr byteCount, IntPtr stream)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.MallocAsync(out value, byteCount, stream));
+        pointer = value;
+        return error;
+    }
+
+    public HipError FreeAsync(IntPtr pointer, IntPtr stream) => Optional(() => HipNativeMethods.FreeAsync(pointer, stream));
+
+    public HipError DeviceCanAccessPeer(out int canAccessPeer, int deviceId, int peerDeviceId)
+    {
+        int value = 0;
+        HipError error = Optional(() => HipNativeMethods.DeviceCanAccessPeer(out value, deviceId, peerDeviceId));
+        canAccessPeer = value;
+        return error;
+    }
+
+    public HipError DeviceEnablePeerAccess(int peerDeviceId, uint flags) => Optional(() => HipNativeMethods.DeviceEnablePeerAccess(peerDeviceId, flags));
+
+    public HipError DeviceDisablePeerAccess(int peerDeviceId) => Optional(() => HipNativeMethods.DeviceDisablePeerAccess(peerDeviceId));
+
+    public HipError MemcpyPeerAsync(IntPtr destination, int destinationDevice, IntPtr source, int sourceDevice, UIntPtr byteCount, IntPtr stream) =>
+        Optional(() => HipNativeMethods.MemcpyPeerAsync(destination, destinationDevice, source, sourceDevice, byteCount, stream));
+
+    public HipError StreamBeginCapture(IntPtr stream, HipStreamCaptureMode mode) => Optional(() => HipNativeMethods.StreamBeginCapture(stream, mode));
+
+    public HipError StreamEndCapture(IntPtr stream, out IntPtr graph)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.StreamEndCapture(stream, out value));
+        graph = value;
+        return error;
+    }
+
+    public HipError GraphDestroy(IntPtr graph) => Optional(() => HipNativeMethods.GraphDestroy(graph));
+
+    public HipError GraphInstantiateWithFlags(out IntPtr graphExec, IntPtr graph, ulong flags)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphInstantiateWithFlags(out value, graph, flags));
+        graphExec = value;
+        return error;
+    }
+
+    public HipError GraphLaunch(IntPtr graphExec, IntPtr stream) => Optional(() => HipNativeMethods.GraphLaunch(graphExec, stream));
+
+    public HipError GraphExecDestroy(IntPtr graphExec) => Optional(() => HipNativeMethods.GraphExecDestroy(graphExec));
+
     public HipError Malloc(out IntPtr pointer, UIntPtr byteCount) => HipNativeMethods.Malloc(out pointer, byteCount);
 
     public HipError Free(IntPtr pointer) => HipNativeMethods.Free(pointer);
@@ -142,4 +205,16 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
 
     private static string ReadBorrowedString(IntPtr pointer) =>
         pointer == IntPtr.Zero ? string.Empty : Marshal.PtrToStringAnsi(pointer) ?? string.Empty;
+
+    private static HipError Optional(Func<HipError> call)
+    {
+        try
+        {
+            return call();
+        }
+        catch (EntryPointNotFoundException)
+        {
+            return HipError.NotSupported;
+        }
+    }
 }

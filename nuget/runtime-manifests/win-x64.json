@@ -7,17 +7,49 @@
   "packEnabled": false,
   "verified": false,
   "source": {
-    "status": "not-supplied",
-    "reason": "Windows runtime is a declared non-goal for M5."
+    "status": "local-inventory-unavailable",
+    "sdkVersion": "7.2.0",
+    "architecture": "x64",
+    "officialFileNames": {
+      "runtime": "amdhip64_7.dll",
+      "rtc": "hiprtc0702.dll"
+    },
+    "officialDocumentation": [
+      "https://rocm.docs.amd.com/projects/install-on-windows/en/latest/reference/system-requirements.html",
+      "https://rocm.docs.amd.com/projects/install-on-windows/en/latest/install/install-hip.html",
+      "https://rocm.docs.amd.com/projects/install-on-windows/en/latest/how-to/hip-app-deployment.html"
+    ],
+    "buildMetadata": [
+      "https://github.com/ROCm/clr/blob/rocm-7.2.1/hipamd/src/CMakeLists.txt",
+      "https://github.com/ROCm/clr/blob/rocm-7.2.1/hipamd/src/hiprtc/CMakeLists.txt"
+    ],
+    "auditPolicy": {
+      "requiresAuthenticode": true,
+      "requiredSigner": "Advanced Micro Devices",
+      "maximumNativePayloadBytes": 500000000,
+      "nativePayload": "DLL files only under runtimes/win-x64/native"
+    },
+    "acquisitionPolicy": "Inventory an installed official AMD HIP SDK; do not redistribute the driver-provided runtime or download an unverified DLL archive.",
+    "reason": "No AMD HIP SDK installation is present on the M6 Windows workstation, so file hashes, import closure, licenses, and GPU execution cannot be asserted."
   },
-  "packages": [],
+  "packages": [
+    {
+      "name": "AMD HIP SDK for Windows",
+      "version": "7.2.0",
+      "architecture": "x64",
+      "url": "https://rocm.docs.amd.com/projects/install-on-windows/en/latest/install/install-hip.html",
+      "sha256": null,
+      "size": null,
+      "status": "not-inventoried"
+    }
+  ],
   "files": [],
   "licenses": [],
   "dependencyClosure": {
     "rootPackages": [],
     "rocmPayloadPackages": [],
     "metadataOnlyPackages": [],
-    "decision": "Windows runtime is intentionally disabled."
+    "decision": "Static skeleton only. Closure inventory is required before packaging can be enabled."
   },
   "systemDependencies": [],
   "driverBoundary": {
@@ -42,6 +74,6 @@
     "gpuValidated": false,
     "validationSha256": null,
     "environment": null,
-    "reason": "Windows runtime packaging and GPU validation are outside M5."
+    "reason": "M6 static skeleton is present, but local SDK inventory and Windows GPU validation are unavailable."
   }
 }

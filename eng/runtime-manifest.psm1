@@ -70,7 +70,7 @@ function Assert-HipSharpRuntimeManifest {
 
     if ($Manifest.rid -eq "win-x64") {
         if ($Manifest.packEnabled -or $Manifest.verified) { throw "Windows runtime packaging remains disabled." }
-        if ($RequirePackable) { throw "HIPSHARP1001: Windows runtime packaging remains disabled for M5." }
+        if ($RequirePackable) { throw "HIPSHARP1001: Windows runtime packaging remains disabled because the M6 static skeleton has no audited SDK inventory or GPU evidence." }
         return
     }
     if ($Manifest.rid -ne "linux-x64") { throw "Only linux-x64 and win-x64 manifests are supported." }

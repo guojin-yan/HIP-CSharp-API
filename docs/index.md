@@ -1,8 +1,8 @@
 # HipSharp API Documentation / API 文档
 
-HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. The managed-only `0.0.0` candidate covers runtime, device, memory, stream/event, runtime compilation, module, and kernel APIs. M5 adds an audited, guarded local Linux ROCm 7.2.1 runtime package that passed one isolated `gfx1100` environment; it is not published.
+HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. The managed-only `0.0.0` candidate now includes selected M6 stream-ordered allocation, managed-memory, P2P, and graph APIs. M5's audited Linux ROCm 7.2.1 runtime package remains guarded and unpublished; M6 real-GPU validation is pending new Owner authorization.
 
-HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。managed-only `0.0.0` 候选覆盖 runtime、设备、内存、stream/event、运行时编译、module 与 kernel API；M5 新增已审计并在一个隔离 `gfx1100` 环境通过的 Linux ROCm 7.2.1 受控本地 runtime package，尚未发布。
+HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。managed-only `0.0.0` 候选现已包含 M6 选择的 stream-ordered allocation、managed memory、P2P 和 graph API。M5 已审计的 Linux ROCm 7.2.1 runtime package 继续受控且未发布；M6 真实 GPU 验证等待 Owner 新授权。
 
 ## Documentation / 文档
 
@@ -11,4 +11,6 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。manage
 - [0.0.0 engineering baseline / 0.0.0 工程基线](releases/0.0.0.md)
 - [HIPRTC VectorAdd guide / HIPRTC VectorAdd 指南](guides/hiprtc-vectoradd.md)
 - [Linux runtime package audit / Linux runtime 包审计](guides/linux-runtime-package.md)
+- [Advanced HIP APIs / HIP 高级 API](guides/advanced-apis.md)
+- [Windows runtime static audit / Windows Runtime 静态审计](guides/windows-runtime-static-audit.md)
 - [API reference / API 参考](xref:JYPPX.HipSharp)

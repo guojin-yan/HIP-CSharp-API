@@ -8,4 +8,6 @@ namespace JYPPX.HipSharp.Loading;
 internal interface INativeLibraryBackend
 {
     public bool TryLoad(string candidate, out IntPtr handle, out string detail);
+    public bool TryGetExport(IntPtr handle, string entryPoint, out IntPtr address, out string detail);
+    public void Free(IntPtr handle);
 }

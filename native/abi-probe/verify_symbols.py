@@ -12,6 +12,7 @@ def main() -> int:
     parser.add_argument("--library-name", required=True, choices=("amdhip64", "hiprtc"))
     parser.add_argument("--manifest", required=True)
     parser.add_argument("--output", required=True)
+    parser.add_argument("--require-optional", action="store_true")
     args = parser.parse_args()
 
     library = pathlib.Path(args.library).resolve(strict=True)
@@ -43,7 +44,11 @@ def main() -> int:
     }
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(report, indent=2) + "\n", encoding="utf-8")
-    missing = [symbol["entryPoint"] for symbol in symbols if symbol["required"] and not symbol["found"]]
+    missing = [
+        symbol["entryPoint"]
+        for symbol in symbols
+        if (symbol["required"] or args.require_optional) and not symbol["found"]
+    ]
     if missing:
         print("Missing required HIP symbols: " + ", ".join(missing), file=sys.stderr)
         return 1

@@ -25,6 +25,36 @@ internal interface IHipNativeApi
 
     public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId);
 
+    public HipError MallocManaged(out IntPtr pointer, UIntPtr byteCount, uint flags);
+
+    public HipError MemPrefetchAsync(IntPtr pointer, UIntPtr byteCount, int device, IntPtr stream);
+
+    public HipError MemAdvise(IntPtr pointer, UIntPtr byteCount, HipMemoryAdvise advice, int device);
+
+    public HipError MallocAsync(out IntPtr pointer, UIntPtr byteCount, IntPtr stream);
+
+    public HipError FreeAsync(IntPtr pointer, IntPtr stream);
+
+    public HipError DeviceCanAccessPeer(out int canAccessPeer, int deviceId, int peerDeviceId);
+
+    public HipError DeviceEnablePeerAccess(int peerDeviceId, uint flags);
+
+    public HipError DeviceDisablePeerAccess(int peerDeviceId);
+
+    public HipError MemcpyPeerAsync(IntPtr destination, int destinationDevice, IntPtr source, int sourceDevice, UIntPtr byteCount, IntPtr stream);
+
+    public HipError StreamBeginCapture(IntPtr stream, HipStreamCaptureMode mode);
+
+    public HipError StreamEndCapture(IntPtr stream, out IntPtr graph);
+
+    public HipError GraphDestroy(IntPtr graph);
+
+    public HipError GraphInstantiateWithFlags(out IntPtr graphExec, IntPtr graph, ulong flags);
+
+    public HipError GraphLaunch(IntPtr graphExec, IntPtr stream);
+
+    public HipError GraphExecDestroy(IntPtr graphExec);
+
     public HipError Malloc(out IntPtr pointer, UIntPtr byteCount);
 
     public HipError Free(IntPtr pointer);

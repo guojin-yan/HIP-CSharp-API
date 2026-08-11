@@ -70,6 +70,10 @@ public sealed class RepositoryQualityTests
         {
             "hipInit", "hipRuntimeGetVersion", "hipDriverGetVersion", "hipGetDeviceCount", "hipGetDevice",
             "hipSetDevice", "hipDeviceGetName", "hipDeviceGetAttribute",
+            "hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync",
+            "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync",
+            "hipStreamBeginCapture", "hipStreamEndCapture", "hipGraphDestroy", "hipGraphInstantiateWithFlags",
+            "hipGraphLaunch", "hipGraphExecDestroy",
             "hipStreamCreateWithFlags", "hipStreamDestroy", "hipStreamSynchronize", "hipStreamQuery",
             "hipEventCreateWithFlags", "hipEventDestroy", "hipEventRecord", "hipEventSynchronize", "hipEventQuery", "hipEventElapsedTime",
             "hipMalloc", "hipFree", "hipMemcpy", "hipMemcpyAsync", "hipHostMalloc", "hipHostFree", "hipDeviceSynchronize",
@@ -79,7 +83,7 @@ public sealed class RepositoryQualityTests
             "hiprtcGetCodeSize", "hiprtcGetCode",
         };
         JsonElement functions = manifest.RootElement.GetProperty("functions");
-        Assert.AreEqual(4, manifest.RootElement.GetProperty("schemaVersion").GetInt32());
+        Assert.AreEqual(5, manifest.RootElement.GetProperty("schemaVersion").GetInt32());
         StringAssert.Contains(manifest.RootElement.GetProperty("generatorVersion").GetString()!, ".");
         Assert.AreEqual("rocm-7.2.1", manifest.RootElement.GetProperty("rocmTag").GetString());
         Assert.IsTrue(manifest.RootElement.GetProperty("preprocessorMacros").GetArrayLength() > 0);
@@ -89,13 +93,14 @@ public sealed class RepositoryQualityTests
             Regex.IsMatch(header.GetProperty("sha256").GetString()!, "^[0-9A-F]{64}$", RegexOptions.CultureInvariant)));
         Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
             header.GetProperty("source").GetString()!.Contains("/ROCm/HIP/", StringComparison.Ordinal)));
-        Assert.AreEqual(40, expectedEntryPoints.Length);
+        Assert.AreEqual(55, expectedEntryPoints.Length);
         Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
         CollectionAssert.AreEqual(
             expectedEntryPoints,
             functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
-        Assert.IsTrue(functions.EnumerateArray().All(function => !function.GetProperty("optional").GetBoolean()));
-        Assert.AreEqual(31, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
+        Assert.AreEqual(15, functions.EnumerateArray().Count(function => function.GetProperty("optional").GetBoolean()));
+        Assert.AreEqual(40, functions.EnumerateArray().Count(function => !function.GetProperty("optional").GetBoolean()));
+        Assert.AreEqual(46, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
         Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
         string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs"));
@@ -154,6 +159,9 @@ public sealed class RepositoryQualityTests
             Assert.IsFalse(windows.RootElement.GetProperty("packEnabled").GetBoolean());
             Assert.IsFalse(windows.RootElement.GetProperty("verified").GetBoolean());
             Assert.AreEqual(0, windows.RootElement.GetProperty("files").GetArrayLength());
+            Assert.AreEqual("local-inventory-unavailable", windows.RootElement.GetProperty("source").GetProperty("status").GetString());
+            Assert.AreEqual("amdhip64_7.dll", windows.RootElement.GetProperty("source").GetProperty("officialFileNames").GetProperty("runtime").GetString());
+            Assert.AreEqual("hiprtc0702.dll", windows.RootElement.GetProperty("source").GetProperty("officialFileNames").GetProperty("rtc").GetString());
         }
 
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "runtime-manifest.schema.json")));
@@ -167,6 +175,8 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-supply-chain.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-source.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-windows-runtime.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-windows-runtime-skeleton.ps1")));
 
         string runtimePackScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1"));
         StringAssert.Contains(runtimePackScript, "stagingDigestSha256");
@@ -206,6 +216,20 @@ public sealed class RepositoryQualityTests
         incompleteCandidate.WaitForExit();
         Assert.AreNotEqual(0, incompleteCandidate.ExitCode, "An incomplete candidate attestation must not bypass the guard.");
         StringAssert.Contains(incompleteOutput, "HIPSHARP1001");
+    }
+
+    [TestMethod]
+    public void WindowsRuntimeStaticAuditPassesFixturesAndRejectsDirectPackaging()
+    {
+        string verifier = Path.Combine(RepositoryRoot, "eng", "verify-windows-runtime.ps1");
+        string selfTest = Path.Combine(RepositoryRoot, "eng", "test-windows-runtime-skeleton.ps1");
+        ProcessResult fixtures = RunProcess("pwsh", "-NoProfile", "-File", selfTest);
+        Assert.AreEqual(0, fixtures.ExitCode, fixtures.Output);
+        StringAssert.Contains(fixtures.Output, "12 rejection cases");
+
+        ProcessResult guarded = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-RequirePackable");
+        Assert.AreNotEqual(0, guarded.ExitCode, "The disabled Windows runtime skeleton must fail a packable audit.");
+        StringAssert.Contains(guarded.Output, "HIPSHARP1001");
     }
 
     [TestMethod]
@@ -259,6 +283,37 @@ public sealed class RepositoryQualityTests
     {
         string path = Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "bin", "Release", framework, "JYPPX.HipSharp.dll");
         Assert.IsTrue(File.Exists(path), $"Representative compile output is missing: {path}");
+    }
+
+    private static ProcessResult RunProcess(string fileName, params string[] arguments)
+    {
+        var startInfo = new ProcessStartInfo(fileName)
+        {
+            WorkingDirectory = RepositoryRoot,
+            RedirectStandardError = true,
+            RedirectStandardOutput = true,
+            UseShellExecute = false,
+        };
+        foreach (string argument in arguments)
+        {
+            startInfo.ArgumentList.Add(argument);
+        }
+        using Process process = Process.Start(startInfo)!;
+        string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
+        process.WaitForExit();
+        return new ProcessResult(process.ExitCode, output);
+    }
+
+    private readonly struct ProcessResult
+    {
+        internal ProcessResult(int exitCode, string output)
+        {
+            ExitCode = exitCode;
+            Output = output;
+        }
+
+        internal int ExitCode { get; }
+        internal string Output { get; }
     }
 
     private static string FindRepositoryRoot()

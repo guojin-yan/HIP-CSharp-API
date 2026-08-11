@@ -17,13 +17,11 @@ internal sealed class HipAsyncLease : IDisposable
 
     public void Dispose()
     {
-        Action? release;
         lock (_sync)
         {
-            release = _release;
+            if (_release is null) return;
+            _release();
             _release = null;
         }
-
-        release?.Invoke();
     }
 }

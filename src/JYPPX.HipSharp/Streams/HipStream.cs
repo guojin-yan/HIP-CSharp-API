@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using JYPPX.HipSharp.Interop;
+using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Types;
 
 namespace JYPPX.HipSharp.Streams;
@@ -14,6 +15,8 @@ public sealed class HipStream : IDisposable
     private readonly HipStreamHandle _handle;
     private readonly object _sync = new();
     private readonly List<IDisposable> _pending = new();
+    private int _ownedResourceCount;
+    private bool _captureActive;
 
     internal HipStream(IHipNativeApi nativeApi, IntPtr handle, HipStreamFlags flags)
     {
@@ -27,6 +30,51 @@ public sealed class HipStream : IDisposable
 
     /// <summary>获取 stream 是否已释放 / Gets whether the stream is disposed.</summary>
     public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
+
+    /// <summary>获取 stream 是否处于 graph capture / Gets whether the stream is in graph capture.</summary>
+    public bool IsCapturing { get { lock (_sync) return _captureActive; } }
+
+    /// <summary>开始 graph capture / Begins graph capture.</summary>
+    public void BeginCapture(HipStreamCaptureMode mode = HipStreamCaptureMode.Global)
+    {
+        if (mode < HipStreamCaptureMode.Global || mode > HipStreamCaptureMode.Relaxed)
+        {
+            throw new ArgumentOutOfRangeException(nameof(mode));
+        }
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            if (_captureActive) throw new InvalidOperationException("This stream is already capturing a graph.");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamBeginCapture(_handle.DangerousGetHandle(), mode), "hipStreamBeginCapture");
+            _captureActive = true;
+        }
+    }
+
+    /// <summary>结束 graph capture 并转移 graph 所有权 / Ends graph capture and transfers graph ownership.</summary>
+    public HipGraph EndCapture()
+    {
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            if (!_captureActive) throw new InvalidOperationException("This stream is not capturing a graph.");
+            try
+            {
+                HipError error = _nativeApi.StreamEndCapture(_handle.DangerousGetHandle(), out IntPtr graph);
+                if (error != HipError.Success && graph != IntPtr.Zero)
+                {
+                    var partialHandle = new HipGraphHandle(_nativeApi, graph);
+                    if (partialHandle.ReleaseChecked() == HipError.Success) partialHandle.Dispose();
+                }
+                HipCall.ThrowIfFailed(_nativeApi, error, "hipStreamEndCapture");
+                if (graph == IntPtr.Zero) throw new InvalidOperationException("hipStreamEndCapture succeeded but returned a null graph.");
+                return new HipGraph(_nativeApi, graph);
+            }
+            finally
+            {
+                _captureActive = false;
+            }
+        }
+    }
 
     /// <summary>
     /// 等待 stream 完成并释放所有 pending leases / Waits for completion and releases all pending leases.
@@ -66,6 +114,14 @@ public sealed class HipStream : IDisposable
         lock (_sync)
         {
             if (IsDisposed) return;
+            if (_ownedResourceCount != 0)
+            {
+                throw new InvalidOperationException("The stream owns active stream-ordered resources; dispose those resources before disposing the stream.");
+            }
+            if (_captureActive)
+            {
+                throw new InvalidOperationException("End graph capture before disposing the stream.");
+            }
             HipError syncError = _nativeApi.StreamSynchronize(_handle.DangerousGetHandle());
             if (syncError != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, syncError, "hipStreamSynchronize");
             ClearPending();
@@ -85,6 +141,35 @@ public sealed class HipStream : IDisposable
         {
             if (IsDisposed) { lease.Dispose(); throw new ObjectDisposedException(nameof(HipStream)); }
             _pending.Add(lease);
+        }
+    }
+
+    internal IDisposable RegisterOwnedResource()
+    {
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            _ownedResourceCount++;
+            return new OwnerLease(this);
+        }
+    }
+
+    private void ReleaseOwnedResource()
+    {
+        lock (_sync)
+        {
+            if (_ownedResourceCount > 0) _ownedResourceCount--;
+        }
+    }
+
+    private sealed class OwnerLease : IDisposable
+    {
+        private HipStream? _stream;
+        internal OwnerLease(HipStream stream) => _stream = stream;
+        public void Dispose()
+        {
+            HipStream? stream = System.Threading.Interlocked.Exchange(ref _stream, null);
+            stream?.ReleaseOwnedResource();
         }
     }
 

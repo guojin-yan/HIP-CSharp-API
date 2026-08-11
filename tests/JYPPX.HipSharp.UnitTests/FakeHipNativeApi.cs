@@ -12,6 +12,10 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly Dictionary<IntPtr, int> _allocations = new();
     private readonly HashSet<IntPtr> _streams = new();
     private readonly HashSet<IntPtr> _events = new();
+    private readonly HashSet<IntPtr> _graphs = new();
+    private readonly HashSet<IntPtr> _graphExecs = new();
+    private readonly HashSet<IntPtr> _capturingStreams = new();
+    private readonly Dictionary<IntPtr, List<Action>> _pendingStreamActions = new();
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -28,6 +32,44 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal HipError StreamSynchronizeResult { get; set; } = HipError.Success;
 
     internal HipError StreamQueryResult { get; set; } = HipError.Success;
+
+    internal HipError ManagedMallocResult { get; set; } = HipError.Success;
+
+    internal HipError MemAdviseResult { get; set; } = HipError.Success;
+
+    internal HipError MemPrefetchResult { get; set; } = HipError.Success;
+
+    internal HipError MallocAsyncResult { get; set; } = HipError.Success;
+
+    internal HipError FreeAsyncResult { get; set; } = HipError.Success;
+
+    internal HipError FreeResult { get; set; } = HipError.Success;
+
+    internal HipError PeerEnableResult { get; set; } = HipError.Success;
+
+    internal HipError PeerDisableResult { get; set; } = HipError.Success;
+
+    internal HipError PeerCopyResult { get; set; } = HipError.Success;
+
+    internal HipError BeginCaptureResult { get; set; } = HipError.Success;
+
+    internal HipError EndCaptureResult { get; set; } = HipError.Success;
+
+    internal HipError GraphInstantiateResult { get; set; } = HipError.Success;
+
+    internal HipError GraphLaunchResult { get; set; } = HipError.Success;
+
+    internal HipError GraphExecDestroyResult { get; set; } = HipError.Success;
+
+    internal bool PeerCapability { get; set; } = true;
+
+    internal bool ReturnManagedPointerOnFailure { get; set; }
+
+    internal bool ReturnAsyncPointerOnFailure { get; set; }
+
+    internal bool ReturnGraphOnEndCaptureFailure { get; set; }
+
+    internal bool ReturnGraphExecOnInstantiateFailure { get; set; }
 
     internal HipError EventSynchronizeResult { get; set; } = HipError.Success;
 
@@ -58,6 +100,30 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int StreamDestroyCount { get; private set; }
 
     internal int EventDestroyCount { get; private set; }
+
+    internal int ManagedAllocationCount { get; private set; }
+
+    internal int AsyncAllocationCount { get; private set; }
+
+    internal int AsyncFreeCount { get; private set; }
+
+    internal int FreeAsyncCallCount { get; private set; }
+
+    internal int MemAdviseCount { get; private set; }
+
+    internal int MemPrefetchCount { get; private set; }
+
+    internal int PeerEnableCount { get; private set; }
+
+    internal int PeerDisableCount { get; private set; }
+
+    internal int PeerCopyCount { get; private set; }
+
+    internal int GraphDestroyCount { get; private set; }
+
+    internal int GraphExecDestroyCount { get; private set; }
+
+    internal int GraphLaunchCount { get; private set; }
 
     public HipError Init(uint flags)
     {
@@ -117,6 +183,158 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return deviceId >= 0 && deviceId < 2 ? HipError.Success : HipError.InvalidDevice;
     }
 
+    public HipError MallocManaged(out IntPtr pointer, UIntPtr byteCount, uint flags)
+    {
+        if (ManagedMallocResult != HipError.Success)
+        {
+            pointer = ReturnManagedPointerOnFailure ? AllocateRaw(byteCount) : IntPtr.Zero;
+            return ManagedMallocResult;
+        }
+        HipError result = Malloc(out pointer, byteCount);
+        if (result == HipError.Success) ManagedAllocationCount++;
+        return result;
+    }
+
+    public HipError MemPrefetchAsync(IntPtr pointer, UIntPtr byteCount, int device, IntPtr stream)
+    {
+        if (!_allocations.ContainsKey(pointer) || !_streams.Contains(stream)) return HipError.InvalidValue;
+        if (MemPrefetchResult == HipError.Success) MemPrefetchCount++;
+        return MemPrefetchResult;
+    }
+
+    public HipError MemAdvise(IntPtr pointer, UIntPtr byteCount, HipMemoryAdvise advice, int device)
+    {
+        if (!_allocations.ContainsKey(pointer)) return HipError.InvalidValue;
+        if (MemAdviseResult == HipError.Success) MemAdviseCount++;
+        return MemAdviseResult;
+    }
+
+    public HipError MallocAsync(out IntPtr pointer, UIntPtr byteCount, IntPtr stream)
+    {
+        if (!_streams.Contains(stream))
+        {
+            pointer = IntPtr.Zero;
+            return HipError.InvalidValue;
+        }
+        if (MallocAsyncResult != HipError.Success)
+        {
+            pointer = ReturnAsyncPointerOnFailure ? AllocateRaw(byteCount) : IntPtr.Zero;
+            return MallocAsyncResult;
+        }
+        HipError result = Malloc(out pointer, byteCount);
+        if (result == HipError.Success) AsyncAllocationCount++;
+        return result;
+    }
+
+    public HipError FreeAsync(IntPtr pointer, IntPtr stream)
+    {
+        FreeAsyncCallCount++;
+        if (!_allocations.ContainsKey(pointer) || !_streams.Contains(stream)) return HipError.InvalidValue;
+        if (FreeAsyncResult != HipError.Success) return FreeAsyncResult;
+        QueueStreamAction(stream, () =>
+        {
+            if (_allocations.ContainsKey(pointer))
+            {
+                Free(pointer);
+                AsyncFreeCount++;
+            }
+        });
+        return HipError.Success;
+    }
+
+    public HipError DeviceCanAccessPeer(out int canAccessPeer, int deviceId, int peerDeviceId)
+    {
+        canAccessPeer = PeerCapability && deviceId != peerDeviceId && deviceId >= 0 && deviceId < 2 && peerDeviceId >= 0 && peerDeviceId < 2 ? 1 : 0;
+        return deviceId >= 0 && deviceId < 2 && peerDeviceId >= 0 && peerDeviceId < 2 ? HipError.Success : HipError.InvalidDevice;
+    }
+
+    public HipError DeviceEnablePeerAccess(int peerDeviceId, uint flags)
+    {
+        if (peerDeviceId < 0 || peerDeviceId >= 2 || flags != 0) return HipError.InvalidValue;
+        if (PeerEnableResult == HipError.Success) PeerEnableCount++;
+        return PeerEnableResult;
+    }
+
+    public HipError DeviceDisablePeerAccess(int peerDeviceId)
+    {
+        if (peerDeviceId < 0 || peerDeviceId >= 2) return HipError.InvalidValue;
+        if (PeerDisableResult == HipError.Success) PeerDisableCount++;
+        return PeerDisableResult;
+    }
+
+    public HipError MemcpyPeerAsync(IntPtr destination, int destinationDevice, IntPtr source, int sourceDevice, UIntPtr byteCount, IntPtr stream)
+    {
+        if (PeerCopyResult != HipError.Success) return PeerCopyResult;
+        if (!_streams.Contains(stream) || !_allocations.ContainsKey(destination) || !_allocations.ContainsKey(source)) return HipError.InvalidValue;
+        PeerCopyCount++;
+        return Memcpy(destination, source, byteCount, HipMemoryCopyKind.DeviceToDevice);
+    }
+
+    public HipError StreamBeginCapture(IntPtr stream, HipStreamCaptureMode mode)
+    {
+        if (!_streams.Contains(stream) || _capturingStreams.Contains(stream)) return HipError.InvalidValue;
+        if (BeginCaptureResult == HipError.Success) _capturingStreams.Add(stream);
+        return BeginCaptureResult;
+    }
+
+    public HipError StreamEndCapture(IntPtr stream, out IntPtr graph)
+    {
+        graph = IntPtr.Zero;
+        if (!_capturingStreams.Remove(stream)) return HipError.StreamCaptureUnmatched;
+        if (EndCaptureResult != HipError.Success)
+        {
+            if (ReturnGraphOnEndCaptureFailure)
+            {
+                graph = new IntPtr(0x7000 + _graphs.Count + 1);
+                _graphs.Add(graph);
+            }
+            return EndCaptureResult;
+        }
+        graph = new IntPtr(0x7000 + _graphs.Count + 1);
+        _graphs.Add(graph);
+        return HipError.Success;
+    }
+
+    public HipError GraphDestroy(IntPtr graph)
+    {
+        if (!_graphs.Remove(graph)) return HipError.InvalidValue;
+        GraphDestroyCount++;
+        return HipError.Success;
+    }
+
+    public HipError GraphInstantiateWithFlags(out IntPtr graphExec, IntPtr graph, ulong flags)
+    {
+        graphExec = IntPtr.Zero;
+        if (!_graphs.Contains(graph) || flags != 0) return HipError.InvalidValue;
+        if (GraphInstantiateResult != HipError.Success)
+        {
+            if (ReturnGraphExecOnInstantiateFailure)
+            {
+                graphExec = new IntPtr(0x8000 + _graphExecs.Count + 1);
+                _graphExecs.Add(graphExec);
+            }
+            return GraphInstantiateResult;
+        }
+        graphExec = new IntPtr(0x8000 + _graphExecs.Count + 1);
+        _graphExecs.Add(graphExec);
+        return HipError.Success;
+    }
+
+    public HipError GraphLaunch(IntPtr graphExec, IntPtr stream)
+    {
+        if (!_graphExecs.Contains(graphExec) || !_streams.Contains(stream)) return HipError.InvalidValue;
+        if (GraphLaunchResult == HipError.Success) GraphLaunchCount++;
+        return GraphLaunchResult;
+    }
+
+    public HipError GraphExecDestroy(IntPtr graphExec)
+    {
+        if (GraphExecDestroyResult != HipError.Success) return GraphExecDestroyResult;
+        if (!_graphExecs.Remove(graphExec)) return HipError.InvalidValue;
+        GraphExecDestroyCount++;
+        return HipError.Success;
+    }
+
     public HipError Malloc(out IntPtr pointer, UIntPtr byteCount)
     {
         if (MallocResult != HipError.Success)
@@ -137,8 +355,17 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return HipError.Success;
     }
 
+    private IntPtr AllocateRaw(UIntPtr byteCount)
+    {
+        int size = checked((int)byteCount.ToUInt64());
+        IntPtr pointer = Marshal.AllocHGlobal(size);
+        _allocations.Add(pointer, size);
+        return pointer;
+    }
+
     public HipError Free(IntPtr pointer)
     {
+        if (FreeResult != HipError.Success) return FreeResult;
         if (!_allocations.Remove(pointer))
         {
             return HipError.InvalidValue;
@@ -188,9 +415,19 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return HipError.Success;
     }
 
-    public HipError StreamSynchronize(IntPtr stream) => _streams.Contains(stream) ? StreamSynchronizeResult : HipError.InvalidValue;
+    public HipError StreamSynchronize(IntPtr stream)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (StreamSynchronizeResult == HipError.Success) CompleteStream(stream);
+        return StreamSynchronizeResult;
+    }
 
-    public HipError StreamQuery(IntPtr stream) => _streams.Contains(stream) ? StreamQueryResult : HipError.InvalidValue;
+    public HipError StreamQuery(IntPtr stream)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (StreamQueryResult == HipError.Success) CompleteStream(stream);
+        return StreamQueryResult;
+    }
 
     public HipError EventCreateWithFlags(out IntPtr eventHandle, uint flags)
     {
@@ -280,5 +517,22 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         }
 
         _allocations.Clear();
+    }
+
+    private void QueueStreamAction(IntPtr stream, Action action)
+    {
+        if (!_pendingStreamActions.TryGetValue(stream, out List<Action>? actions))
+        {
+            actions = new List<Action>();
+            _pendingStreamActions.Add(stream, actions);
+        }
+        actions.Add(action);
+    }
+
+    private void CompleteStream(IntPtr stream)
+    {
+        if (!_pendingStreamActions.TryGetValue(stream, out List<Action>? actions)) return;
+        _pendingStreamActions.Remove(stream);
+        foreach (Action action in actions) action();
     }
 }

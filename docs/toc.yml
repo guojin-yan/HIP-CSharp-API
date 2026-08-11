@@ -8,8 +8,12 @@
       href: guides/hiprtc-vectoradd.md
     - name: Stream/Event VectorAdd / 显式 Stream/Event VectorAdd
       href: guides/hip-stream-event-vectoradd.md
+    - name: Advanced HIP APIs / HIP 高级 API
+      href: guides/advanced-apis.md
     - name: Linux Runtime Package Audit / Linux Runtime 包审计
       href: guides/linux-runtime-package.md
+    - name: Windows Runtime Static Audit / Windows Runtime 静态审计
+      href: guides/windows-runtime-static-audit.md
 - name: Compatibility / 兼容性
   items:
     - name: Frameworks / 目标框架
@@ -22,3 +26,5 @@
       href: releases/0.0.0.md
     - name: Linux Runtime 7.2.1 Candidate / Linux Runtime 7.2.1 候选
       href: releases/7.2.1-runtime-candidate.md
+    - name: M6 Advanced API Local Candidate / M6 高级 API 本地候选
+      href: releases/m6-advanced-api.md
