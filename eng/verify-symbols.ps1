@@ -5,7 +5,8 @@ param(
     [Parameter(Mandatory = $true)]
     [ValidateSet("amdhip64", "hiprtc")]
     [string]$LibraryName,
-    [string]$OutputPath = "artifacts/abi/hip-runtime-symbols.json"
+    [string]$OutputPath = "artifacts/abi/hip-runtime-symbols.json",
+    [switch]$RequireOptional
 )
 
 Set-StrictMode -Version Latest
@@ -23,7 +24,7 @@ try {
         $found = [System.Runtime.InteropServices.NativeLibrary]::TryGetExport($handle, [string]$function.entryPoint, [ref]$address)
         $results.Add([pscustomobject]@{
             entryPoint = [string]$function.entryPoint
-            required = -not [bool]$function.optional
+            required = $RequireOptional -or -not [bool]$function.optional
             found = $found
         })
     }

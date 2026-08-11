@@ -85,6 +85,7 @@ make_consumer device-info DeviceInfo
 make_consumer memory-copy MemoryCopy
 make_consumer hiprtc-vector-add HipRtcVectorAdd
 make_consumer stream-event-vector-add HipStreamEventVectorAdd
+make_consumer advanced-features HipAdvancedFeatures
 
 native_directory="$(find "${runtime_root}/stream-event-vector-add/bin/Release/net10.0" -type f -name 'libamdhip64.so' -printf '%h\n' -quit)"
 [[ -n "${native_directory}" ]] || { echo "NuGet native assets were not copied to the consumer output." >&2; exit 1; }
@@ -98,7 +99,7 @@ if grep -E '/opt/rocm|not found' "${evidence_dir}/native-loader.txt"; then
   exit 1
 fi
 
-pwsh -NoProfile -File "${repository_root}/eng/verify-symbols.ps1" -LibraryPath "${native_directory}/libamdhip64.so" -LibraryName amdhip64 -OutputPath "${evidence_dir}/runtime-symbols.json"
+pwsh -NoProfile -File "${repository_root}/eng/verify-symbols.ps1" -LibraryPath "${native_directory}/libamdhip64.so" -LibraryName amdhip64 -RequireOptional -OutputPath "${evidence_dir}/runtime-symbols.json"
 pwsh -NoProfile -File "${repository_root}/eng/verify-symbols.ps1" -LibraryPath "${native_directory}/libhiprtc.so" -LibraryName hiprtc -OutputPath "${evidence_dir}/hiprtc-symbols.json"
 
 gpu_architecture="${HIP_ARCH:?Set HIP_ARCH to the architecture reported by rocminfo in this isolated environment.}"
@@ -107,6 +108,7 @@ for case_name in device-info memory-copy; do
 done
 (cd "${runtime_root}/hiprtc-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --length 256 --repeat 20 2>&1) | tee "${evidence_dir}/hiprtc-vector-add-run.txt"
 (cd "${runtime_root}/stream-event-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/stream-event-vector-add-run.txt"
+(cd "${runtime_root}/advanced-features" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/advanced-features-run.txt"
 
 while IFS= read -r -d '' evidence_file; do
   if grep -q '/opt/rocm' "${evidence_file}"; then
@@ -217,4 +219,4 @@ dotnet restore "${mix_directory}/ClosureMix.csproj" --configfile "${runtime_root
 dotnet build "${mix_directory}/ClosureMix.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" >/dev/null
 (cd "${mix_directory}" && dotnet run --configuration Release --no-build --no-restore -- "${native_directory}/libamdhip64.so" "${mix_directory}/alternate/libhiprtc.so") | tee "${evidence_dir}/closure-mix-negative.txt"
 
-echo "M5 isolated runtime ${package_mode} gate passed for ${expected_commit}."
+echo "M6 isolated runtime ${package_mode} gate passed for ${expected_commit}."

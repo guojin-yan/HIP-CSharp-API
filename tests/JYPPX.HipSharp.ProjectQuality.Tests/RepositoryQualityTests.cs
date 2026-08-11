@@ -233,6 +233,20 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
+    public void IsolatedRuntimeGateIncludesTheM6AdvancedPackageConsumer()
+    {
+        string gate = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "runtime-gate.sh"));
+        StringAssert.Contains(gate, "make_consumer advanced-features HipAdvancedFeatures");
+        StringAssert.Contains(gate, "-RequireOptional");
+        StringAssert.Contains(gate, "advanced-features-run.txt");
+        StringAssert.Contains(gate, "M6 isolated runtime ${package_mode} gate passed");
+
+        string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
+        StringAssert.Contains(sample, "peer=passed(1->0");
+        StringAssert.Contains(sample, "Peer-copy mismatch");
+    }
+
+    [TestMethod]
     public void SourceDocumentationIsBilingualAndDocFxReady()
     {
         string docfxPath = Path.Combine(RepositoryRoot, "docs", "docfx.json");

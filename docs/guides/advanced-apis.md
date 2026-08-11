@@ -34,4 +34,4 @@ These 15 advanced ABI entries are optional in the managed manifest so older runt
 
 这 15 个高级 ABI 入口在托管 manifest 中标记为 optional，使旧 runtime 仍可加载核心库。缺少原生导出时统一映射为 `HipError.NotSupported`；native capability 失败则在 `HipException` 中保留原始 `HipError` 和 operation。函数存在不代表每种 GPU、设备对、内存模式或 capture 操作都支持它。
 
-See `samples/HipAdvancedFeatures` for CPU/GPU comparison, graph replay, managed-memory validation, 100 owner lifecycles, and an explicit P2P enable-or-skip path.
+See `samples/HipAdvancedFeatures` for CPU/GPU comparison, graph replay, managed-memory validation, 100 owner lifecycles, and a byte-verified P2P copy-or-skip path.

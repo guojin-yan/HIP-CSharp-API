@@ -160,13 +160,44 @@ static string ProbePeer(HipRuntime runtime, IReadOnlyList<HipDevice> devices)
     {
         return "peer=skipped(capability=false)";
     }
-    devices[0].MakeCurrent();
-    using HipPeerAccess access = runtime.EnablePeerAccess(0, 1);
-    if (!access.IsEnabled)
+    HipDeviceMemory? source = null;
+    try
     {
-        throw new InvalidOperationException("Peer capability was true but access was not enabled.");
+        byte[] expected = { 17, 34, 51, 68 };
+        devices[1].MakeCurrent();
+        source = runtime.Allocate((ulong)expected.Length);
+        source.CopyFrom(expected);
+
+        devices[0].MakeCurrent();
+        using HipDeviceMemory destination = runtime.Allocate((ulong)expected.Length);
+        using HipStream stream = runtime.CreateStream(HipStreamFlags.NonBlocking);
+        using HipPeerAccess access = runtime.EnablePeerAccess(0, 1);
+        if (!access.IsEnabled)
+        {
+            throw new InvalidOperationException("Peer capability was true but access was not enabled.");
+        }
+        access.CopyAsync(destination, 0, source, 1, (ulong)expected.Length, stream);
+        stream.Synchronize();
+        byte[] actual = new byte[expected.Length];
+        destination.CopyTo(actual);
+        for (int index = 0; index < actual.Length; index++)
+        {
+            if (actual[index] != expected[index])
+            {
+                throw new InvalidOperationException("Peer-copy mismatch at byte " + index + ".");
+            }
+        }
+        return "peer=passed(1->0,alreadyEnabled=" + access.WasAlreadyEnabled.ToString(CultureInfo.InvariantCulture) + ")";
     }
-    return "peer=enabled(0->1,alreadyEnabled=" + access.WasAlreadyEnabled.ToString(CultureInfo.InvariantCulture) + ")";
+    finally
+    {
+        if (source is not null)
+        {
+            devices[1].MakeCurrent();
+            source.Dispose();
+        }
+        devices[0].MakeCurrent();
+    }
 }
 
 static float[] CreateSequence(int length)

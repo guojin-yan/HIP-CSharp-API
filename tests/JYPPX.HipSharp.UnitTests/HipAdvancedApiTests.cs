@@ -268,6 +268,27 @@ public sealed class HipAdvancedApiTests
     }
 
     [TestMethod]
+    public void PeerCopyCompletesOnTheOwnedPairAndPreservesData()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        using HipDeviceMemory source = runtime.Allocate(4);
+        using HipDeviceMemory destination = runtime.Allocate(4);
+        using HipPeerAccess peer = runtime.EnablePeerAccess(0, 1);
+        byte[] expected = { 1, 3, 5, 7 };
+        source.CopyFrom(expected);
+
+        peer.CopyAsync(destination, 0, source, 1, 4, stream);
+        stream.Synchronize();
+        byte[] actual = new byte[4];
+        destination.CopyTo(actual);
+
+        CollectionAssert.AreEqual(expected, actual);
+        Assert.AreEqual(1, native.PeerCopyCount);
+    }
+
+    [TestMethod]
     public void UnsupportedPeerPairIsAnExplicitNoOpOwner()
     {
         using var native = new FakeHipNativeApi { PeerCapability = false };

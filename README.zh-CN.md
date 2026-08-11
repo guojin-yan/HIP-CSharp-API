@@ -27,6 +27,6 @@ M1 与 M2 已在授权的 Radeon Cloud Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.532
 
 核心包 `JYPPX.HIP.CSharp.API` 不包含 ROCm 或 AMD 原生二进制，也不自动依赖 runtime 包。runtime 包 ID 固定为 `JYPPX.HipSharp.Runtime.linux-x64` 和 `JYPPX.HipSharp.Runtime.win-x64`，包版本使用对应 ROCm 版本。Linux manifest 的 schema 2 来源、闭包、许可证、SBOM、包内容和一次隔离 `gfx1100` GPU 环境均已审计；Windows 仍是禁用且无 inventory 的 M6 静态骨架，不构成再分发或支持声明。
 
-`samples/HipRtcVectorAdd` 保留 M2 路径；`samples/HipStreamEventVectorAdd` 保留 M4 stream/event 路径；`samples/HipAdvancedFeatures` 增加 stream-ordered allocation、graph replay、managed-memory hint、五种长度 CPU/GPU 对比、100 次 owner 生命周期和 P2P enable-or-skip 路径。所有公开 API XML 注释采用中文/英文双语格式。运行 `./eng/docs.ps1` 可在 `_site` 生成 DocFX API 文档站点。
+`samples/HipRtcVectorAdd` 保留 M2 路径；`samples/HipStreamEventVectorAdd` 保留 M4 stream/event 路径；`samples/HipAdvancedFeatures` 增加 stream-ordered allocation、graph replay、managed-memory hint、五种长度 CPU/GPU 对比、100 次 owner 生命周期和经过数据校验的 P2P copy-or-skip 路径。所有公开 API XML 注释采用中文/英文双语格式。运行 `./eng/docs.ps1` 可在 `_site` 生成 DocFX API 文档站点。
 
 本地验证入口见英文 [README](README.md)。源码按总体方案的默认建议准备为 Apache-2.0；ROCm 组件未来仍须保留各自许可证和 NOTICE。
