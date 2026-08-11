@@ -26,5 +26,5 @@
       href: releases/0.0.0.md
     - name: Linux Runtime 7.2.1 Candidate / Linux Runtime 7.2.1 候选
       href: releases/7.2.1-runtime-candidate.md
-    - name: M6 Advanced API Local Candidate / M6 高级 API 本地候选
+    - name: M6 Advanced API Validation / M6 高级 API 验证
       href: releases/m6-advanced-api.md

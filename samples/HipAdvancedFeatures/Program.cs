@@ -60,6 +60,10 @@ try
         stream.Synchronize();
     }
 
+    string stressResult = options.StressRounds == 0
+        ? "stress=not-requested"
+        : RunMultiStreamStress(runtime, kernel, options);
+
     Console.WriteLine(
         "HipAdvancedFeatures passed; device=" + devices[0].Name +
         "; architecture=" + options.Architecture +
@@ -67,6 +71,7 @@ try
         "; graphLaunchRepeats=" + options.GraphLaunchRepeats.ToString(CultureInfo.InvariantCulture) +
         "; lifecycleRepeats=" + options.LifecycleRepeats.ToString(CultureInfo.InvariantCulture) +
         "; asyncAllocation=true; managedMemory=true; graphCapture=true; " + peerResult + "; failureIndex=-1");
+    Console.WriteLine(stressResult);
     return 0;
 }
 catch (Exception exception)
@@ -149,6 +154,64 @@ static void ValidateManagedMemory(HipRuntime runtime, int length)
     }
 }
 
+static string RunMultiStreamStress(HipRuntime runtime, HipKernel kernel, Options options)
+{
+    int byteLength = checked(options.StressLength * sizeof(float));
+    var a = new float[options.StressLength];
+    var b = new float[options.StressLength];
+    for (int index = 0; index < options.StressLength; index++)
+    {
+        a[index] = (index % 193) * 0.25f;
+        b[index] = (index % 67) * 1.5f;
+    }
+
+    byte[] aBytes = ToBytes(a);
+    byte[] bBytes = ToBytes(b);
+    for (int round = 0; round < options.StressRounds; round++)
+    {
+        var lanes = new List<StressLane>(options.StressStreams);
+        try
+        {
+            for (int lane = 0; lane < options.StressStreams; lane++)
+            {
+                StressLane stressLane = StressLane.Create(runtime, byteLength, options.StressLength);
+                lanes.Add(stressLane);
+                stressLane.Queue(kernel, aBytes, bBytes);
+            }
+
+            foreach (StressLane lane in lanes)
+            {
+                lane.Synchronize();
+            }
+            for (int laneIndex = 0; laneIndex < lanes.Count; laneIndex++)
+            {
+                int failureIndex = lanes[laneIndex].FindFailure(a, b);
+                if (failureIndex >= 0)
+                {
+                    throw new InvalidOperationException(
+                        "Multi-stream stress mismatch at round " + round.ToString(CultureInfo.InvariantCulture) +
+                        ", lane " + laneIndex.ToString(CultureInfo.InvariantCulture) +
+                        ", index " + failureIndex.ToString(CultureInfo.InvariantCulture) + ".");
+                }
+            }
+        }
+        finally
+        {
+            for (int lane = lanes.Count - 1; lane >= 0; lane--)
+            {
+                lanes[lane].Dispose();
+            }
+        }
+    }
+
+    long maximumDeviceBytes = checked((long)byteLength * 3L * options.StressStreams);
+    return "stress=passed(rounds=" + options.StressRounds.ToString(CultureInfo.InvariantCulture) +
+        ",streams=" + options.StressStreams.ToString(CultureInfo.InvariantCulture) +
+        ",length=" + options.StressLength.ToString(CultureInfo.InvariantCulture) +
+        ",maxInFlightDeviceBytes=" + maximumDeviceBytes.ToString(CultureInfo.InvariantCulture) +
+        ",cpuGpuCompared=true,performanceClaim=false)";
+}
+
 static string ProbePeer(HipRuntime runtime, IReadOnlyList<HipDevice> devices)
 {
     if (devices.Count < 2)
@@ -221,24 +284,40 @@ internal sealed class Options
 {
     private static readonly int[] DefaultLengths = { 1, 127, 256, 1000, 1048576 };
 
-    private Options(string architecture, int[] lengths, int graphLaunchRepeats, int lifecycleRepeats)
+    private Options(
+        string architecture,
+        int[] lengths,
+        int graphLaunchRepeats,
+        int lifecycleRepeats,
+        int stressRounds,
+        int stressStreams,
+        int stressLength)
     {
         Architecture = architecture;
         Lengths = lengths;
         GraphLaunchRepeats = graphLaunchRepeats;
         LifecycleRepeats = lifecycleRepeats;
+        StressRounds = stressRounds;
+        StressStreams = stressStreams;
+        StressLength = stressLength;
     }
 
     internal string Architecture { get; }
     internal int[] Lengths { get; }
     internal int GraphLaunchRepeats { get; }
     internal int LifecycleRepeats { get; }
+    internal int StressRounds { get; }
+    internal int StressStreams { get; }
+    internal int StressLength { get; }
 
     internal static Options Parse(string[] args)
     {
         string? architecture = Environment.GetEnvironmentVariable("HIPSHARP_GPU_ARCH");
         int graphLaunchRepeats = 3;
         int lifecycleRepeats = 100;
+        int stressRounds = 0;
+        int stressStreams = 4;
+        int stressLength = 4194304;
         for (int index = 0; index < args.Length; index++)
         {
             switch (args[index])
@@ -246,6 +325,9 @@ internal sealed class Options
                 case "--arch" when index + 1 < args.Length: architecture = args[++index]; break;
                 case "--graph-launch-repeats" when index + 1 < args.Length: graphLaunchRepeats = int.Parse(args[++index], CultureInfo.InvariantCulture); break;
                 case "--lifecycle-repeats" when index + 1 < args.Length: lifecycleRepeats = int.Parse(args[++index], CultureInfo.InvariantCulture); break;
+                case "--stress-rounds" when index + 1 < args.Length: stressRounds = int.Parse(args[++index], CultureInfo.InvariantCulture); break;
+                case "--stress-streams" when index + 1 < args.Length: stressStreams = int.Parse(args[++index], CultureInfo.InvariantCulture); break;
+                case "--stress-length" when index + 1 < args.Length: stressLength = int.Parse(args[++index], CultureInfo.InvariantCulture); break;
                 default: throw new ArgumentException("Unknown argument: " + args[index]);
             }
         }
@@ -261,6 +343,128 @@ internal sealed class Options
         {
             throw new ArgumentOutOfRangeException(nameof(args), "Lifecycle repeats must be at least 100.");
         }
-        return new Options(architecture!, DefaultLengths, graphLaunchRepeats, lifecycleRepeats);
+        if (stressRounds < 0 || stressRounds > 100)
+        {
+            throw new ArgumentOutOfRangeException(nameof(args), "Stress rounds must be between 0 and 100.");
+        }
+        if (stressStreams < 2 || stressStreams > 8)
+        {
+            throw new ArgumentOutOfRangeException(nameof(args), "Stress streams must be between 2 and 8.");
+        }
+        if (stressLength < 1048576 || stressLength > 16777216)
+        {
+            throw new ArgumentOutOfRangeException(nameof(args), "Stress length must be between 1,048,576 and 16,777,216 floats.");
+        }
+        return new Options(architecture!, DefaultLengths, graphLaunchRepeats, lifecycleRepeats, stressRounds, stressStreams, stressLength);
+    }
+}
+
+internal sealed class StressLane : IDisposable
+{
+    private bool _disposed;
+
+    private StressLane(
+        HipStream stream,
+        HipAsyncDeviceMemory deviceA,
+        HipAsyncDeviceMemory deviceB,
+        HipAsyncDeviceMemory deviceC,
+        byte[] result,
+        int length)
+    {
+        Stream = stream;
+        DeviceA = deviceA;
+        DeviceB = deviceB;
+        DeviceC = deviceC;
+        Result = result;
+        Length = length;
+    }
+
+    private HipStream Stream { get; }
+    private HipAsyncDeviceMemory DeviceA { get; }
+    private HipAsyncDeviceMemory DeviceB { get; }
+    private HipAsyncDeviceMemory DeviceC { get; }
+    private byte[] Result { get; }
+    private int Length { get; }
+
+    internal static StressLane Create(HipRuntime runtime, int byteLength, int length)
+    {
+        HipStream? stream = null;
+        HipAsyncDeviceMemory? deviceA = null;
+        HipAsyncDeviceMemory? deviceB = null;
+        HipAsyncDeviceMemory? deviceC = null;
+        try
+        {
+            stream = runtime.CreateStream(HipStreamFlags.NonBlocking);
+            deviceA = runtime.AllocateAsync((ulong)byteLength, stream);
+            deviceB = runtime.AllocateAsync((ulong)byteLength, stream);
+            deviceC = runtime.AllocateAsync((ulong)byteLength, stream);
+            return new StressLane(stream, deviceA, deviceB, deviceC, new byte[byteLength], length);
+        }
+        catch
+        {
+            try { deviceC?.Dispose(); }
+            finally
+            {
+                try { deviceB?.Dispose(); }
+                finally
+                {
+                    try { deviceA?.Dispose(); }
+                    finally { stream?.Dispose(); }
+                }
+            }
+            throw;
+        }
+    }
+
+    internal void Queue(HipKernel kernel, byte[] a, byte[] b)
+    {
+        DeviceA.CopyFromAsync(a);
+        DeviceB.CopyFromAsync(b);
+        kernel.Launch(Stream,
+            new HipLaunchDimensions(checked((uint)((Length + 255) / 256))),
+            new HipLaunchDimensions(256),
+            new[]
+            {
+                HipKernelArgument.DevicePointer(DeviceA),
+                HipKernelArgument.DevicePointer(DeviceB),
+                HipKernelArgument.DevicePointer(DeviceC),
+                HipKernelArgument.Scalar32(Length),
+            });
+        DeviceC.CopyToAsync(Result);
+    }
+
+    internal void Synchronize() => Stream.Synchronize();
+
+    internal int FindFailure(float[] a, float[] b)
+    {
+        var gpu = new float[Length];
+        Buffer.BlockCopy(Result, 0, gpu, 0, Result.Length);
+        for (int index = 0; index < gpu.Length; index++)
+        {
+            if (gpu[index] != a[index] + b[index])
+            {
+                return index;
+            }
+        }
+        return -1;
+    }
+
+    public void Dispose()
+    {
+        if (_disposed)
+        {
+            return;
+        }
+        try { DeviceC.Dispose(); }
+        finally
+        {
+            try { DeviceB.Dispose(); }
+            finally
+            {
+                try { DeviceA.Dispose(); }
+                finally { Stream.Dispose(); }
+            }
+        }
+        _disposed = true;
     }
 }

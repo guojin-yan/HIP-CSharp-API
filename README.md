@@ -6,9 +6,9 @@ HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABI
 
 M6 adds selected stream-ordered allocation/free, managed-memory advice/prefetch, explicit P2P state/copy, and graph capture/instantiate/launch APIs. One normalized manifest now drives 55 declarations across the `LibraryImport` and `DllImport` branches. Managed owners retain native resources through pending stream work and captured graphs; P2P copies derive device ordinals from allocation and stream ownership. Missing optional exports normalize to `HipError.NotSupported`.
 
-M5 remains the signed-source/runtime-package regression baseline: AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; the validated candidate compressed to 162,891,900 bytes, so the topology remains one runtime package.
+M5 remains the signed-source/runtime-package regression baseline: AMD's ROCm 7.2.1 Noble repository, a six-ELF HIP/HIPRTC/HSA/COMGR/rocprofiler-register closure, file/package SHA-256 values, component licenses, system/driver boundaries, deterministic reports, and a CycloneDX SBOM. The allowlisted payload is 415,070,520 bytes after the aliases required because NuGet does not preserve Debian symlinks; the verified final package is 162,892,126 bytes, so the topology remains one runtime package.
 
-`JYPPX.HipSharp.Runtime.linux-x64` is enabled for guarded local packaging after its exact candidate passed a newly Owner-authorized isolated GPU consumer with no system ROCm user-mode libraries. The package is not published, direct `dotnet pack` remains guarded, and one validated environment is not a broad support claim.
+`JYPPX.HipSharp.Runtime.linux-x64` is enabled for guarded local packaging after its candidate and final package passed newly Owner-authorized isolated GPU consumers with no system ROCm user-mode libraries. M6 repeated the immutable final package as a non-publishable historical regression. The package is not published, direct `dotnet pack` remains guarded, and one validated environment is not a broad support claim.
 
 | State | Result |
 | --- | --- |
@@ -17,12 +17,12 @@ M5 remains the signed-source/runtime-package regression baseline: AMD's ROCm 7.2
 | M1 runtime-tested | Passed on Radeon Cloud Ubuntu 24.04.4 with ROCm 7.2.1 and HIP 7.2.53211 |
 | M1 GPU-validated | Passed on one `gfx1100` AMD Radeon Graphics instance: enumerate, allocate, H2D/D2D/D2H, synchronize, and free |
 | M2 GPU-validated | Passed on one authorized Radeon Cloud `gfx1100` instance: HIPRTC compile/log/code, module/function, five VectorAdd lengths x 20 repeats, synchronization, D2H, CPU comparison, and expected compile failure |
-| Local managed gate | Passed generator/manifest checks, 25 unit tests, 7 quality tests, package audit, loader diagnostics, sample build, and DocFX |
+| Local managed gate | Passed 15 TFM builds, 56 unit tests, 9 quality tests, 1 package test, 4 clean consumers, loader diagnostics, sample builds, and DocFX |
 | M4 GPU/ABI-validated | Passed on one Owner-authorized Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / gfx1100 session; not a broad support claim |
 | M5 signed provenance/closure/licenses/SBOM | Passed locally for the pinned AMD ROCm 7.2.1 Noble index and six canonical ELF files |
-| M5 runtime package/isolated GPU | Candidate passed package-local loader/maps, 31 Runtime and 9 HIPRTC exports, four GPU workloads, and four fail-closed negatives; final package is rebuilt and revalidated |
-| M6 local advanced API | 55-function generated ABI, ownership/error tests, advanced sample build, and Windows static-audit fixtures pass locally |
-| M6 real GPU/ABI | Pending a newly Owner-authorized Radeon Cloud session; prior M4/M5 evidence is not reused as M6 evidence |
+| M5 runtime package/isolated GPU | Final package passed package-local loader/maps; M6 regression found 46 Runtime and 9 HIPRTC exports, ran five GPU workloads, and retained four fail-closed negatives |
+| M6 local advanced API | 55-function generated ABI, 56+9+1 tests, ownership/error tests, advanced sample build, and Windows static-audit fixtures pass locally |
+| M6 real GPU/ABI | Passed on an Owner-authorized ROCm 7.2.1 / HIP 7.2.53211 / gfx1100 session, including package-only regression; one visible GPU caused an explicit P2P skip |
 | Supported | Not claimed for any runtime/OS/GPU combination |
 
 ## Target frameworks
@@ -61,7 +61,7 @@ For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` creates
 
 The implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` is the declaration source; the binding generator deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. The two native libraries retain independent loading identities and diagnostics. Runtime errors become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, stream-ordered allocations, managed memory, graphs, graph executables, HIPRTC programs, and modules use explicit `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.
 
-`samples/HipRtcVectorAdd` retains the M2 path. `samples/HipStreamEventVectorAdd` retains the M4 stream/event path. `samples/HipAdvancedFeatures` adds stream-ordered allocations, graph replay, managed-memory hints, CPU/GPU comparison for five lengths, 100 owner lifecycles, and a verified P2P copy-or-skip path. These GPU paths require an explicit architecture and never write the code object to disk. Managed-only tests use replaceable native boundaries and make no GPU calls.
+`samples/HipRtcVectorAdd` retains the M2 path. `samples/HipStreamEventVectorAdd` retains the M4 stream/event path. `samples/HipAdvancedFeatures` adds stream-ordered allocations, graph replay, managed-memory hints, CPU/GPU comparison for five lengths, 100 owner lifecycles, and a verified P2P copy-or-skip path. Its optional stress mode submits large vector operations to multiple streams before synchronization, validates every lane against the CPU, and repeats allocation/release without reporting performance figures. These GPU paths require an explicit architecture and never write the code object to disk. Managed-only tests use replaceable native boundaries and make no GPU calls.
 
 All public API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to generate the API reference and DocFX site under `_site`.
 

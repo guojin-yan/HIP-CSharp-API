@@ -131,6 +131,7 @@ done
 (cd "${runtime_root}/hiprtc-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --length 256 --repeat 20 2>&1) | tee "${evidence_dir}/hiprtc-vector-add-run.txt"
 (cd "${runtime_root}/stream-event-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/stream-event-vector-add-run.txt"
 (cd "${runtime_root}/advanced-features" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/advanced-features-run.txt"
+(cd "${runtime_root}/advanced-features" && dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 250 --stress-rounds 10 --stress-streams 4 --stress-length 4194304 2>&1) | tee "${evidence_dir}/advanced-features-stress-run.txt"
 
 while IFS= read -r -d '' evidence_file; do
   if grep -q '/opt/rocm' "${evidence_file}"; then

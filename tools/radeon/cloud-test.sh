@@ -3,7 +3,6 @@ set -euo pipefail
 
 expected_commit="${1:?usage: cloud-test.sh EXPECTED_COMMIT}"
 repository_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
-evidence_dir="${repository_root}/artifacts/radeon-cloud"
 actual_commit="$(git -C "${repository_root}" rev-parse HEAD)"
 
 if ! command -v dotnet >/dev/null 2>&1; then
@@ -18,6 +17,9 @@ fi
 
 export DOTNET_CLI_TELEMETRY_OPTOUT=1
 export DOTNET_NOLOGO=1
+export DOTNET_CLI_USE_MSBUILD_SERVER=0
+export MSBUILDDISABLENODEREUSE=1
+export UseSharedCompilation=false
 if [[ -d /persistent ]]; then
   export NUGET_PACKAGES=/persistent/hipsharp/nuget/packages
 else
@@ -25,6 +27,10 @@ else
 fi
 echo "NuGet cache: ${NUGET_PACKAGES}"
 
+if [[ ! "${expected_commit}" =~ ^[0-9a-f]{40}$ ]]; then
+  echo "EXPECTED_COMMIT must be a lowercase 40-character Git SHA." >&2
+  exit 1
+fi
 if [[ "${actual_commit}" != "${expected_commit}" ]]; then
   echo "Expected commit ${expected_commit}, found ${actual_commit}." >&2
   exit 1
@@ -38,8 +44,12 @@ if [[ -n "$(git -C "${repository_root}" status --porcelain)" ]]; then
   exit 1
 fi
 
+run_stamp="$(date -u +%Y%m%dT%H%M%SZ)-$$"
+evidence_dir="${repository_root}/artifacts/radeon-cloud/${actual_commit}/${run_stamp}"
 mkdir -p "${evidence_dir}"
+export HIPSHARP_CLOUD_EVIDENCE_DIR="${evidence_dir}"
 mkdir -p "${NUGET_PACKAGES}"
+echo "Evidence directory: ${evidence_dir}"
 cd "${repository_root}"
 bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
 bash ./eng/build.sh Release 0.0.0 | tee "${evidence_dir}/managed-gate.txt"
@@ -84,10 +94,11 @@ python3 ./native/abi-probe/collect_evidence.py \
 python3 - <<'PY'
 import hashlib
 import json
+import os
 import subprocess
 from pathlib import Path
 schema = json.loads(Path("native/abi-probe/abi-evidence.schema.json").read_text())
-evidence = json.loads(Path("artifacts/radeon-cloud/m6-abi-evidence.json").read_text())
+evidence = json.loads((Path(os.environ["HIPSHARP_CLOUD_EVIDENCE_DIR"]) / "m6-abi-evidence.json").read_text())
 required = schema["required"]
 missing = [key for key in required if key not in evidence]
 if missing:
@@ -120,7 +131,7 @@ if ! command -v pwsh >/dev/null 2>&1; then
   exit 1
 fi
 pwsh -NoProfile -File ./eng/verify-package.ps1 \
-  -PackagePath "${evidence_dir}/../packages/JYPPX.HIP.CSharp.API.0.0.0.nupkg" \
+  -PackagePath "${repository_root}/artifacts/packages/JYPPX.HIP.CSharp.API.0.0.0.nupkg" \
   | tee "${evidence_dir}/package-audit.txt"
 
 dotnet run --project ./samples/DeviceInfo/DeviceInfo.csproj -c Release | tee "${evidence_dir}/device-info.txt"
@@ -157,4 +168,7 @@ dotnet run --project ./samples/HipAdvancedFeatures/HipAdvancedFeatures.csproj \
   --graph-launch-repeats 3 \
   --lifecycle-repeats 100 2>&1 | tee "${evidence_dir}/advanced-features.txt"
 
+bash ./tools/radeon/cloud-stress.sh "${actual_commit}"
+
 echo "Radeon Cloud M6 validation passed for ${actual_commit}."
+echo "Evidence directory: ${evidence_dir}"

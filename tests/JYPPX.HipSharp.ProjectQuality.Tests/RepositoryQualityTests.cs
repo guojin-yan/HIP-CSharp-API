@@ -239,6 +239,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(gate, "make_consumer advanced-features HipAdvancedFeatures");
         StringAssert.Contains(gate, "-RequireOptional");
         StringAssert.Contains(gate, "advanced-features-run.txt");
+        StringAssert.Contains(gate, "advanced-features-stress-run.txt");
+        StringAssert.Contains(gate, "--stress-rounds 10 --stress-streams 4 --stress-length 4194304");
         StringAssert.Contains(gate, "M6 isolated runtime ${package_mode} gate passed");
         StringAssert.Contains(gate, "${package_mode}\" == \"regression");
         StringAssert.Contains(gate, "-ExpectedRepositoryCommit \"${runtime_package_commit}\"");
@@ -253,6 +255,23 @@ public sealed class RepositoryQualityTests
         string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
         StringAssert.Contains(sample, "peer=passed(1->0");
         StringAssert.Contains(sample, "Peer-copy mismatch");
+        StringAssert.Contains(sample, "stress=passed(rounds=");
+        StringAssert.Contains(sample, "maxInFlightDeviceBytes=");
+        StringAssert.Contains(sample, "performanceClaim=false");
+
+        string cloudGate = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
+        StringAssert.Contains(cloudGate, "${actual_commit}/${run_stamp}");
+        StringAssert.Contains(cloudGate, "HIPSHARP_CLOUD_EVIDENCE_DIR");
+        StringAssert.Contains(cloudGate, "cloud-stress.sh \"${actual_commit}\"");
+
+        string stressGatePath = Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-stress.sh");
+        Assert.IsTrue(File.Exists(stressGatePath));
+        string stressGate = File.ReadAllText(stressGatePath);
+        StringAssert.Contains(stressGate, "HIPSHARP_STRESS_ROUNDS");
+        StringAssert.Contains(stressGate, "HIPSHARP_STRESS_STREAMS");
+        StringAssert.Contains(stressGate, "HIPSHARP_STRESS_LENGTH");
+        StringAssert.Contains(stressGate, "cloud-stress-summary.json");
+        StringAssert.Contains(stressGate, "\"performanceClaim\": False");
     }
 
     [TestMethod]
