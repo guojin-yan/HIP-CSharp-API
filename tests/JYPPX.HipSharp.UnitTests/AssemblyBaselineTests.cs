@@ -56,6 +56,8 @@ public sealed class AssemblyBaselineTests
         Assert.AreEqual(12, Marshal.SizeOf<HipDim3>());
         Assert.AreEqual(24, Marshal.SizeOf<HipExtent>());
         Assert.AreEqual(32, Marshal.SizeOf<HipPitchedPtr>());
+        Assert.AreEqual(24, Marshal.SizeOf<HipPos>());
+        Assert.AreEqual(160, Marshal.SizeOf<HipMemcpy3DParameters>());
         Assert.AreEqual(8, Marshal.SizeOf<HipMemLocation>());
         Assert.AreEqual(64, Marshal.SizeOf<HipIpcMemHandle>());
         Assert.AreEqual(64, Marshal.SizeOf<HipIpcEventHandle>());

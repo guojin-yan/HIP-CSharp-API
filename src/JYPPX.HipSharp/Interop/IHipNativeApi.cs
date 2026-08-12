@@ -25,6 +25,12 @@ internal interface IHipNativeApi
 
     public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId);
 
+    public HipError MemGetInfo(out UIntPtr freeBytes, out UIntPtr totalBytes);
+
+    public HipError MallocPitch(out IntPtr pointer, out UIntPtr pitch, UIntPtr widthBytes, UIntPtr height);
+
+    public HipError Malloc3D(out HipPitchedPtr pitchedPointer, HipExtent extent);
+
     public HipError MallocManaged(out IntPtr pointer, UIntPtr byteCount, uint flags);
 
     public HipError MemPrefetchAsync(IntPtr pointer, UIntPtr byteCount, int device, IntPtr stream);
@@ -62,6 +68,26 @@ internal interface IHipNativeApi
     public HipError Memcpy(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind);
 
     public HipError MemcpyAsync(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind, IntPtr stream);
+
+    public HipError Memset(IntPtr destination, int value, UIntPtr byteCount);
+
+    public HipError MemsetAsync(IntPtr destination, int value, UIntPtr byteCount, IntPtr stream);
+
+    public HipError Memset2D(IntPtr destination, UIntPtr pitch, int value, UIntPtr widthBytes, UIntPtr height);
+
+    public HipError Memset2DAsync(IntPtr destination, UIntPtr pitch, int value, UIntPtr widthBytes, UIntPtr height, IntPtr stream);
+
+    public HipError Memset3D(HipPitchedPtr destination, int value, HipExtent extent);
+
+    public HipError Memset3DAsync(HipPitchedPtr destination, int value, HipExtent extent, IntPtr stream);
+
+    public HipError Memcpy2D(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourcePitch, UIntPtr widthBytes, UIntPtr height, HipMemoryCopyKind kind);
+
+    public HipError Memcpy2DAsync(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourcePitch, UIntPtr widthBytes, UIntPtr height, HipMemoryCopyKind kind, IntPtr stream);
+
+    public HipError Memcpy3D(ref HipMemcpy3DParameters parameters);
+
+    public HipError Memcpy3DAsync(ref HipMemcpy3DParameters parameters, IntPtr stream);
 
     public HipError HostMalloc(out IntPtr pointer, UIntPtr byteCount, uint flags);
 

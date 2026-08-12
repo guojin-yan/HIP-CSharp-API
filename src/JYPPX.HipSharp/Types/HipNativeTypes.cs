@@ -73,6 +73,36 @@ public readonly struct HipPitchedPtr
     public UIntPtr YSize { get; }
 }
 
+/// <summary>表示按值传递的原生 <c>hipPos</c> / Represents the native by-value <c>hipPos</c>.</summary>
+[StructLayout(LayoutKind.Sequential)]
+internal readonly struct HipPos
+{
+    internal HipPos(UIntPtr x, UIntPtr y, UIntPtr z)
+    {
+        X = x;
+        Y = y;
+        Z = z;
+    }
+
+    internal UIntPtr X { get; }
+    internal UIntPtr Y { get; }
+    internal UIntPtr Z { get; }
+}
+
+/// <summary>表示仅由托管高层 pitched owner 构造的原生 <c>hipMemcpy3DParms</c> / Represents native <c>hipMemcpy3DParms</c> built only by managed pitched owners.</summary>
+[StructLayout(LayoutKind.Sequential)]
+internal struct HipMemcpy3DParameters
+{
+    internal IntPtr SourceArray;
+    internal HipPos SourcePosition;
+    internal HipPitchedPtr SourcePointer;
+    internal IntPtr DestinationArray;
+    internal HipPos DestinationPosition;
+    internal HipPitchedPtr DestinationPointer;
+    internal HipExtent Extent;
+    internal Memory.HipMemoryCopyKind Kind;
+}
+
 /// <summary>表示按值传递的原生 <c>hipMemLocation</c> / Represents the native by-value <c>hipMemLocation</c>.</summary>
 [StructLayout(LayoutKind.Sequential)]
 public readonly struct HipMemLocation

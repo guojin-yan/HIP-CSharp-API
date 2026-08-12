@@ -45,6 +45,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal HipError FreeResult { get; set; } = HipError.Success;
 
+    internal HipError MemoryInfoResult { get; set; } = HipError.Success;
+
+    internal HipError PitchedAllocationResult { get; set; } = HipError.Success;
+
+    internal HipError MemsetResult { get; set; } = HipError.Success;
+
+    internal HipError PitchedCopyResult { get; set; } = HipError.Success;
+
     internal HipError PeerEnableResult { get; set; } = HipError.Success;
 
     internal HipError PeerDisableResult { get; set; } = HipError.Success;
@@ -89,6 +97,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal int FreeCount { get; private set; }
 
+    internal int FreeCallCount { get; private set; }
+
     internal int SynchronizeCount { get; private set; }
 
     internal int ModuleUnloadCount { get; private set; }
@@ -124,6 +134,42 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int GraphExecDestroyCount { get; private set; }
 
     internal int GraphLaunchCount { get; private set; }
+
+    internal ulong FreeMemoryBytes { get; set; } = 768UL * 1024 * 1024;
+
+    internal ulong TotalMemoryBytes { get; set; } = 1024UL * 1024 * 1024;
+
+    internal ulong LastAllocationWidthBytes { get; private set; }
+
+    internal ulong LastAllocationHeight { get; private set; }
+
+    internal ulong LastAllocationDepth { get; private set; }
+
+    internal ulong LastAllocationPitch { get; private set; }
+
+    internal ulong? ForcedAllocationPitch { get; set; }
+
+    internal ulong? ForcedAllocationYSize { get; set; }
+
+    internal int LastMemsetValue { get; private set; }
+
+    internal HipExtent LastMemsetExtent { get; private set; }
+
+    internal HipMemoryCopyKind LastPitchedCopyKind { get; private set; }
+
+    internal ulong LastCopyWidthBytes { get; private set; }
+
+    internal ulong LastCopyHeight { get; private set; }
+
+    internal ulong LastCopyDepth { get; private set; }
+
+    internal ulong LastSourcePitch { get; private set; }
+
+    internal ulong LastDestinationPitch { get; private set; }
+
+    internal IntPtr LastPitchedStream { get; private set; }
+
+    internal HipMemcpy3DParameters LastMemcpy3DParameters { get; private set; }
 
     public HipError Init(uint flags)
     {
@@ -181,6 +227,46 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     {
         value = attribute == HipDeviceAttribute.MaxThreadsPerBlock ? 1024 : 0;
         return deviceId >= 0 && deviceId < 2 ? HipError.Success : HipError.InvalidDevice;
+    }
+
+    public HipError MemGetInfo(out UIntPtr freeBytes, out UIntPtr totalBytes)
+    {
+        freeBytes = ToUIntPtr(FreeMemoryBytes);
+        totalBytes = ToUIntPtr(TotalMemoryBytes);
+        return MemoryInfoResult;
+    }
+
+    public HipError MallocPitch(out IntPtr pointer, out UIntPtr pitch, UIntPtr widthBytes, UIntPtr height)
+    {
+        LastAllocationWidthBytes = widthBytes.ToUInt64();
+        LastAllocationHeight = height.ToUInt64();
+        LastAllocationDepth = 1;
+        LastAllocationPitch = ForcedAllocationPitch ?? Align(LastAllocationWidthBytes, 16);
+        pitch = ToUIntPtr(LastAllocationPitch);
+        if (PitchedAllocationResult != HipError.Success)
+        {
+            pointer = IntPtr.Zero;
+            return PitchedAllocationResult;
+        }
+        return Malloc(out pointer, ToUIntPtr(checked(LastAllocationPitch * LastAllocationHeight)));
+    }
+
+    public HipError Malloc3D(out HipPitchedPtr pitchedPointer, HipExtent extent)
+    {
+        LastAllocationWidthBytes = extent.Width.ToUInt64();
+        LastAllocationHeight = extent.Height.ToUInt64();
+        LastAllocationDepth = extent.Depth.ToUInt64();
+        LastAllocationPitch = ForcedAllocationPitch ?? Align(LastAllocationWidthBytes, 16);
+        if (PitchedAllocationResult != HipError.Success)
+        {
+            pitchedPointer = default;
+            return PitchedAllocationResult;
+        }
+        HipError result = Malloc(out IntPtr pointer, ToUIntPtr(checked(checked(LastAllocationPitch * LastAllocationHeight) * LastAllocationDepth)));
+        pitchedPointer = result == HipError.Success
+            ? new HipPitchedPtr(pointer, ToUIntPtr(LastAllocationPitch), extent.Width, ToUIntPtr(ForcedAllocationYSize ?? LastAllocationHeight))
+            : default;
+        return result;
     }
 
     public HipError MallocManaged(out IntPtr pointer, UIntPtr byteCount, uint flags)
@@ -365,6 +451,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError Free(IntPtr pointer)
     {
+        FreeCallCount++;
         if (FreeResult != HipError.Success) return FreeResult;
         if (!_allocations.Remove(pointer))
         {
@@ -389,6 +476,125 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     {
         AsyncCopyCount++;
         return Memcpy(destination, source, byteCount, kind);
+    }
+
+    public HipError Memset(IntPtr destination, int value, UIntPtr byteCount)
+    {
+        LastMemsetValue = value;
+        LastMemsetExtent = new HipExtent(byteCount, new UIntPtr(1), new UIntPtr(1));
+        if (MemsetResult != HipError.Success) return MemsetResult;
+        Fill(destination, checked((int)byteCount.ToUInt64()), unchecked((byte)value));
+        return HipError.Success;
+    }
+
+    public HipError MemsetAsync(IntPtr destination, int value, UIntPtr byteCount, IntPtr stream)
+    {
+        LastPitchedStream = stream;
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return Memset(destination, value, byteCount);
+    }
+
+    public HipError Memset2D(IntPtr destination, UIntPtr pitch, int value, UIntPtr widthBytes, UIntPtr height)
+    {
+        LastMemsetValue = value;
+        LastMemsetExtent = new HipExtent(widthBytes, height, new UIntPtr(1));
+        if (MemsetResult != HipError.Success) return MemsetResult;
+        int rowPitch = checked((int)pitch.ToUInt64());
+        int rowWidth = checked((int)widthBytes.ToUInt64());
+        int rows = checked((int)height.ToUInt64());
+        for (int y = 0; y < rows; y++) Fill(Add(destination, checked(y * rowPitch)), rowWidth, unchecked((byte)value));
+        return HipError.Success;
+    }
+
+    public HipError Memset2DAsync(IntPtr destination, UIntPtr pitch, int value, UIntPtr widthBytes, UIntPtr height, IntPtr stream)
+    {
+        LastPitchedStream = stream;
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return Memset2D(destination, pitch, value, widthBytes, height);
+    }
+
+    public HipError Memset3D(HipPitchedPtr destination, int value, HipExtent extent)
+    {
+        LastMemsetValue = value;
+        LastMemsetExtent = extent;
+        if (MemsetResult != HipError.Success) return MemsetResult;
+        int pitch = checked((int)destination.Pitch.ToUInt64());
+        int slicePitch = checked(pitch * checked((int)destination.YSize.ToUInt64()));
+        int width = checked((int)extent.Width.ToUInt64());
+        int height = checked((int)extent.Height.ToUInt64());
+        int depth = checked((int)extent.Depth.ToUInt64());
+        for (int z = 0; z < depth; z++)
+        for (int y = 0; y < height; y++)
+            Fill(Add(destination.Address, checked(z * slicePitch + y * pitch)), width, unchecked((byte)value));
+        return HipError.Success;
+    }
+
+    public HipError Memset3DAsync(HipPitchedPtr destination, int value, HipExtent extent, IntPtr stream)
+    {
+        LastPitchedStream = stream;
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return Memset3D(destination, value, extent);
+    }
+
+    public HipError Memcpy2D(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourcePitch, UIntPtr widthBytes, UIntPtr height, HipMemoryCopyKind kind)
+    {
+        LastPitchedCopyKind = kind;
+        LastCopyWidthBytes = widthBytes.ToUInt64();
+        LastCopyHeight = height.ToUInt64();
+        LastCopyDepth = 1;
+        LastSourcePitch = sourcePitch.ToUInt64();
+        LastDestinationPitch = destinationPitch.ToUInt64();
+        if (PitchedCopyResult != HipError.Success) return PitchedCopyResult;
+        int width = checked((int)LastCopyWidthBytes);
+        int rows = checked((int)LastCopyHeight);
+        int sourceRowPitch = checked((int)LastSourcePitch);
+        int destinationRowPitch = checked((int)LastDestinationPitch);
+        for (int y = 0; y < rows; y++)
+            CopyBytes(Add(destination, checked(y * destinationRowPitch)), Add(source, checked(y * sourceRowPitch)), width);
+        return HipError.Success;
+    }
+
+    public HipError Memcpy2DAsync(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourcePitch, UIntPtr widthBytes, UIntPtr height, HipMemoryCopyKind kind, IntPtr stream)
+    {
+        LastPitchedStream = stream;
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return Memcpy2D(destination, destinationPitch, source, sourcePitch, widthBytes, height, kind);
+    }
+
+    public HipError Memcpy3D(ref HipMemcpy3DParameters parameters)
+    {
+        LastMemcpy3DParameters = parameters;
+        LastPitchedCopyKind = parameters.Kind;
+        LastCopyWidthBytes = parameters.Extent.Width.ToUInt64();
+        LastCopyHeight = parameters.Extent.Height.ToUInt64();
+        LastCopyDepth = parameters.Extent.Depth.ToUInt64();
+        LastSourcePitch = parameters.SourcePointer.Pitch.ToUInt64();
+        LastDestinationPitch = parameters.DestinationPointer.Pitch.ToUInt64();
+        if (PitchedCopyResult != HipError.Success) return PitchedCopyResult;
+
+        int width = checked((int)LastCopyWidthBytes);
+        int height = checked((int)LastCopyHeight);
+        int depth = checked((int)LastCopyDepth);
+        int sourcePitch = checked((int)LastSourcePitch);
+        int destinationPitch = checked((int)LastDestinationPitch);
+        int sourceSlicePitch = checked(sourcePitch * checked((int)parameters.SourcePointer.YSize.ToUInt64()));
+        int destinationSlicePitch = checked(destinationPitch * checked((int)parameters.DestinationPointer.YSize.ToUInt64()));
+        int sourceBase = PositionOffset(parameters.SourcePosition, sourcePitch, sourceSlicePitch);
+        int destinationBase = PositionOffset(parameters.DestinationPosition, destinationPitch, destinationSlicePitch);
+        for (int z = 0; z < depth; z++)
+        for (int y = 0; y < height; y++)
+            CopyBytes(
+                Add(parameters.DestinationPointer.Address, checked(destinationBase + z * destinationSlicePitch + y * destinationPitch)),
+                Add(parameters.SourcePointer.Address, checked(sourceBase + z * sourceSlicePitch + y * sourcePitch)),
+                width);
+        return HipError.Success;
+    }
+
+    public HipError Memcpy3DAsync(ref HipMemcpy3DParameters parameters, IntPtr stream)
+    {
+        LastPitchedStream = stream;
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return Memcpy3D(ref parameters);
     }
 
     public HipError HostMalloc(out IntPtr pointer, UIntPtr byteCount, uint flags) => Malloc(out pointer, byteCount);
@@ -535,4 +741,27 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         _pendingStreamActions.Remove(stream);
         foreach (Action action in actions) action();
     }
+
+    private static ulong Align(ulong value, ulong alignment) => checked((value + alignment - 1) / alignment * alignment);
+
+    private static UIntPtr ToUIntPtr(ulong value) => UIntPtr.Size == 4 ? new UIntPtr(checked((uint)value)) : new UIntPtr(value);
+
+    private static IntPtr Add(IntPtr pointer, int offset) => new(pointer.ToInt64() + offset);
+
+    private static void Fill(IntPtr destination, int count, byte value)
+    {
+        for (int index = 0; index < count; index++) Marshal.WriteByte(destination, index, value);
+    }
+
+    private static void CopyBytes(IntPtr destination, IntPtr source, int count)
+    {
+        var bytes = new byte[count];
+        Marshal.Copy(source, bytes, 0, count);
+        Marshal.Copy(bytes, 0, destination, count);
+    }
+
+    private static int PositionOffset(HipPos position, int pitch, int slicePitch) => checked(
+        checked((int)position.X.ToUInt64()) +
+        checked((int)position.Y.ToUInt64()) * pitch +
+        checked((int)position.Z.ToUInt64()) * slicePitch);
 }

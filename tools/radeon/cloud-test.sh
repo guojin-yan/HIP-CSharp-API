@@ -126,18 +126,26 @@ if evidence["gitCommit"] != expected_commit:
     raise SystemExit("ABI evidence commit does not match the detached checkout")
 if evidence["normalizedManifestHash"].upper() != expected_manifest_hash:
     raise SystemExit("ABI evidence normalized manifest hash does not match the checkout")
-if evidence["schemaVersion"] != 3 or len(evidence.get("functions", [])) != 55:
-    raise SystemExit("ABI evidence must use schema 3 and include all 55 manifest functions")
+if evidence["schemaVersion"] != 3 or len(evidence.get("functions", [])) != 68:
+    raise SystemExit("ABI evidence must use schema 3 and include all 68 manifest functions")
 advanced = {
     "hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync",
     "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync",
     "hipStreamBeginCapture", "hipStreamEndCapture", "hipGraphDestroy", "hipGraphInstantiateWithFlags",
     "hipGraphLaunch", "hipGraphExecDestroy",
 }
+managed_memory = {
+    "hipMemGetInfo", "hipMallocPitch", "hipMalloc3D", "hipMemset", "hipMemsetAsync",
+    "hipMemset2D", "hipMemset2DAsync", "hipMemset3D", "hipMemset3DAsync",
+    "hipMemcpy2D", "hipMemcpy2DAsync", "hipMemcpy3D", "hipMemcpy3DAsync",
+}
 found = {item["entryPoint"] for item in evidence["functions"] if item["found"]}
 missing_advanced = sorted(advanced - found)
 if missing_advanced:
     raise SystemExit("M6 advanced exports are missing: " + ", ".join(missing_advanced))
+missing_memory = sorted(managed_memory - found)
+if missing_memory:
+    raise SystemExit("M8.2 managed memory exports are missing: " + ", ".join(missing_memory))
 if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
     raise SystemExit("ABI evidence must include both official header hashes")
 print("M6 ABI evidence schema fields present")

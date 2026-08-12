@@ -45,7 +45,7 @@
     },
     "types": { "type": "array", "minItems": 20, "items": { "type": "object" } },
     "compiler": { "type": "object" },
-    "functions": { "type": "array", "minItems": 55, "items": { "type": "object" } },
+    "functions": { "type": "array", "minItems": 68, "items": { "type": "object" } },
     "offsets": { "type": "object" }
   }
 }

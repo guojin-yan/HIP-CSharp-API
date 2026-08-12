@@ -10,6 +10,8 @@
       href: guides/hip-stream-event-vectoradd.md
     - name: Advanced HIP APIs / HIP 高级 API
       href: guides/advanced-apis.md
+    - name: Pitched Memory and 2D/3D Copy / Pitched Memory 与 2D/3D Copy
+      href: guides/pitched-memory.md
     - name: Complete Native API / 完整原生 API
       href: guides/complete-native-api.md
     - name: 0.9 API Freeze / 0.9 API 冻结

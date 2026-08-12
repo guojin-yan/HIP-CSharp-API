@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading;
 using JYPPX.HipSharp.Interop;
 using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Memory;
@@ -14,9 +15,10 @@ namespace JYPPX.HipSharp;
 /// <summary>
 /// 提供 HIP Runtime 初始化、版本、设备和基础内存操作 / Provides HIP Runtime initialization, version, device, and basic memory operations.
 /// </summary>
-public sealed class HipRuntime
+public sealed class HipRuntime : IDisposable
 {
     private readonly IHipNativeApi _nativeApi;
+    private int _disposeState;
 
     /// <summary>
     /// 创建 HIP Runtime 客户端并加载原生库 / Creates a HIP Runtime client and loads the native library.
@@ -39,7 +41,11 @@ public sealed class HipRuntime
     /// </summary>
     /// <param name="flags">保留标志，当前应传入零 / Reserved flags; currently pass zero.</param>
     /// <exception cref="HipException">HIP 初始化失败 / HIP initialization fails.</exception>
-    public void Initialize(uint flags = 0) => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.Init(flags), "hipInit");
+    public void Initialize(uint flags = 0)
+    {
+        ThrowIfDisposed();
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.Init(flags), "hipInit");
+    }
 
     /// <summary>
     /// 获取 HIP Runtime 与驱动版本 / Gets the HIP Runtime and driver versions.
@@ -48,6 +54,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法返回版本 / HIP cannot return a version.</exception>
     public HipRuntimeVersionInfo GetVersionInfo()
     {
+        ThrowIfDisposed();
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.RuntimeGetVersion(out int runtimeVersion), "hipRuntimeGetVersion");
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DriverGetVersion(out int driverVersion), "hipDriverGetVersion");
         return new HipRuntimeVersionInfo(new HipVersion(runtimeVersion), new HipVersion(driverVersion));
@@ -60,6 +67,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法枚举设备 / HIP cannot enumerate devices.</exception>
     public IReadOnlyList<HipDevice> GetDevices()
     {
+        ThrowIfDisposed();
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDeviceCount(out int count), "hipGetDeviceCount");
         if (count < 0)
         {
@@ -84,6 +92,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法读取设备名称 / HIP cannot read the device name.</exception>
     public HipDevice GetDevice(int ordinal)
     {
+        ThrowIfDisposed();
         if (ordinal < 0)
         {
             throw new ArgumentOutOfRangeException(nameof(ordinal));
@@ -100,6 +109,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法返回当前设备 / HIP cannot return the current device.</exception>
     public HipDevice GetCurrentDevice()
     {
+        ThrowIfDisposed();
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int ordinal), "hipGetDevice");
         return GetDevice(ordinal);
     }
@@ -114,6 +124,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法读取属性 / HIP cannot read the attribute.</exception>
     public int GetDeviceAttribute(HipDeviceAttribute attribute, int ordinal = -1)
     {
+        ThrowIfDisposed();
         if (ordinal < -1) throw new ArgumentOutOfRangeException(nameof(ordinal));
         if (ordinal < 0) HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out ordinal), "hipGetDevice");
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGetAttribute(out int value, attribute, ordinal), "hipDeviceGetAttribute");
@@ -126,6 +137,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法创建 stream / HIP cannot create a stream.</exception>
     public HipStream CreateStream(HipStreamFlags flags = HipStreamFlags.Default)
     {
+        ThrowIfDisposed();
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamCreateWithFlags(out IntPtr stream, (uint)flags), "hipStreamCreateWithFlags");
         if (stream == IntPtr.Zero) throw new InvalidOperationException("hipStreamCreateWithFlags succeeded but returned a null stream.");
@@ -138,6 +150,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法创建 event / HIP cannot create an event.</exception>
     public HipEvent CreateEvent(HipEventFlags flags = HipEventFlags.Default)
     {
+        ThrowIfDisposed();
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.EventCreateWithFlags(out IntPtr handle, (uint)flags), "hipEventCreateWithFlags");
         if (handle == IntPtr.Zero) throw new InvalidOperationException("hipEventCreateWithFlags succeeded but returned a null event.");
         return new HipEvent(_nativeApi, handle, flags);
@@ -148,6 +161,7 @@ public sealed class HipRuntime
     /// </summary>
     public HipGraph CaptureGraph(HipStream stream, Action<HipStream> capture, HipStreamCaptureMode mode = HipStreamCaptureMode.Global)
     {
+        ThrowIfDisposed();
         if (stream is null) throw new ArgumentNullException(nameof(stream));
         if (capture is null) throw new ArgumentNullException(nameof(capture));
         if (!ReferenceEquals(_nativeApi, stream.NativeApi)) throw new ArgumentException("Stream belongs to a different HIP Runtime client.", nameof(stream));
@@ -178,6 +192,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法分配设备内存 / HIP cannot allocate device memory.</exception>
     public HipDeviceMemory Allocate(ulong byteCount)
     {
+        ThrowIfDisposed();
         UIntPtr nativeByteCount = HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount));
         if (byteCount == 0)
         {
@@ -199,6 +214,7 @@ public sealed class HipRuntime
     /// </summary>
     public HipAsyncDeviceMemory AllocateAsync(ulong byteCount, HipStream stream)
     {
+        ThrowIfDisposed();
         if (stream is null) throw new ArgumentNullException(nameof(stream));
         if (!ReferenceEquals(_nativeApi, stream.NativeApi)) throw new ArgumentException("Stream belongs to a different HIP Runtime client.", nameof(stream));
         if (byteCount == 0) throw new ArgumentOutOfRangeException(nameof(byteCount));
@@ -233,6 +249,7 @@ public sealed class HipRuntime
     /// </summary>
     public HipManagedMemory AllocateManaged(ulong byteCount, HipManagedMemoryFlags flags = HipManagedMemoryFlags.Global)
     {
+        ThrowIfDisposed();
         if (byteCount == 0) throw new ArgumentOutOfRangeException(nameof(byteCount));
         if (flags != HipManagedMemoryFlags.Global && flags != HipManagedMemoryFlags.Host) throw new ArgumentOutOfRangeException(nameof(flags));
         HipError error = _nativeApi.MallocManaged(out IntPtr pointer, HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount)), (uint)flags);
@@ -249,6 +266,7 @@ public sealed class HipRuntime
     /// <summary>查询显式设备对的 peer capability / Queries peer capability for an explicit device pair.</summary>
     public bool CanAccessPeer(int accessingDevice, int peerDevice)
     {
+        ThrowIfDisposed();
         if (accessingDevice < 0) throw new ArgumentOutOfRangeException(nameof(accessingDevice));
         if (peerDevice < 0) throw new ArgumentOutOfRangeException(nameof(peerDevice));
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceCanAccessPeer(out int canAccess, accessingDevice, peerDevice), "hipDeviceCanAccessPeer");
@@ -260,6 +278,7 @@ public sealed class HipRuntime
     /// </summary>
     public HipPeerAccess EnablePeerAccess(int accessingDevice, int peerDevice)
     {
+        ThrowIfDisposed();
         if (accessingDevice < 0) throw new ArgumentOutOfRangeException(nameof(accessingDevice));
         if (peerDevice < 0) throw new ArgumentOutOfRangeException(nameof(peerDevice));
         if (accessingDevice == peerDevice) return new HipPeerAccess(_nativeApi, accessingDevice, peerDevice, false, false, false, false);
@@ -279,6 +298,7 @@ public sealed class HipRuntime
     /// <returns>typed device memory / Typed device memory.</returns>
     public unsafe HipTypedMemory<T> Allocate<T>(ulong elementCount) where T : unmanaged
     {
+        ThrowIfDisposed();
         ulong byteCount;
         try
         {
@@ -296,6 +316,7 @@ public sealed class HipRuntime
     /// <returns>拥有型 pinned memory / Owning pinned memory.</returns>
     public HipPinnedMemory AllocatePinned(ulong byteCount)
     {
+        ThrowIfDisposed();
         UIntPtr nativeByteCount = HipDeviceMemory.ToUIntPtr(byteCount, nameof(byteCount));
         if (byteCount == 0) throw new ArgumentOutOfRangeException(nameof(byteCount));
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.HostMalloc(out IntPtr pointer, nativeByteCount, 0), "hipHostMalloc");
@@ -313,6 +334,7 @@ public sealed class HipRuntime
     /// <exception cref="HipException">HIP 无法加载 module / HIP cannot load the module.</exception>
     public HipModule LoadModule(byte[] codeObject)
     {
+        ThrowIfDisposed();
         if (codeObject is null)
         {
             throw new ArgumentNullException(nameof(codeObject));
@@ -336,5 +358,139 @@ public sealed class HipRuntime
     /// 等待当前设备上的工作完成 / Waits for work on the current device to complete.
     /// </summary>
     /// <exception cref="HipException">设备同步失败 / Device synchronization fails.</exception>
-    public void Synchronize() => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceSynchronize(), "hipDeviceSynchronize");
+    public void Synchronize()
+    {
+        ThrowIfDisposed();
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceSynchronize(), "hipDeviceSynchronize");
+    }
+
+    /// <summary>
+    /// 查询当前设备的可用与总显存，结果单位为字节 / Queries free and total memory for the current device, in bytes.
+    /// </summary>
+    /// <returns>不可变显存统计 / Immutable memory statistics.</returns>
+    /// <exception cref="ObjectDisposedException">Runtime facade 已释放 / The runtime facade is disposed.</exception>
+    /// <exception cref="HipException"><c>hipMemGetInfo</c> 失败或 export 缺失 / <c>hipMemGetInfo</c> fails or its export is unavailable.</exception>
+    public HipMemoryInfo GetMemoryInfo()
+    {
+        ThrowIfDisposed();
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemGetInfo(out UIntPtr freeBytes, out UIntPtr totalBytes), "hipMemGetInfo");
+        return new HipMemoryInfo(freeBytes.ToUInt64(), totalBytes.ToUInt64());
+    }
+
+    /// <summary>
+    /// 在当前设备分配二维 pitched memory；宽高均以 <typeparamref name="T"/> 元素为单位 / Allocates two-dimensional pitched memory on the current device; width and height are measured in <typeparamref name="T"/> elements.
+    /// </summary>
+    /// <typeparam name="T">非托管元素类型 / Unmanaged element type.</typeparam>
+    /// <param name="width">元素宽度，必须大于零 / Width in elements; must be positive.</param>
+    /// <param name="height">元素高度，必须大于零 / Height in elements; must be positive.</param>
+    /// <returns>独占 allocation 的 owner / Owner that exclusively owns the allocation.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">维度为零或 byte/地址尺寸溢出 / A dimension is zero or a byte/address-size calculation overflows.</exception>
+    /// <exception cref="ObjectDisposedException">Runtime facade 已释放 / The runtime facade is disposed.</exception>
+    /// <exception cref="HipException"><c>hipMallocPitch</c> 失败或 export 缺失 / <c>hipMallocPitch</c> fails or its export is unavailable.</exception>
+    public unsafe HipPitchedDeviceMemory<T> Allocate2D<T>(ulong width, ulong height) where T : unmanaged
+    {
+        ThrowIfDisposed();
+        HipMemoryExtent extent = new(width, height);
+        ulong widthBytes = CheckedElementBytes<T>(width, nameof(width));
+        UIntPtr nativeWidth = HipDeviceMemory.ToUIntPtr(widthBytes, nameof(width));
+        UIntPtr nativeHeight = HipDeviceMemory.ToUIntPtr(height, nameof(height));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
+
+        HipError error = _nativeApi.MallocPitch(out IntPtr pointer, out UIntPtr pitch, nativeWidth, nativeHeight);
+        if (error != HipError.Success && pointer != IntPtr.Zero) ReleasePartialAllocation(pointer);
+        HipCall.ThrowIfFailed(_nativeApi, error, "hipMallocPitch");
+        if (pointer == IntPtr.Zero) throw new InvalidOperationException("hipMallocPitch succeeded but returned a null pointer.");
+        ulong pitchBytes = pitch.ToUInt64();
+        if (pitchBytes < widthBytes)
+        {
+            ReleasePartialAllocation(pointer);
+            throw new InvalidOperationException("hipMallocPitch returned a row pitch smaller than the requested row width.");
+        }
+
+        try
+        {
+            return new HipPitchedDeviceMemory<T>(_nativeApi, pointer, extent, pitchBytes, widthBytes, height, deviceOrdinal);
+        }
+        catch
+        {
+            ReleasePartialAllocation(pointer);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 在当前设备分配三维 pitched memory；各维度均以 <typeparamref name="T"/> 元素为单位 / Allocates three-dimensional pitched memory on the current device; all dimensions are measured in <typeparamref name="T"/> elements.
+    /// </summary>
+    /// <typeparam name="T">非托管元素类型 / Unmanaged element type.</typeparam>
+    /// <param name="width">元素宽度，必须大于零 / Width in elements; must be positive.</param>
+    /// <param name="height">元素高度，必须大于零 / Height in elements; must be positive.</param>
+    /// <param name="depth">元素深度，必须大于零 / Depth in elements; must be positive.</param>
+    /// <returns>独占 allocation 的 owner / Owner that exclusively owns the allocation.</returns>
+    /// <exception cref="ArgumentOutOfRangeException">维度为零或 byte/地址尺寸溢出 / A dimension is zero or a byte/address-size calculation overflows.</exception>
+    /// <exception cref="ObjectDisposedException">Runtime facade 已释放 / The runtime facade is disposed.</exception>
+    /// <exception cref="HipException"><c>hipMalloc3D</c> 失败或 export 缺失 / <c>hipMalloc3D</c> fails or its export is unavailable.</exception>
+    public unsafe HipPitchedDeviceMemory<T> Allocate3D<T>(ulong width, ulong height, ulong depth) where T : unmanaged
+    {
+        ThrowIfDisposed();
+        HipMemoryExtent extent = new(width, height, depth);
+        ulong widthBytes = CheckedElementBytes<T>(width, nameof(width));
+        HipExtent nativeExtent = new(
+            HipDeviceMemory.ToUIntPtr(widthBytes, nameof(width)),
+            HipDeviceMemory.ToUIntPtr(height, nameof(height)),
+            HipDeviceMemory.ToUIntPtr(depth, nameof(depth)));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
+
+        HipError error = _nativeApi.Malloc3D(out HipPitchedPtr pitched, nativeExtent);
+        if (error != HipError.Success && pitched.Address != IntPtr.Zero) ReleasePartialAllocation(pitched.Address);
+        HipCall.ThrowIfFailed(_nativeApi, error, "hipMalloc3D");
+        if (pitched.Address == IntPtr.Zero) throw new InvalidOperationException("hipMalloc3D succeeded but returned a null pointer.");
+        ulong pitchBytes = pitched.Pitch.ToUInt64();
+        ulong xSizeBytes = pitched.XSize.ToUInt64();
+        ulong ySize = pitched.YSize.ToUInt64();
+        if (pitchBytes < widthBytes || xSizeBytes < widthBytes || ySize < height)
+        {
+            ReleasePartialAllocation(pitched.Address);
+            throw new InvalidOperationException("hipMalloc3D returned a pitched extent smaller than the requested extent.");
+        }
+
+        try
+        {
+            return new HipPitchedDeviceMemory<T>(_nativeApi, pitched.Address, extent, pitchBytes, xSizeBytes, ySize, deviceOrdinal);
+        }
+        catch
+        {
+            ReleasePartialAllocation(pitched.Address);
+            throw;
+        }
+    }
+
+    /// <summary>
+    /// 释放此轻量 Runtime facade；已返回的独立资源 owner 保持有效 / Disposes this lightweight Runtime facade; independent resource owners already returned remain valid.
+    /// </summary>
+    public void Dispose() => Interlocked.Exchange(ref _disposeState, 1);
+
+    private static unsafe ulong CheckedElementBytes<T>(ulong elementCount, string parameterName) where T : unmanaged
+    {
+        try
+        {
+            ulong result = checked(elementCount * (ulong)sizeof(T));
+            HipDeviceMemory.ToUIntPtr(result, parameterName);
+            return result;
+        }
+        catch (OverflowException)
+        {
+            throw new ArgumentOutOfRangeException(parameterName, "The element byte length overflows UInt64.");
+        }
+    }
+
+    private void ReleasePartialAllocation(IntPtr pointer)
+    {
+        var partial = new HipDeviceMemoryHandle(_nativeApi, pointer);
+        if (partial.ReleaseChecked() == HipError.Success) partial.Dispose();
+    }
+
+    private void ThrowIfDisposed()
+    {
+        if (Volatile.Read(ref _disposeState) != 0) throw new ObjectDisposedException(nameof(HipRuntime));
+    }
 }

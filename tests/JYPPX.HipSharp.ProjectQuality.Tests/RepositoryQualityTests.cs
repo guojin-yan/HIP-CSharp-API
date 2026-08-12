@@ -80,7 +80,10 @@ public sealed class RepositoryQualityTests
             "hipGraphLaunch", "hipGraphExecDestroy",
             "hipStreamCreateWithFlags", "hipStreamDestroy", "hipStreamSynchronize", "hipStreamQuery",
             "hipEventCreateWithFlags", "hipEventDestroy", "hipEventRecord", "hipEventSynchronize", "hipEventQuery", "hipEventElapsedTime",
-            "hipMalloc", "hipFree", "hipMemcpy", "hipMemcpyAsync", "hipHostMalloc", "hipHostFree", "hipDeviceSynchronize",
+            "hipMalloc", "hipMemGetInfo", "hipMallocPitch", "hipMalloc3D", "hipFree", "hipMemcpy", "hipMemcpyAsync",
+            "hipMemset", "hipMemsetAsync", "hipMemset2D", "hipMemset2DAsync", "hipMemset3D", "hipMemset3DAsync",
+            "hipMemcpy2D", "hipMemcpy2DAsync", "hipMemcpy3D", "hipMemcpy3DAsync",
+            "hipHostMalloc", "hipHostFree", "hipDeviceSynchronize",
             "hipGetErrorName", "hipGetErrorString", "hipModuleLoadData", "hipModuleUnload", "hipModuleGetFunction",
             "hipModuleLaunchKernel", "hiprtcVersion", "hiprtcGetErrorString", "hiprtcCreateProgram",
             "hiprtcDestroyProgram", "hiprtcCompileProgram", "hiprtcGetProgramLogSize", "hiprtcGetProgramLog",
@@ -97,14 +100,14 @@ public sealed class RepositoryQualityTests
             Regex.IsMatch(header.GetProperty("sha256").GetString()!, "^[0-9A-F]{64}$", RegexOptions.CultureInvariant)));
         Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
             header.GetProperty("source").GetString()!.Contains("/ROCm/HIP/", StringComparison.Ordinal)));
-        Assert.AreEqual(55, expectedEntryPoints.Length);
+        Assert.AreEqual(68, expectedEntryPoints.Length);
         Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
         CollectionAssert.AreEqual(
             expectedEntryPoints,
             functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
-        Assert.AreEqual(15, functions.EnumerateArray().Count(function => function.GetProperty("optional").GetBoolean()));
+        Assert.AreEqual(28, functions.EnumerateArray().Count(function => function.GetProperty("optional").GetBoolean()));
         Assert.AreEqual(40, functions.EnumerateArray().Count(function => !function.GetProperty("optional").GetBoolean()));
-        Assert.AreEqual(46, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
+        Assert.AreEqual(59, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
         Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
         string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs"));

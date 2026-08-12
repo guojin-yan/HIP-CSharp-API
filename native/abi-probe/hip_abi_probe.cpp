@@ -38,9 +38,22 @@ static_assert(std::is_same<decltype(&hipGraphInstantiateWithFlags), hipError_t (
 static_assert(std::is_same<decltype(&hipGraphLaunch), hipError_t (*)(hipGraphExec_t, hipStream_t)>::value, "hipGraphLaunch signature mismatch");
 static_assert(std::is_same<decltype(&hipGraphExecDestroy), hipError_t (*)(hipGraphExec_t)>::value, "hipGraphExecDestroy signature mismatch");
 static_assert(std::is_same<decltype(&hipMalloc), hipError_t (*)(void**, std::size_t)>::value, "hipMalloc signature mismatch");
+static_assert(std::is_same<decltype(&hipMemGetInfo), hipError_t (*)(std::size_t*, std::size_t*)>::value, "hipMemGetInfo signature mismatch");
+static_assert(std::is_same<decltype(&hipMallocPitch), hipError_t (*)(void**, std::size_t*, std::size_t, std::size_t)>::value, "hipMallocPitch signature mismatch");
+static_assert(std::is_same<decltype(&hipMalloc3D), hipError_t (*)(hipPitchedPtr*, hipExtent)>::value, "hipMalloc3D signature mismatch");
 static_assert(std::is_same<decltype(&hipFree), hipError_t (*)(void*)>::value, "hipFree signature mismatch");
 static_assert(std::is_same<decltype(&hipMemcpy), hipError_t (*)(void*, const void*, std::size_t, hipMemcpyKind)>::value, "hipMemcpy signature mismatch");
 static_assert(std::is_same<decltype(&hipMemcpyAsync), hipError_t (*)(void*, const void*, std::size_t, hipMemcpyKind, hipStream_t)>::value, "hipMemcpyAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipMemset), hipError_t (*)(void*, int, std::size_t)>::value, "hipMemset signature mismatch");
+static_assert(std::is_same<decltype(&hipMemsetAsync), hipError_t (*)(void*, int, std::size_t, hipStream_t)>::value, "hipMemsetAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipMemset2D), hipError_t (*)(void*, std::size_t, int, std::size_t, std::size_t)>::value, "hipMemset2D signature mismatch");
+static_assert(std::is_same<decltype(&hipMemset2DAsync), hipError_t (*)(void*, std::size_t, int, std::size_t, std::size_t, hipStream_t)>::value, "hipMemset2DAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipMemset3D), hipError_t (*)(hipPitchedPtr, int, hipExtent)>::value, "hipMemset3D signature mismatch");
+static_assert(std::is_same<decltype(&hipMemset3DAsync), hipError_t (*)(hipPitchedPtr, int, hipExtent, hipStream_t)>::value, "hipMemset3DAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipMemcpy2D), hipError_t (*)(void*, std::size_t, const void*, std::size_t, std::size_t, std::size_t, hipMemcpyKind)>::value, "hipMemcpy2D signature mismatch");
+static_assert(std::is_same<decltype(&hipMemcpy2DAsync), hipError_t (*)(void*, std::size_t, const void*, std::size_t, std::size_t, std::size_t, hipMemcpyKind, hipStream_t)>::value, "hipMemcpy2DAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipMemcpy3D), hipError_t (*)(const hipMemcpy3DParms*)>::value, "hipMemcpy3D signature mismatch");
+static_assert(std::is_same<decltype(&hipMemcpy3DAsync), hipError_t (*)(const hipMemcpy3DParms*, hipStream_t)>::value, "hipMemcpy3DAsync signature mismatch");
 static_assert(std::is_same<decltype(&hipHostMalloc), hipError_t (*)(void**, std::size_t, unsigned int)>::value, "hipHostMalloc signature mismatch");
 static_assert(std::is_same<decltype(&hipHostFree), hipError_t (*)(void*)>::value, "hipHostFree signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceSynchronize), hipError_t (*)()>::value, "hipDeviceSynchronize signature mismatch");
@@ -106,6 +119,20 @@ int main()
         "  \"dim3OffsetX\": %zu,\n"
         "  \"dim3OffsetY\": %zu,\n"
         "  \"dim3OffsetZ\": %zu,\n"
+        "  \"hipPosSize\": %zu,\n"
+        "  \"hipPosAlignment\": %zu,\n"
+        "  \"hipPitchedPtrSize\": %zu,\n"
+        "  \"hipPitchedPtrAlignment\": %zu,\n"
+        "  \"hipMemcpy3DParmsSize\": %zu,\n"
+        "  \"hipMemcpy3DParmsAlignment\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetSrcArray\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetSrcPos\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetSrcPtr\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetDstArray\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetDstPos\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetDstPtr\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetExtent\": %zu,\n"
+        "  \"hipMemcpy3DParmsOffsetKind\": %zu,\n"
         "  \"hipSuccess\": %d,\n"
         "  \"hiprtcSuccess\": %d,\n"
         "  \"hiprtcCompilation\": %d,\n"
@@ -151,6 +178,20 @@ int main()
         offsetof(dim3, x),
         offsetof(dim3, y),
         offsetof(dim3, z),
+        sizeof(hipPos),
+        alignof(hipPos),
+        sizeof(hipPitchedPtr),
+        alignof(hipPitchedPtr),
+        sizeof(hipMemcpy3DParms),
+        alignof(hipMemcpy3DParms),
+        offsetof(hipMemcpy3DParms, srcArray),
+        offsetof(hipMemcpy3DParms, srcPos),
+        offsetof(hipMemcpy3DParms, srcPtr),
+        offsetof(hipMemcpy3DParms, dstArray),
+        offsetof(hipMemcpy3DParms, dstPos),
+        offsetof(hipMemcpy3DParms, dstPtr),
+        offsetof(hipMemcpy3DParms, extent),
+        offsetof(hipMemcpy3DParms, kind),
         static_cast<int>(hipSuccess),
         static_cast<int>(HIPRTC_SUCCESS),
         static_cast<int>(HIPRTC_ERROR_COMPILATION),

@@ -613,6 +613,59 @@
       ]
     },
     {
+      "managedName": "MemGetInfo",
+      "entryPoint": "hipMemGetInfo",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "查询当前设备的可用和总显存",
+      "summaryEn": "Queries free and total memory for the current device",
+      "parameters": [
+        { "declaration": "out UIntPtr freeBytes", "name": "freeBytes", "direction": "out", "ownership": "caller" },
+        { "declaration": "out UIntPtr totalBytes", "name": "totalBytes", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "MallocPitch",
+      "entryPoint": "hipMallocPitch",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "分配二维 pitched device memory",
+      "summaryEn": "Allocates two-dimensional pitched device memory",
+      "parameters": [
+        { "declaration": "out IntPtr pointer", "name": "pointer", "direction": "out", "ownership": "caller" },
+        { "declaration": "out UIntPtr pitch", "name": "pitch", "direction": "out", "ownership": "caller" },
+        { "declaration": "UIntPtr widthBytes", "name": "widthBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr height", "name": "height", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "Malloc3D",
+      "entryPoint": "hipMalloc3D",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "分配三维 pitched device memory",
+      "summaryEn": "Allocates three-dimensional pitched device memory",
+      "parameters": [
+        { "declaration": "out HipPitchedPtr pitchedPointer", "name": "pitchedPointer", "direction": "out", "ownership": "caller" },
+        { "declaration": "HipExtent extent", "name": "extent", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
       "managedName": "Free",
       "entryPoint": "hipFree",
       "library": "amdhip64",
@@ -664,6 +717,199 @@
         { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed-call" },
         { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
         { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "Memset",
+      "entryPoint": "hipMemset",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "同步设置线性 device memory 字节",
+      "summaryEn": "Sets bytes in linear device memory synchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "int value", "name": "value", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "MemsetAsync",
+      "entryPoint": "hipMemsetAsync",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "异步设置线性 device memory 字节",
+      "summaryEn": "Sets bytes in linear device memory asynchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "int value", "name": "value", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "Memset2D",
+      "entryPoint": "hipMemset2D",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "同步设置二维 pitched device memory",
+      "summaryEn": "Sets two-dimensional pitched device memory synchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr pitch", "name": "pitch", "direction": "in", "ownership": "value" },
+        { "declaration": "int value", "name": "value", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr widthBytes", "name": "widthBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr height", "name": "height", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "Memset2DAsync",
+      "entryPoint": "hipMemset2DAsync",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "异步设置二维 pitched device memory",
+      "summaryEn": "Sets two-dimensional pitched device memory asynchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr pitch", "name": "pitch", "direction": "in", "ownership": "value" },
+        { "declaration": "int value", "name": "value", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr widthBytes", "name": "widthBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr height", "name": "height", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "Memset3D",
+      "entryPoint": "hipMemset3D",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "同步设置三维 pitched device memory",
+      "summaryEn": "Sets three-dimensional pitched device memory synchronously",
+      "parameters": [
+        { "declaration": "HipPitchedPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "int value", "name": "value", "direction": "in", "ownership": "value" },
+        { "declaration": "HipExtent extent", "name": "extent", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "Memset3DAsync",
+      "entryPoint": "hipMemset3DAsync",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "异步设置三维 pitched device memory",
+      "summaryEn": "Sets three-dimensional pitched device memory asynchronously",
+      "parameters": [
+        { "declaration": "HipPitchedPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "int value", "name": "value", "direction": "in", "ownership": "value" },
+        { "declaration": "HipExtent extent", "name": "extent", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "Memcpy2D",
+      "entryPoint": "hipMemcpy2D",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "同步复制二维 pitched memory",
+      "summaryEn": "Copies two-dimensional pitched memory synchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "out", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr destinationPitch", "name": "destinationPitch", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr sourcePitch", "name": "sourcePitch", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr widthBytes", "name": "widthBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr height", "name": "height", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "Memcpy2DAsync",
+      "entryPoint": "hipMemcpy2DAsync",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "异步复制二维 pitched memory",
+      "summaryEn": "Copies two-dimensional pitched memory asynchronously",
+      "parameters": [
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "out", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr destinationPitch", "name": "destinationPitch", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr sourcePitch", "name": "sourcePitch", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr widthBytes", "name": "widthBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr height", "name": "height", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "Memcpy3D",
+      "entryPoint": "hipMemcpy3D",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "同步复制三维 pitched memory",
+      "summaryEn": "Copies three-dimensional pitched memory synchronously",
+      "parameters": [
+        { "declaration": "ref HipMemcpy3DParameters parameters", "name": "parameters", "direction": "inout", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "Memcpy3DAsync",
+      "entryPoint": "hipMemcpy3DAsync",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "异步复制三维 pitched memory",
+      "summaryEn": "Copies three-dimensional pitched memory asynchronously",
+      "parameters": [
+        { "declaration": "ref HipMemcpy3DParameters parameters", "name": "parameters", "direction": "inout", "ownership": "borrowed-call" },
         { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
       ]
     },

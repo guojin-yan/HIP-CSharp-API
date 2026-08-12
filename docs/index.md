@@ -13,5 +13,6 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。manage
 - [HIPRTC VectorAdd guide / HIPRTC VectorAdd 指南](guides/hiprtc-vectoradd.md)
 - [Linux runtime package audit / Linux runtime 包审计](guides/linux-runtime-package.md)
 - [Advanced HIP APIs / HIP 高级 API](guides/advanced-apis.md)
+- [Pitched memory and 2D/3D copy / Pitched memory 与 2D/3D copy](guides/pitched-memory.md)
 - [Windows runtime static audit / Windows Runtime 静态审计](guides/windows-runtime-static-audit.md)
 - [API reference / API 参考](xref:JYPPX.HipSharp)
