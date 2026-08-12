@@ -55,6 +55,10 @@ bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
 core_version="$(dotnet msbuild ./src/JYPPX.HipSharp/JYPPX.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion)"
 core_version="${core_version//$'\r'/}"
 bash ./eng/build.sh Release "${core_version}" | tee "${evidence_dir}/managed-gate.txt"
+pwsh -NoProfile -File ./eng/generate-interop.ps1 extract-headers \
+  -HeaderRoot /opt/rocm/include \
+  -Check \
+  | tee "${evidence_dir}/complete-header-coverage.txt"
 
 hip_library="$(readlink -f /opt/rocm/lib/libamdhip64.so)"
 hiprtc_candidate=""
@@ -80,6 +84,17 @@ python3 ./native/abi-probe/verify_symbols.py \
   --library-name hiprtc \
   --manifest ./eng/interop/interop-manifest.json \
   --output "${evidence_dir}/hiprtc-symbol-evidence.json"
+python3 ./native/abi-probe/verify_symbols.py \
+  --library "${hip_library}" \
+  --library-name amdhip64 \
+  --manifest ./eng/interop/complete-api-model.json \
+  --allow-missing hipExternalMemoryGetMappedMipmappedArray \
+  --output "${evidence_dir}/complete-runtime-symbol-evidence.json"
+python3 ./native/abi-probe/verify_symbols.py \
+  --library "${hiprtc_library}" \
+  --library-name hiprtc \
+  --manifest ./eng/interop/complete-api-model.json \
+  --output "${evidence_dir}/complete-hiprtc-symbol-evidence.json"
 normalized_manifest_hash="$(sha256sum ./eng/interop/normalized-model.json | awk '{print toupper($1)}')"
 hipcc -std=c++14 ./native/abi-probe/hip_abi_probe.cpp \
   "-DHIPSHARP_NORMALIZED_MANIFEST_SHA256=\"${normalized_manifest_hash}\"" \
@@ -128,6 +143,29 @@ if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for it
 print("M6 ABI evidence schema fields present")
 PY
 
+python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+evidence_dir = Path(os.environ["HIPSHARP_CLOUD_EVIDENCE_DIR"])
+runtime = json.loads((evidence_dir / "complete-runtime-symbol-evidence.json").read_text())
+rtc = json.loads((evidence_dir / "complete-hiprtc-symbol-evidence.json").read_text())
+expected_runtime_exception = ["hipExternalMemoryGetMappedMipmappedArray"]
+if not runtime.get("completeModel") or runtime.get("expectedCount") != 459:
+    raise SystemExit("Complete Runtime evidence must contain all 459 header declarations")
+if runtime.get("foundCount") != 458 or runtime.get("allowedMissing") != expected_runtime_exception:
+    raise SystemExit("Complete Runtime evidence must contain 458 exports and the one reviewed Linux exception")
+missing_runtime = sorted(item["entryPoint"] for item in runtime["symbols"] if not item["found"])
+if missing_runtime != expected_runtime_exception:
+    raise SystemExit("Unexpected missing Runtime exports: " + ", ".join(missing_runtime))
+if not rtc.get("completeModel") or rtc.get("expectedCount") != 18 or rtc.get("foundCount") != 18:
+    raise SystemExit("Complete HIPRTC evidence must contain all 18 exports")
+if any(not item["found"] for item in rtc["symbols"]):
+    raise SystemExit("Complete HIPRTC evidence contains a missing export")
+print("Complete HIP 7.2.1 symbol evidence passed: Runtime=458/459 (one reviewed Linux exception), HIPRTC=18/18")
+PY
+
 if ! command -v pwsh >/dev/null 2>&1; then
   echo "PowerShell is required for the release package audit (eng/verify-package.ps1)." >&2
   exit 1
@@ -174,5 +212,5 @@ dotnet run --project ./samples/HipAdvancedFeatures/HipAdvancedFeatures.csproj \
 
 bash ./tools/radeon/cloud-stress.sh "${actual_commit}"
 
-echo "Radeon Cloud M6 validation passed for ${actual_commit}."
+echo "Radeon Cloud complete API validation passed for ${actual_commit}."
 echo "Evidence directory: ${evidence_dir}"

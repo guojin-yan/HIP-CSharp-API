@@ -30,9 +30,9 @@ Pointer, callback, string-buffer, and pointer-to-structure parameters are expose
 
 指针、回调、字符串缓冲区和复杂结构体指针参数统一暴露为 `IntPtr`；缓冲区的分配、pin、编码和释放由调用方负责。按值传递的 ABI 结构在 `JYPPX.HipSharp.Types` 中提供了明确布局：`HipDim3`、`HipExtent`、`HipPitchedPtr`、`HipMemLocation`、`HipIpcMemHandle` 和 `HipIpcEventHandle`。
 
-The raw methods do not add synchronization or ownership. A successful native return value only means that HIP accepted the call. Use the managed owners when a lifecycle contract matters.
+The raw methods do not add synchronization or ownership. A successful native return value only means that HIP accepted the call. A header declaration also does not guarantee that every platform library exports it; an unavailable entry point raises the normal .NET native entry-point exception. Use the managed owners when a lifecycle contract matters.
 
-原生方法不额外执行同步或所有权管理。原生返回成功只表示 HIP 接受了调用；需要生命周期契约时应使用托管 owner。
+原生方法不额外执行同步或所有权管理。原生返回成功只表示 HIP 接受了调用；头文件声明也不保证每个平台的动态库都导出该入口，缺少入口时会抛出标准 .NET 原生入口异常。需要生命周期契约时应使用托管 owner。
 
 ## Reproducible generation / 可重复生成
 

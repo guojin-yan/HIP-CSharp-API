@@ -304,6 +304,10 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(cloudGate, "HIPSHARP_CLOUD_EVIDENCE_DIR");
         StringAssert.Contains(cloudGate, "cloud-stress.sh \"${actual_commit}\"");
         StringAssert.Contains(cloudGate, "-getProperty:HipSharpCoreVersion");
+        StringAssert.Contains(cloudGate, "complete-api-model.json");
+        StringAssert.Contains(cloudGate, "hipExternalMemoryGetMappedMipmappedArray");
+        StringAssert.Contains(cloudGate, "Runtime=458/459");
+        StringAssert.Contains(cloudGate, "HIPRTC=18/18");
         Assert.IsFalse(cloudGate.Contains("json.load(sys.stdin)", StringComparison.Ordinal));
 
         string stressGatePath = Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-stress.sh");
