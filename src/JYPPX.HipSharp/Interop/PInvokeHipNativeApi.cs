@@ -208,6 +208,81 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
         return error;
     }
 
+    public HipError GraphCreate(out IntPtr graph, uint flags)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphCreate(out value, flags));
+        graph = value;
+        return error;
+    }
+
+    public HipError GraphAddEmptyNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphAddEmptyNode(out value, graph, dependencies, dependencyCount));
+        node = value;
+        return error;
+    }
+
+    public HipError GraphAddDependencies(IntPtr graph, IntPtr from, IntPtr to, UIntPtr dependencyCount) =>
+        Optional(() => HipNativeMethods.GraphAddDependencies(graph, from, to, dependencyCount));
+
+    public HipError GraphRemoveDependencies(IntPtr graph, IntPtr from, IntPtr to, UIntPtr dependencyCount) =>
+        Optional(() => HipNativeMethods.GraphRemoveDependencies(graph, from, to, dependencyCount));
+
+    public HipError GraphAddKernelNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphAddKernelNode(out value, graph, dependencies, dependencyCount, parameters));
+        node = value;
+        return error;
+    }
+
+    public HipError GraphExecKernelNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters) =>
+        Optional(() => HipNativeMethods.GraphExecKernelNodeSetParams(graphExec, node, parameters));
+
+    public HipError GraphAddMemcpyNode1D(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphAddMemcpyNode1D(out value, graph, dependencies, dependencyCount, destination, source, byteCount, kind));
+        node = value;
+        return error;
+    }
+
+    public HipError GraphExecMemcpyNodeSetParams1D(IntPtr graphExec, IntPtr node, IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind) =>
+        Optional(() => HipNativeMethods.GraphExecMemcpyNodeSetParams1D(graphExec, node, destination, source, byteCount, kind));
+
+    public HipError GraphAddMemsetNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphAddMemsetNode(out value, graph, dependencies, dependencyCount, parameters));
+        node = value;
+        return error;
+    }
+
+    public HipError GraphExecMemsetNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters) =>
+        Optional(() => HipNativeMethods.GraphExecMemsetNodeSetParams(graphExec, node, parameters));
+
+    public HipError GraphAddMemAllocNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphAddMemAllocNode(out value, graph, dependencies, dependencyCount, parameters));
+        node = value;
+        return error;
+    }
+
+    public HipError GraphAddMemFreeNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr devicePointer)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.GraphAddMemFreeNode(out value, graph, dependencies, dependencyCount, devicePointer));
+        node = value;
+        return error;
+    }
+
+    public HipError GraphUpload(IntPtr graphExec, IntPtr stream) => Optional(() => HipNativeMethods.GraphUpload(graphExec, stream));
+
+    public HipError GraphDestroyNode(IntPtr node) => Optional(() => HipNativeMethods.GraphDestroyNode(node));
+
     public HipError GraphDestroy(IntPtr graph) => Optional(() => HipNativeMethods.GraphDestroy(graph));
 
     public HipError GraphInstantiateWithFlags(out IntPtr graphExec, IntPtr graph, ulong flags)

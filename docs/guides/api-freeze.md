@@ -1,6 +1,6 @@
 # 0.9 public API freeze review / 0.9 公开 API 冻结审查
 
-The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYPPX.HipSharp.0.9.0.txt`. The automated gate compares that baseline with every one of the 15 target-framework assemblies and checks bilingual Chinese/English XML summaries. Package validation provides a second compatibility check during packing. Its only suppression covers the BCL-provided `ISpanFormattable` enum interface introduced in .NET 8, not a HipSharp-declared contract.
+The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYPPX.HipSharp.0.9.0.txt`. The automated gate compares that baseline with every one of the 15 target-framework assemblies and checks bilingual Chinese/English XML summaries. Package validation provides a second compatibility check during packing. Its only suppression category covers the BCL-provided `ISpanFormattable` enum interface introduced in .NET 8, not a HipSharp-declared contract.
 
 0.9.0 候选冻结 `eng/public-api/JYPPX.HipSharp.0.9.0.txt` 中记录的导出面。自动门禁会比较该基线与全部 15 个目标框架程序集，并检查中英文双语 XML summary；打包时的 package validation 提供第二层兼容性检查。
 
@@ -26,7 +26,7 @@ The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYP
 | Module and kernel | `HipModule` owns the native module; kernels are valid only while that module remains alive. Submitted work retains the module until its stream completes. |
 | HIPRTC | `HipRtcProgram` owns the compiler program. A successful compilation copies the code object into managed memory; the compilation result no longer depends on program lifetime. Disposal and failure paths release the native program. |
 | Peer access | `HipPeerAccess` represents one ordered device pair. It disables access only when that owner enabled it; pre-existing enablement is never revoked. Copies retain both allocations through the accessing-device stream. |
-| Graphs | Capture retains wrapper-owned resources. A graph executable has an independent lease over captured resources, and a launch retains the executable until its target stream completes. Destroying the source graph does not invalidate a live executable. |
+| Graphs | Capture retains wrapper-owned resources. Explicit graphs expose graph-owned node identities, a sealed managed DAG, typed kernel/copy/memset nodes, and graph-local allocation/free ordering. Each executable has an independent resource lease; launch retains it until stream completion, and destroying the source graph does not invalidate a live executable. Per-node executable updates are rejected during pending launch and preserve old parameters on native failure. |
 
 Owners serialize their own mutable bookkeeping, but they are not advertised as generally thread-safe. Concurrent read-only inspection is not a guarantee that operation and disposal may race. Callers must coordinate lifecycle transitions and must not dispose an owner while another thread is submitting work through it.
 

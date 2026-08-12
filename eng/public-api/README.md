@@ -16,4 +16,4 @@ The gate compares `net10.0` with the committed snapshot and confirms that all 15
 
 `categories.json` classifies the exported surface as formal or diagnostic and records sample-only and internal roots. A baseline update must be reviewed together with `docs/releases/0.9.0-rc.md`; it is not a routine generated-file refresh.
 
-NuGet package validation separately checks compatible-framework and compatible-TFM pairs. `src/JYPPX.HipSharp/CompatibilitySuppressions.xml` narrows its only suppression to `CP0008` for the `ISpanFormattable` interface added by the .NET 8 runtime to enums; that interface is not declared by HipSharp.
+NuGet package validation separately checks compatible-framework and compatible-TFM pairs. `src/JYPPX.HipSharp/CompatibilitySuppressions.xml` narrows its only suppression category to `CP0008` entries for the `ISpanFormattable` interface added by the .NET 8 runtime to each public enum; that interface is not declared by HipSharp.

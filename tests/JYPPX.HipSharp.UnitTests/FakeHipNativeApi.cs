@@ -1,6 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.Linq;
 using System.Runtime.InteropServices;
+using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Interop;
 using JYPPX.HipSharp.Memory;
 using JYPPX.HipSharp.Types;
@@ -14,6 +17,10 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly HashSet<IntPtr> _events = new();
     private readonly HashSet<IntPtr> _graphs = new();
     private readonly HashSet<IntPtr> _graphExecs = new();
+    private readonly Dictionary<IntPtr, FakeGraphState> _graphStates = new();
+    private readonly Dictionary<IntPtr, FakeGraphState> _graphExecStates = new();
+    private readonly Dictionary<IntPtr, int> _graphAllocationPointers = new();
+    private readonly HashSet<IntPtr> _activeGraphAllocations = new();
     private readonly HashSet<IntPtr> _capturingStreams = new();
     private readonly Dictionary<IntPtr, List<Action>> _pendingStreamActions = new();
     private readonly HashSet<IntPtr> _memoryPools = new();
@@ -23,6 +30,9 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly Dictionary<(IntPtr Pool, int Device), HipMemoryPoolAccess> _poolAccess = new();
     private readonly Dictionary<IntPtr, IntPtr> _allocationPools = new();
     private int _nextPool = 0x9000;
+    private int _nextGraph = 0x7000;
+    private int _nextGraphExec = 0x8000;
+    private int _nextGraphNode = 0xB000;
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -86,7 +96,19 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal HipError GraphInstantiateResult { get; set; } = HipError.Success;
 
+    internal HipError GraphCreateResult { get; set; } = HipError.Success;
+
+    internal HipError GraphNodeAddResult { get; set; } = HipError.Success;
+
+    internal HipError GraphDependencyResult { get; set; } = HipError.Success;
+
+    internal HipError GraphUploadResult { get; set; } = HipError.Success;
+
+    internal HipError GraphNodeUpdateResult { get; set; } = HipError.Success;
+
     internal HipError GraphLaunchResult { get; set; } = HipError.Success;
+
+    internal HipError GraphDestroyResult { get; set; } = HipError.Success;
 
     internal HipError GraphExecDestroyResult { get; set; } = HipError.Success;
 
@@ -107,6 +129,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal bool ReturnGraphOnEndCaptureFailure { get; set; }
 
     internal bool ReturnGraphExecOnInstantiateFailure { get; set; }
+
+    internal bool ReturnGraphOnCreateFailure { get; set; }
+
+    internal bool ReturnNodeOnAddFailure { get; set; }
+
+    internal bool ReturnNullGraphOnCreateSuccess { get; set; }
+
+    internal bool ReturnNullNodeOnAddSuccess { get; set; }
 
     internal HipError EventSynchronizeResult { get; set; } = HipError.Success;
 
@@ -189,6 +219,48 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int GraphExecDestroyCount { get; private set; }
 
     internal int GraphLaunchCount { get; private set; }
+
+    internal int GraphCreateCount { get; private set; }
+
+    internal int GraphNodeCreateCount { get; private set; }
+
+    internal int GraphNodeDestroyCount { get; private set; }
+
+    internal int GraphUploadCount { get; private set; }
+
+    internal int GraphNodeUpdateCount { get; private set; }
+
+    internal int GraphAllocationExecutionCount { get; private set; }
+
+    internal int GraphFreeExecutionCount { get; private set; }
+
+    internal IList<string> LastGraphExecutionTrace { get; } = new List<string>();
+
+    internal int ActiveGraphAllocationCount => _activeGraphAllocations.Count;
+
+    internal int LastGraphNodeCount => _graphStates.Count == 0 ? 0 : _graphStates.Values.Last().Nodes.Count;
+
+    internal int LastGraphEdgeCount => _graphStates.Count == 0 ? 0 : _graphStates.Values.Last().EdgeCount;
+
+    internal int MaximumGraphNodeCount => _graphStates.Count == 0 ? 0 : _graphStates.Values.Max(state => state.Nodes.Count);
+
+    internal int MaximumGraphEdgeCount => _graphStates.Count == 0 ? 0 : _graphStates.Values.Max(state => state.EdgeCount);
+
+    internal HipKernelNodeParameters LastGraphKernelParameters { get; private set; }
+
+    internal IList<long> LastGraphKernelArgumentValues { get; } = new List<long>();
+
+    internal ulong LastGraphCopyBytes { get; private set; }
+
+    internal HipMemoryCopyKind LastGraphCopyKind { get; private set; }
+
+    internal HipMemsetNodeParameters LastGraphMemsetParameters { get; private set; }
+
+    internal ulong LastGraphAllocationBytes { get; private set; }
+
+    internal int LastGraphAllocationAccessCount { get; private set; }
+
+    internal int LastGraphAllocationDevice { get; private set; }
 
     internal ulong FreeMemoryBytes { get; set; } = 768UL * 1024 * 1024;
 
@@ -602,19 +674,197 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         {
             if (ReturnGraphOnEndCaptureFailure)
             {
-                graph = new IntPtr(0x7000 + _graphs.Count + 1);
+                graph = new IntPtr(_nextGraph++);
                 _graphs.Add(graph);
+                _graphStates[graph] = new FakeGraphState();
             }
             return EndCaptureResult;
         }
-        graph = new IntPtr(0x7000 + _graphs.Count + 1);
+        graph = new IntPtr(_nextGraph++);
         _graphs.Add(graph);
+        _graphStates[graph] = new FakeGraphState();
         return HipError.Success;
+    }
+
+    public HipError GraphCreate(out IntPtr graph, uint flags)
+    {
+        graph = IntPtr.Zero;
+        if (flags != 0) return HipError.InvalidValue;
+        if (GraphCreateResult != HipError.Success)
+        {
+            if (ReturnGraphOnCreateFailure)
+            {
+                graph = new IntPtr(_nextGraph++);
+                _graphs.Add(graph);
+                _graphStates[graph] = new FakeGraphState();
+            }
+            return GraphCreateResult;
+        }
+        if (ReturnNullGraphOnCreateSuccess) return HipError.Success;
+        graph = new IntPtr(_nextGraph++);
+        _graphs.Add(graph);
+        _graphStates[graph] = new FakeGraphState();
+        GraphCreateCount++;
+        return HipError.Success;
+    }
+
+    public HipError GraphAddEmptyNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount) =>
+        AddGraphNode(out node, graph, dependencies, dependencyCount, new FakeGraphNode(HipGraphNodeType.Empty));
+
+    public HipError GraphAddDependencies(IntPtr graph, IntPtr from, IntPtr to, UIntPtr dependencyCount)
+    {
+        if (!_graphStates.TryGetValue(graph, out FakeGraphState? state)) return HipError.InvalidValue;
+        if (GraphDependencyResult != HipError.Success) return GraphDependencyResult;
+        int count = checked((int)dependencyCount.ToUInt64());
+        for (int index = 0; index < count; index++)
+        {
+            IntPtr prerequisite = Marshal.ReadIntPtr(from, index * IntPtr.Size);
+            IntPtr dependent = Marshal.ReadIntPtr(to, index * IntPtr.Size);
+            if (!state.Nodes.ContainsKey(prerequisite) || !state.Nodes.ContainsKey(dependent) || prerequisite == dependent || state.Dependencies[dependent].Contains(prerequisite)) return HipError.InvalidValue;
+            if (state.DependsOn(prerequisite, dependent)) return HipError.InvalidValue;
+        }
+        for (int index = 0; index < count; index++) state.Dependencies[Marshal.ReadIntPtr(to, index * IntPtr.Size)].Add(Marshal.ReadIntPtr(from, index * IntPtr.Size));
+        return HipError.Success;
+    }
+
+    public HipError GraphRemoveDependencies(IntPtr graph, IntPtr from, IntPtr to, UIntPtr dependencyCount)
+    {
+        if (!_graphStates.TryGetValue(graph, out FakeGraphState? state)) return HipError.InvalidValue;
+        if (GraphDependencyResult != HipError.Success) return GraphDependencyResult;
+        int count = checked((int)dependencyCount.ToUInt64());
+        for (int index = 0; index < count; index++)
+        {
+            IntPtr prerequisite = Marshal.ReadIntPtr(from, index * IntPtr.Size);
+            IntPtr dependent = Marshal.ReadIntPtr(to, index * IntPtr.Size);
+            if (!state.Dependencies.TryGetValue(dependent, out HashSet<IntPtr>? values) || !values.Contains(prerequisite)) return HipError.InvalidValue;
+        }
+        for (int index = 0; index < count; index++) state.Dependencies[Marshal.ReadIntPtr(to, index * IntPtr.Size)].Remove(Marshal.ReadIntPtr(from, index * IntPtr.Size));
+        return HipError.Success;
+    }
+
+    public HipError GraphAddKernelNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters)
+    {
+        HipKernelNodeParameters snapshot = Marshal.PtrToStructure<HipKernelNodeParameters>(parameters);
+        LastGraphKernelParameters = snapshot;
+        ReadGraphKernelArguments(snapshot);
+        return AddGraphNode(out node, graph, dependencies, dependencyCount, new FakeGraphNode(HipGraphNodeType.Kernel) { Kernel = snapshot, KernelArguments = LastGraphKernelArgumentValues.ToArray() });
+    }
+
+    public HipError GraphExecKernelNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters)
+    {
+        if (!TryGetExecNode(graphExec, node, HipGraphNodeType.Kernel, out FakeGraphNode? target)) return HipError.InvalidValue;
+        if (GraphNodeUpdateResult != HipError.Success) return GraphNodeUpdateResult;
+        HipKernelNodeParameters snapshot = Marshal.PtrToStructure<HipKernelNodeParameters>(parameters);
+        LastGraphKernelParameters = snapshot;
+        ReadGraphKernelArguments(snapshot);
+        target!.Kernel = snapshot;
+        target.KernelArguments = LastGraphKernelArgumentValues.ToArray();
+        GraphNodeUpdateCount++;
+        return HipError.Success;
+    }
+
+    public HipError GraphAddMemcpyNode1D(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind)
+    {
+        LastGraphCopyBytes = byteCount.ToUInt64();
+        LastGraphCopyKind = kind;
+        return AddGraphNode(out node, graph, dependencies, dependencyCount, new FakeGraphNode(HipGraphNodeType.MemoryCopy)
+        {
+            Destination = destination,
+            Source = source,
+            ByteCount = LastGraphCopyBytes,
+            CopyKind = kind,
+        });
+    }
+
+    public HipError GraphExecMemcpyNodeSetParams1D(IntPtr graphExec, IntPtr node, IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind)
+    {
+        if (!TryGetExecNode(graphExec, node, HipGraphNodeType.MemoryCopy, out FakeGraphNode? target)) return HipError.InvalidValue;
+        if (GraphNodeUpdateResult != HipError.Success) return GraphNodeUpdateResult;
+        target!.Destination = destination;
+        target.Source = source;
+        target.ByteCount = byteCount.ToUInt64();
+        target.CopyKind = kind;
+        LastGraphCopyBytes = target.ByteCount;
+        LastGraphCopyKind = kind;
+        GraphNodeUpdateCount++;
+        return HipError.Success;
+    }
+
+    public HipError GraphAddMemsetNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters)
+    {
+        HipMemsetNodeParameters snapshot = Marshal.PtrToStructure<HipMemsetNodeParameters>(parameters);
+        LastGraphMemsetParameters = snapshot;
+        return AddGraphNode(out node, graph, dependencies, dependencyCount, new FakeGraphNode(HipGraphNodeType.MemorySet) { Memset = snapshot });
+    }
+
+    public HipError GraphExecMemsetNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters)
+    {
+        if (!TryGetExecNode(graphExec, node, HipGraphNodeType.MemorySet, out FakeGraphNode? target)) return HipError.InvalidValue;
+        if (GraphNodeUpdateResult != HipError.Success) return GraphNodeUpdateResult;
+        target!.Memset = Marshal.PtrToStructure<HipMemsetNodeParameters>(parameters);
+        LastGraphMemsetParameters = target.Memset;
+        GraphNodeUpdateCount++;
+        return HipError.Success;
+    }
+
+    public HipError GraphAddMemAllocNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters)
+    {
+        HipMemoryAllocationNodeParameters snapshot = Marshal.PtrToStructure<HipMemoryAllocationNodeParameters>(parameters);
+        LastGraphAllocationBytes = snapshot.ByteCount.ToUInt64();
+        LastGraphAllocationAccessCount = checked((int)snapshot.AccessDescriptorCount.ToUInt64());
+        LastGraphAllocationDevice = snapshot.PoolProperties.Location.Id;
+        IntPtr pointer = Marshal.AllocHGlobal(checked((int)LastGraphAllocationBytes));
+        Fill(pointer, checked((int)LastGraphAllocationBytes), 0);
+        _graphAllocationPointers[pointer] = checked((int)LastGraphAllocationBytes);
+        snapshot.DevicePointer = pointer;
+        Marshal.StructureToPtr(snapshot, parameters, false);
+        HipError error = AddGraphNode(out node, graph, dependencies, dependencyCount, new FakeGraphNode(HipGraphNodeType.MemoryAllocation) { Destination = pointer, ByteCount = LastGraphAllocationBytes });
+        if (error != HipError.Success && node == IntPtr.Zero)
+        {
+            _graphAllocationPointers.Remove(pointer);
+            Marshal.FreeHGlobal(pointer);
+        }
+        return error;
+    }
+
+    public HipError GraphAddMemFreeNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr devicePointer)
+    {
+        if (!_graphAllocationPointers.ContainsKey(devicePointer))
+        {
+            node = IntPtr.Zero;
+            return HipError.InvalidValue;
+        }
+        return AddGraphNode(out node, graph, dependencies, dependencyCount, new FakeGraphNode(HipGraphNodeType.MemoryFree) { Destination = devicePointer });
+    }
+
+    public HipError GraphUpload(IntPtr graphExec, IntPtr stream)
+    {
+        if (!_graphExecStates.ContainsKey(graphExec) || !_streams.Contains(stream)) return HipError.InvalidValue;
+        if (GraphUploadResult == HipError.Success) GraphUploadCount++;
+        return GraphUploadResult;
+    }
+
+    public HipError GraphDestroyNode(IntPtr node)
+    {
+        foreach (FakeGraphState state in _graphStates.Values)
+        {
+            if (!state.Nodes.TryGetValue(node, out FakeGraphNode? removed)) continue;
+            state.Nodes.Remove(node);
+            state.Dependencies.Remove(node);
+            foreach (HashSet<IntPtr> values in state.Dependencies.Values) values.Remove(node);
+            state.Order.Remove(node);
+            if (removed.Type == HipGraphNodeType.MemoryAllocation && _graphAllocationPointers.Remove(removed.Destination)) Marshal.FreeHGlobal(removed.Destination);
+            GraphNodeDestroyCount++;
+            return HipError.Success;
+        }
+        return HipError.InvalidValue;
     }
 
     public HipError GraphDestroy(IntPtr graph)
     {
+        if (GraphDestroyResult != HipError.Success) return GraphDestroyResult;
         if (!_graphs.Remove(graph)) return HipError.InvalidValue;
+        _graphStates.Remove(graph);
         GraphDestroyCount++;
         return HipError.Success;
     }
@@ -627,20 +877,27 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         {
             if (ReturnGraphExecOnInstantiateFailure)
             {
-                graphExec = new IntPtr(0x8000 + _graphExecs.Count + 1);
+                graphExec = new IntPtr(_nextGraphExec++);
                 _graphExecs.Add(graphExec);
+                _graphExecStates[graphExec] = _graphStates[graph].Clone();
             }
             return GraphInstantiateResult;
         }
-        graphExec = new IntPtr(0x8000 + _graphExecs.Count + 1);
+        graphExec = new IntPtr(_nextGraphExec++);
         _graphExecs.Add(graphExec);
+        _graphExecStates[graphExec] = _graphStates[graph].Clone();
         return HipError.Success;
     }
 
     public HipError GraphLaunch(IntPtr graphExec, IntPtr stream)
     {
-        if (!_graphExecs.Contains(graphExec) || !_streams.Contains(stream)) return HipError.InvalidValue;
-        if (GraphLaunchResult == HipError.Success) GraphLaunchCount++;
+        if (!_graphExecStates.TryGetValue(graphExec, out FakeGraphState? state) || !_streams.Contains(stream)) return HipError.InvalidValue;
+        if (GraphLaunchResult == HipError.Success)
+        {
+            GraphLaunchCount++;
+            FakeGraphState launchSnapshot = state.Clone();
+            QueueStreamAction(stream, () => ExecuteGraph(launchSnapshot));
+        }
         return GraphLaunchResult;
     }
 
@@ -648,6 +905,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     {
         if (GraphExecDestroyResult != HipError.Success) return GraphExecDestroyResult;
         if (!_graphExecs.Remove(graphExec)) return HipError.InvalidValue;
+        _graphExecStates.Remove(graphExec);
         GraphExecDestroyCount++;
         return HipError.Success;
     }
@@ -954,6 +1212,116 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         }
 
         _allocations.Clear();
+        foreach (IntPtr pointer in _graphAllocationPointers.Keys) Marshal.FreeHGlobal(pointer);
+        _graphAllocationPointers.Clear();
+        _activeGraphAllocations.Clear();
+    }
+
+    private HipError AddGraphNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, FakeGraphNode value)
+    {
+        node = IntPtr.Zero;
+        if (!_graphStates.TryGetValue(graph, out FakeGraphState? state)) return HipError.InvalidValue;
+        HashSet<IntPtr> parsed = ReadDependencies(state, dependencies, dependencyCount);
+        if (parsed.Count != checked((int)dependencyCount.ToUInt64())) return HipError.InvalidValue;
+        if (GraphNodeAddResult != HipError.Success)
+        {
+            if (ReturnNodeOnAddFailure)
+            {
+                node = new IntPtr(_nextGraphNode++);
+                state.Add(node, value, parsed);
+            }
+            return GraphNodeAddResult;
+        }
+        if (ReturnNullNodeOnAddSuccess) return HipError.Success;
+        node = new IntPtr(_nextGraphNode++);
+        state.Add(node, value, parsed);
+        GraphNodeCreateCount++;
+        return HipError.Success;
+    }
+
+    private static HashSet<IntPtr> ReadDependencies(FakeGraphState state, IntPtr dependencies, UIntPtr dependencyCount)
+    {
+        int count = checked((int)dependencyCount.ToUInt64());
+        var result = new HashSet<IntPtr>();
+        if (count == 0) return result;
+        if (dependencies == IntPtr.Zero) return result;
+        for (int index = 0; index < count; index++)
+        {
+            IntPtr dependency = Marshal.ReadIntPtr(dependencies, index * IntPtr.Size);
+            if (!state.Nodes.ContainsKey(dependency) || !result.Add(dependency)) return new HashSet<IntPtr>();
+        }
+        return result;
+    }
+
+    private bool TryGetExecNode(IntPtr graphExec, IntPtr node, HipGraphNodeType type, out FakeGraphNode? target)
+    {
+        target = null;
+        return _graphExecStates.TryGetValue(graphExec, out FakeGraphState? state) &&
+            state.Nodes.TryGetValue(node, out target) && target.Type == type;
+    }
+
+    private void ReadGraphKernelArguments(HipKernelNodeParameters parameters)
+    {
+        LastGraphKernelArgumentValues.Clear();
+        for (int index = 0; index < ExpectedKernelPointerArguments.Count; index++)
+        {
+            IntPtr storage = Marshal.ReadIntPtr(parameters.KernelParameters, index * IntPtr.Size);
+            LastGraphKernelArgumentValues.Add(ExpectedKernelPointerArguments[index] ? Marshal.ReadIntPtr(storage).ToInt64() : Marshal.ReadInt32(storage));
+        }
+    }
+
+    private void ExecuteGraph(FakeGraphState state)
+    {
+        LastGraphExecutionTrace.Clear();
+        var completed = new HashSet<IntPtr>();
+        while (completed.Count != state.Nodes.Count)
+        {
+            bool progressed = false;
+            foreach (IntPtr handle in state.Order)
+            {
+                if (completed.Contains(handle) || !state.Dependencies[handle].All(completed.Contains)) continue;
+                ExecuteGraphNode(handle, state.Nodes[handle]);
+                completed.Add(handle);
+                progressed = true;
+            }
+            if (!progressed) throw new InvalidOperationException("Fake graph contains a cycle or missing dependency.");
+        }
+    }
+
+    private void ExecuteGraphNode(IntPtr handle, FakeGraphNode node)
+    {
+        LastGraphExecutionTrace.Add(node.Type + ":" + handle.ToInt64().ToString("X", CultureInfo.InvariantCulture));
+        switch (node.Type)
+        {
+            case HipGraphNodeType.MemoryAllocation:
+                if (!_activeGraphAllocations.Add(node.Destination)) throw new InvalidOperationException("Graph allocation executed twice without a free.");
+                GraphAllocationExecutionCount++;
+                break;
+            case HipGraphNodeType.MemoryFree:
+                if (!_activeGraphAllocations.Remove(node.Destination)) throw new InvalidOperationException("Graph free executed before allocation or more than once.");
+                GraphFreeExecutionCount++;
+                break;
+            case HipGraphNodeType.MemorySet:
+                HipMemsetNodeParameters memset = node.Memset;
+                EnsureGraphPointerUsable(memset.Destination);
+                Fill(memset.Destination, checked((int)memset.Width.ToUInt64()), (byte)memset.Value);
+                break;
+            case HipGraphNodeType.MemoryCopy:
+                EnsureGraphPointerUsable(node.Source);
+                EnsureGraphPointerUsable(node.Destination);
+                CopyBytes(node.Destination, node.Source, checked((int)node.ByteCount));
+                break;
+            case HipGraphNodeType.Kernel:
+            case HipGraphNodeType.Empty:
+                break;
+        }
+    }
+
+    private void EnsureGraphPointerUsable(IntPtr pointer)
+    {
+        if (_allocations.ContainsKey(pointer)) return;
+        if (_graphAllocationPointers.ContainsKey(pointer) && _activeGraphAllocations.Contains(pointer)) return;
+        throw new InvalidOperationException("Graph node used an inactive or unknown pointer.");
     }
 
     private void QueueStreamAction(IntPtr stream, Action action)
@@ -1007,4 +1375,68 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         checked((int)position.X.ToUInt64()) +
         checked((int)position.Y.ToUInt64()) * pitch +
         checked((int)position.Z.ToUInt64()) * slicePitch);
+
+    private sealed class FakeGraphState
+    {
+        internal Dictionary<IntPtr, FakeGraphNode> Nodes { get; } = new();
+        internal Dictionary<IntPtr, HashSet<IntPtr>> Dependencies { get; } = new();
+        internal List<IntPtr> Order { get; } = new();
+        internal int EdgeCount => Dependencies.Values.Sum(values => values.Count);
+
+        internal void Add(IntPtr handle, FakeGraphNode node, HashSet<IntPtr> dependencies)
+        {
+            Nodes.Add(handle, node);
+            Dependencies.Add(handle, new HashSet<IntPtr>(dependencies));
+            Order.Add(handle);
+        }
+
+        internal bool DependsOn(IntPtr node, IntPtr prerequisite)
+        {
+            var pending = new Stack<IntPtr>();
+            var visited = new HashSet<IntPtr>();
+            pending.Push(node);
+            while (pending.Count != 0)
+            {
+                IntPtr current = pending.Pop();
+                if (!visited.Add(current)) continue;
+                foreach (IntPtr dependency in Dependencies[current])
+                {
+                    if (dependency == prerequisite) return true;
+                    pending.Push(dependency);
+                }
+            }
+            return false;
+        }
+
+        internal FakeGraphState Clone()
+        {
+            var clone = new FakeGraphState();
+            foreach (IntPtr handle in Order) clone.Add(handle, Nodes[handle].Clone(), Dependencies[handle]);
+            return clone;
+        }
+    }
+
+    private sealed class FakeGraphNode
+    {
+        internal FakeGraphNode(HipGraphNodeType type) => Type = type;
+        internal HipGraphNodeType Type { get; }
+        internal IntPtr Destination { get; set; }
+        internal IntPtr Source { get; set; }
+        internal ulong ByteCount { get; set; }
+        internal HipMemoryCopyKind CopyKind { get; set; }
+        internal HipKernelNodeParameters Kernel { get; set; }
+        internal long[] KernelArguments { get; set; } = Array.Empty<long>();
+        internal HipMemsetNodeParameters Memset { get; set; }
+
+        internal FakeGraphNode Clone() => new(Type)
+        {
+            Destination = Destination,
+            Source = Source,
+            ByteCount = ByteCount,
+            CopyKind = CopyKind,
+            Kernel = Kernel,
+            KernelArguments = (long[])KernelArguments.Clone(),
+            Memset = Memset,
+        };
+    }
 }

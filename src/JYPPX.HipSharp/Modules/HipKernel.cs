@@ -125,6 +125,10 @@ public sealed class HipKernel
             {
                 HipKernelArgument argument = arguments[index] ?? throw new ArgumentNullException(nameof(arguments), "Kernel arguments cannot contain null elements.");
                 IntPtr valuePointer;
+                if (argument.Kind == HipKernelArgumentKind.GraphMemoryPointer)
+                {
+                    throw new ArgumentException("Graph-local memory arguments can only be used by explicit graph kernel nodes.", nameof(arguments));
+                }
                 if (argument.Kind == HipKernelArgumentKind.DevicePointer)
                 {
                     IHipPointerOwner memory = argument.PointerOwner!;
@@ -240,4 +244,10 @@ public sealed class HipKernel
             throw new ArgumentOutOfRangeException(parameterName, "The launch-dimension product exceeds UInt64.");
         }
     }
+
+    internal HipModule Module => _module;
+
+    internal IntPtr Function => _function;
+
+    internal static void ValidateGraphDimensions(HipLaunchDimensions dimensions, string parameterName) => ValidateDimensions(dimensions, parameterName);
 }

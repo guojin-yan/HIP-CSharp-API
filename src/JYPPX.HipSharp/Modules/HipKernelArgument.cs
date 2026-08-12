@@ -1,4 +1,5 @@
 using System;
+using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Memory;
 
 namespace JYPPX.HipSharp.Modules;
@@ -8,10 +9,11 @@ namespace JYPPX.HipSharp.Modules;
 /// </summary>
 public sealed class HipKernelArgument
 {
-    private HipKernelArgument(HipKernelArgumentKind kind, IHipPointerOwner? pointerOwner, int int32Value)
+    private HipKernelArgument(HipKernelArgumentKind kind, IHipPointerOwner? pointerOwner, HipGraphMemory? graphMemory, int int32Value)
     {
         Kind = kind;
         PointerOwner = pointerOwner;
+        GraphMemory = graphMemory;
         Int32Value = int32Value;
     }
 
@@ -22,26 +24,32 @@ public sealed class HipKernelArgument
     /// <returns>kernel 参数 / Kernel argument.</returns>
     /// <exception cref="ArgumentNullException">设备内存为 null / Device memory is <see langword="null"/>.</exception>
     public static HipKernelArgument DevicePointer(HipDeviceMemory memory) =>
-        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
+        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), null, 0);
 
     /// <summary>创建 managed-memory 指针参数 / Creates a managed-memory pointer argument.</summary>
     public static HipKernelArgument DevicePointer(HipManagedMemory memory) =>
-        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
+        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), null, 0);
 
     /// <summary>创建 stream-ordered 内存指针参数 / Creates a stream-ordered memory pointer argument.</summary>
     public static HipKernelArgument DevicePointer(HipAsyncDeviceMemory memory) =>
-        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
+        new(HipKernelArgumentKind.DevicePointer, memory ?? throw new ArgumentNullException(nameof(memory)), null, 0);
+
+    /// <summary>创建只能由同一 explicit graph 使用的 graph-local pointer 参数 / Creates a graph-local pointer argument usable only by the same explicit graph.</summary>
+    public static HipKernelArgument DevicePointer(HipGraphMemory memory) =>
+        new(HipKernelArgumentKind.GraphMemoryPointer, null, memory ?? throw new ArgumentNullException(nameof(memory)), 0);
 
     /// <summary>
     /// 创建 32 位有符号整数参数 / Creates a signed 32-bit integer argument.
     /// </summary>
     /// <param name="value">整数值 / Integer value.</param>
     /// <returns>kernel 参数 / Kernel argument.</returns>
-    public static HipKernelArgument Scalar32(int value) => new(HipKernelArgumentKind.Scalar32, null, value);
+    public static HipKernelArgument Scalar32(int value) => new(HipKernelArgumentKind.Scalar32, null, null, value);
 
     internal HipKernelArgumentKind Kind { get; }
 
     internal IHipPointerOwner? PointerOwner { get; }
+
+    internal HipGraphMemory? GraphMemory { get; }
 
     internal int Int32Value { get; }
 }
@@ -49,5 +57,6 @@ public sealed class HipKernelArgument
 internal enum HipKernelArgumentKind
 {
     DevicePointer,
+    GraphMemoryPointer,
     Scalar32,
 }

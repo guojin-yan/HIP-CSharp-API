@@ -185,6 +185,25 @@ public sealed class HipRuntime : IDisposable
         }
     }
 
+    /// <summary>在当前设备创建可显式构建的 HIP graph / Creates an explicitly buildable HIP graph on the current device.</summary>
+    /// <param name="flags">保留 flags；当前必须为零 / Reserved flags; currently must be zero.</param>
+    /// <returns>拥有 explicit graph 的对象 / An object owning the explicit graph.</returns>
+    public HipGraph CreateGraph(uint flags = 0)
+    {
+        ThrowIfDisposed();
+        if (flags != 0) throw new ArgumentOutOfRangeException(nameof(flags));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
+        HipError error = _nativeApi.GraphCreate(out IntPtr graph, flags);
+        if (error != HipError.Success && graph != IntPtr.Zero)
+        {
+            var partial = new HipGraphHandle(_nativeApi, graph);
+            if (partial.ReleaseChecked() == HipError.Success) partial.Dispose();
+        }
+        HipCall.ThrowIfFailed(_nativeApi, error, "hipGraphCreate");
+        if (graph == IntPtr.Zero) throw new InvalidOperationException("hipGraphCreate succeeded but returned a null graph.");
+        return new HipGraph(_nativeApi, graph, new HipGraphResources(new List<IDisposable>()), HipGraphKind.Explicit, deviceOrdinal);
+    }
+
     /// <summary>
     /// 在当前设备上分配内存 / Allocates memory on the current device.
     /// </summary>
@@ -400,13 +419,14 @@ public sealed class HipRuntime : IDisposable
             throw new ArgumentException("A HIP module code object cannot be empty.", nameof(codeObject));
         }
 
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GetDevice(out int deviceOrdinal), "hipGetDevice");
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ModuleLoadData(codeObject, out IntPtr module), "hipModuleLoadData");
         if (module == IntPtr.Zero)
         {
             throw new InvalidOperationException("hipModuleLoadData succeeded but returned a null module.");
         }
 
-        return new HipModule(_nativeApi, module);
+        return new HipModule(_nativeApi, module, deviceOrdinal);
     }
 
     /// <summary>

@@ -577,6 +577,287 @@
       ]
     },
     {
+      "managedName": "GraphCreate",
+      "entryPoint": "hipGraphCreate",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "创建 explicit HIP graph",
+      "summaryEn": "Creates an explicit HIP graph",
+      "parameters": [
+        { "declaration": "out IntPtr graph", "name": "graph", "direction": "out", "ownership": "caller" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphAddEmptyNode",
+      "entryPoint": "hipGraphAddEmptyNode",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "向 graph 添加 empty node",
+      "summaryEn": "Adds an empty node to a graph",
+      "parameters": [
+        { "declaration": "out IntPtr node", "name": "node", "direction": "out", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr dependencies", "name": "dependencies", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphAddDependencies",
+      "entryPoint": "hipGraphAddDependencies",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "添加 graph dependencies",
+      "summaryEn": "Adds graph dependencies",
+      "parameters": [
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr from", "name": "from", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr to", "name": "to", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphRemoveDependencies",
+      "entryPoint": "hipGraphRemoveDependencies",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "移除 graph dependencies",
+      "summaryEn": "Removes graph dependencies",
+      "parameters": [
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr from", "name": "from", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr to", "name": "to", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphAddKernelNode",
+      "entryPoint": "hipGraphAddKernelNode",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "向 graph 添加 typed kernel node",
+      "summaryEn": "Adds a typed kernel node to a graph",
+      "parameters": [
+        { "declaration": "out IntPtr node", "name": "node", "direction": "out", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr dependencies", "name": "dependencies", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr parameters", "name": "parameters", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "GraphExecKernelNodeSetParams",
+      "entryPoint": "hipGraphExecKernelNodeSetParams",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "更新 executable kernel node 参数",
+      "summaryEn": "Updates executable kernel-node parameters",
+      "parameters": [
+        { "declaration": "IntPtr graphExec", "name": "graphExec", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr node", "name": "node", "direction": "in", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr parameters", "name": "parameters", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "GraphAddMemcpyNode1D",
+      "entryPoint": "hipGraphAddMemcpyNode1D",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "向 graph 添加一维 memcpy node",
+      "summaryEn": "Adds a one-dimensional memcpy node to a graph",
+      "parameters": [
+        { "declaration": "out IntPtr node", "name": "node", "direction": "out", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr dependencies", "name": "dependencies", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphExecMemcpyNodeSetParams1D",
+      "entryPoint": "hipGraphExecMemcpyNodeSetParams1D",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "更新 executable memcpy node 参数",
+      "summaryEn": "Updates executable memcpy-node parameters",
+      "parameters": [
+        { "declaration": "IntPtr graphExec", "name": "graphExec", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr node", "name": "node", "direction": "in", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr destination", "name": "destination", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr source", "name": "source", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "UIntPtr byteCount", "name": "byteCount", "direction": "in", "ownership": "value" },
+        { "declaration": "HipMemoryCopyKind kind", "name": "kind", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "GraphAddMemsetNode",
+      "entryPoint": "hipGraphAddMemsetNode",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "向 graph 添加 typed memset node",
+      "summaryEn": "Adds a typed memset node to a graph",
+      "parameters": [
+        { "declaration": "out IntPtr node", "name": "node", "direction": "out", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr dependencies", "name": "dependencies", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr parameters", "name": "parameters", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "GraphExecMemsetNodeSetParams",
+      "entryPoint": "hipGraphExecMemsetNodeSetParams",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "更新 executable memset node 参数",
+      "summaryEn": "Updates executable memset-node parameters",
+      "parameters": [
+        { "declaration": "IntPtr graphExec", "name": "graphExec", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr node", "name": "node", "direction": "in", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr parameters", "name": "parameters", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "GraphAddMemAllocNode",
+      "entryPoint": "hipGraphAddMemAllocNode",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "向 graph 添加 memory allocation node",
+      "summaryEn": "Adds a memory-allocation node to a graph",
+      "parameters": [
+        { "declaration": "out IntPtr node", "name": "node", "direction": "out", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr dependencies", "name": "dependencies", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr parameters", "name": "parameters", "direction": "inout", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "GraphAddMemFreeNode",
+      "entryPoint": "hipGraphAddMemFreeNode",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "向 graph 添加 memory free node",
+      "summaryEn": "Adds a memory-free node to a graph",
+      "parameters": [
+        { "declaration": "out IntPtr node", "name": "node", "direction": "out", "ownership": "borrowed-graph" },
+        { "declaration": "IntPtr graph", "name": "graph", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr dependencies", "name": "dependencies", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "UIntPtr dependencyCount", "name": "dependencyCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr devicePointer", "name": "devicePointer", "direction": "in", "ownership": "borrowed-graph" }
+      ]
+    },
+    {
+      "managedName": "GraphUpload",
+      "entryPoint": "hipGraphUpload",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "将 graph executable upload 到 stream",
+      "summaryEn": "Uploads a graph executable to a stream",
+      "parameters": [
+        { "declaration": "IntPtr graphExec", "name": "graphExec", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" }
+      ]
+    },
+    {
+      "managedName": "GraphDestroyNode",
+      "entryPoint": "hipGraphDestroyNode",
+      "library": "amdhip64",
+      "header": "hip/hip_runtime_api.h",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "清理失败时返回的 partial graph node",
+      "summaryEn": "Cleans up a partial graph node returned on failure",
+      "parameters": [
+        { "declaration": "IntPtr node", "name": "node", "direction": "in", "ownership": "borrowed-graph" }
+      ]
+    },
+    {
       "managedName": "GraphDestroy",
       "entryPoint": "hipGraphDestroy",
       "library": "amdhip64",

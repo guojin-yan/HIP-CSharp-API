@@ -12,13 +12,13 @@ internal sealed class HipGraphExecHandle : SafeHandle
 {
     private readonly IHipNativeApi _nativeApi;
     private readonly object _sync = new();
-    private IDisposable? _captureReference;
+    private IDisposable? _resourceReference;
     private bool _nativeReleased;
 
-    internal HipGraphExecHandle(IHipNativeApi nativeApi, IntPtr handle, IDisposable? captureReference = null) : base(IntPtr.Zero, true)
+    internal HipGraphExecHandle(IHipNativeApi nativeApi, IntPtr handle, IDisposable? resourceReference = null) : base(IntPtr.Zero, true)
     {
         _nativeApi = nativeApi;
-        _captureReference = captureReference;
+        _resourceReference = resourceReference;
         SetHandle(handle);
     }
 
@@ -36,10 +36,10 @@ internal sealed class HipGraphExecHandle : SafeHandle
                 _nativeReleased = true;
             }
 
-            if (_captureReference is not null)
+            if (_resourceReference is not null)
             {
-                _captureReference.Dispose();
-                _captureReference = null;
+                _resourceReference.Dispose();
+                _resourceReference = null;
             }
 
             SetHandle(IntPtr.Zero);
@@ -57,8 +57,8 @@ internal sealed class HipGraphExecHandle : SafeHandle
             _nativeReleased = true;
             try
             {
-                _captureReference?.Dispose();
-                _captureReference = null;
+                _resourceReference?.Dispose();
+                _resourceReference = null;
                 SetHandle(IntPtr.Zero);
                 return true;
             }

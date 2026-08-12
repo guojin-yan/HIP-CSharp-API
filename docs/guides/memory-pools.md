@@ -29,6 +29,6 @@ M8.3 为 HIP memory pool 增加进程内托管 owner。普通用户只需要 `Hi
 
 `MaximumSizeBytes` 和 `ReleaseThresholdBytes` 使用 bytes，前者的零值让 HIP 选择系统相关上限；reuse policy 使用 native 32-bit boolean；`GetStatistics()` 返回 reserved/used current 和 high-watermark bytes。两个 high-watermark 只能通过显式 reset 方法归零。`SetAccess`/`GetAccess` 只接受托管 `HipDevice` 和 `None`/`ReadWrite` flags，并检查 runtime、device 和 count 归属。
 
-跨进程 shareable handle/pointer import/export、IPC、Graph memory allocation/free nodes、virtual memory、external memory 和 raw pool handle 注入仍只保留在 low-level API；它们需要独立的 OS handle、安全和生命周期契约。
+跨进程 shareable handle/pointer import/export、IPC、virtual memory、external memory 和 raw pool handle 注入仍只保留在 low-level API；它们需要独立的 OS handle、安全和生命周期契约。Graph-local allocation/free nodes 已在 M8.4 的 [Explicit HIP Graph 指南](explicit-graphs.md) 中提供独立的 graph-scoped reference，不属于 `HipMemoryPool` owner。
 
 本轮验证为 managed-only Fake HIP、ABI layout/static source、15 TFM build、public API、DocFX 和 Core package 门禁。没有本轮 Radeon Cloud 授权，因此不能把这些结果表述为真实 symbol、Runtime 或 GPU 执行证据；Windows Runtime 仍为 disabled/unverified/static-only。

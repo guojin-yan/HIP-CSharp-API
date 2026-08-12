@@ -126,8 +126,8 @@ if evidence["gitCommit"] != expected_commit:
     raise SystemExit("ABI evidence commit does not match the detached checkout")
 if evidence["normalizedManifestHash"].upper() != expected_manifest_hash:
     raise SystemExit("ABI evidence normalized manifest hash does not match the checkout")
-if evidence["schemaVersion"] != 4 or len(evidence.get("functions", [])) != 79:
-    raise SystemExit("ABI evidence must use schema 4 and include all 79 manifest functions")
+if evidence["schemaVersion"] != 5 or len(evidence.get("functions", [])) != 93:
+    raise SystemExit("ABI evidence must use schema 5 and include all 93 manifest functions")
 advanced = {
     "hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync",
     "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync",
@@ -145,6 +145,12 @@ memory_pool = {
     "hipMemPoolGetAttribute", "hipMemPoolSetAttribute", "hipMemPoolSetAccess",
     "hipMemPoolGetAccess", "hipMallocFromPoolAsync",
 }
+explicit_graph = {
+    "hipGraphCreate", "hipGraphAddEmptyNode", "hipGraphAddDependencies", "hipGraphRemoveDependencies",
+    "hipGraphAddKernelNode", "hipGraphExecKernelNodeSetParams", "hipGraphAddMemcpyNode1D",
+    "hipGraphExecMemcpyNodeSetParams1D", "hipGraphAddMemsetNode", "hipGraphExecMemsetNodeSetParams",
+    "hipGraphAddMemAllocNode", "hipGraphAddMemFreeNode", "hipGraphUpload", "hipGraphDestroyNode",
+}
 found = {item["entryPoint"] for item in evidence["functions"] if item["found"]}
 missing_advanced = sorted(advanced - found)
 if missing_advanced:
@@ -155,9 +161,12 @@ if missing_memory:
 missing_pool = sorted(memory_pool - found)
 if missing_pool:
     raise SystemExit("M8.3 memory pool exports are missing: " + ", ".join(missing_pool))
+missing_graph = sorted(explicit_graph - found)
+if missing_graph:
+    raise SystemExit("M8.4 explicit graph exports are missing: " + ", ".join(missing_graph))
 if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
     raise SystemExit("ABI evidence must include both official header hashes")
-print("M8.3 ABI evidence schema fields present")
+print("M8.4 ABI evidence schema and managed-owner exports passed")
 PY
 
 python3 - <<'PY'

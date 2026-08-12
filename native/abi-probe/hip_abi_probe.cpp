@@ -48,6 +48,20 @@ static_assert(std::is_same<decltype(&hipGraphDestroy), hipError_t (*)(hipGraph_t
 static_assert(std::is_same<decltype(&hipGraphInstantiateWithFlags), hipError_t (*)(hipGraphExec_t*, hipGraph_t, unsigned long long)>::value, "hipGraphInstantiateWithFlags signature mismatch");
 static_assert(std::is_same<decltype(&hipGraphLaunch), hipError_t (*)(hipGraphExec_t, hipStream_t)>::value, "hipGraphLaunch signature mismatch");
 static_assert(std::is_same<decltype(&hipGraphExecDestroy), hipError_t (*)(hipGraphExec_t)>::value, "hipGraphExecDestroy signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphCreate), hipError_t (*)(hipGraph_t*, unsigned int)>::value, "hipGraphCreate signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddEmptyNode), hipError_t (*)(hipGraphNode_t*, hipGraph_t, const hipGraphNode_t*, std::size_t)>::value, "hipGraphAddEmptyNode signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddDependencies), hipError_t (*)(hipGraph_t, const hipGraphNode_t*, const hipGraphNode_t*, std::size_t)>::value, "hipGraphAddDependencies signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphRemoveDependencies), hipError_t (*)(hipGraph_t, const hipGraphNode_t*, const hipGraphNode_t*, std::size_t)>::value, "hipGraphRemoveDependencies signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddKernelNode), hipError_t (*)(hipGraphNode_t*, hipGraph_t, const hipGraphNode_t*, std::size_t, const hipKernelNodeParams*)>::value, "hipGraphAddKernelNode signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphExecKernelNodeSetParams), hipError_t (*)(hipGraphExec_t, hipGraphNode_t, const hipKernelNodeParams*)>::value, "hipGraphExecKernelNodeSetParams signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddMemcpyNode1D), hipError_t (*)(hipGraphNode_t*, hipGraph_t, const hipGraphNode_t*, std::size_t, void*, const void*, std::size_t, hipMemcpyKind)>::value, "hipGraphAddMemcpyNode1D signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphExecMemcpyNodeSetParams1D), hipError_t (*)(hipGraphExec_t, hipGraphNode_t, void*, const void*, std::size_t, hipMemcpyKind)>::value, "hipGraphExecMemcpyNodeSetParams1D signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddMemsetNode), hipError_t (*)(hipGraphNode_t*, hipGraph_t, const hipGraphNode_t*, std::size_t, const hipMemsetParams*)>::value, "hipGraphAddMemsetNode signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphExecMemsetNodeSetParams), hipError_t (*)(hipGraphExec_t, hipGraphNode_t, const hipMemsetParams*)>::value, "hipGraphExecMemsetNodeSetParams signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddMemAllocNode), hipError_t (*)(hipGraphNode_t*, hipGraph_t, const hipGraphNode_t*, std::size_t, hipMemAllocNodeParams*)>::value, "hipGraphAddMemAllocNode signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphAddMemFreeNode), hipError_t (*)(hipGraphNode_t*, hipGraph_t, const hipGraphNode_t*, std::size_t, void*)>::value, "hipGraphAddMemFreeNode signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphUpload), hipError_t (*)(hipGraphExec_t, hipStream_t)>::value, "hipGraphUpload signature mismatch");
+static_assert(std::is_same<decltype(&hipGraphDestroyNode), hipError_t (*)(hipGraphNode_t)>::value, "hipGraphDestroyNode signature mismatch");
 static_assert(std::is_same<decltype(&hipMalloc), hipError_t (*)(void**, std::size_t)>::value, "hipMalloc signature mismatch");
 static_assert(std::is_same<decltype(&hipMemGetInfo), hipError_t (*)(std::size_t*, std::size_t*)>::value, "hipMemGetInfo signature mismatch");
 static_assert(std::is_same<decltype(&hipMallocPitch), hipError_t (*)(void**, std::size_t*, std::size_t, std::size_t)>::value, "hipMallocPitch signature mismatch");
@@ -102,7 +116,7 @@ int main()
 {
     std::printf(
         "{\n"
-        "  \"schemaVersion\": 4,\n"
+        "  \"schemaVersion\": 5,\n"
         "  \"normalizedManifestHash\": \"%s\",\n"
         "  \"headerHash\": \"%s\",\n"
         "  \"staticAssertions\": true,\n"
@@ -114,6 +128,10 @@ int main()
         "  \"hipMemoryAdviseAlignment\": %zu,\n"
         "  \"hipStreamCaptureModeSize\": %zu,\n"
         "  \"hipStreamCaptureModeAlignment\": %zu,\n"
+        "  \"hipGraphNodeTypeSize\": %zu,\n"
+        "  \"hipGraphNodeTypeAlignment\": %zu,\n"
+        "  \"hipGraphExecUpdateResultSize\": %zu,\n"
+        "  \"hipGraphExecUpdateResultAlignment\": %zu,\n"
         "  \"pointerSize\": %zu,\n"
         "  \"pointerAlignment\": %zu,\n"
         "  \"hiprtcResultSize\": %zu,\n"
@@ -158,6 +176,29 @@ int main()
         "  \"hipMemPoolPropsOffsetWin32SecurityAttributes\": %zu,\n"
         "  \"hipMemPoolPropsOffsetMaxSize\": %zu,\n"
         "  \"hipMemPoolPropsOffsetReserved\": %zu,\n"
+        "  \"hipKernelNodeParamsSize\": %zu,\n"
+        "  \"hipKernelNodeParamsAlignment\": %zu,\n"
+        "  \"hipKernelNodeParamsOffsetBlockDim\": %zu,\n"
+        "  \"hipKernelNodeParamsOffsetExtra\": %zu,\n"
+        "  \"hipKernelNodeParamsOffsetFunc\": %zu,\n"
+        "  \"hipKernelNodeParamsOffsetGridDim\": %zu,\n"
+        "  \"hipKernelNodeParamsOffsetKernelParams\": %zu,\n"
+        "  \"hipKernelNodeParamsOffsetSharedMemBytes\": %zu,\n"
+        "  \"hipMemsetParamsSize\": %zu,\n"
+        "  \"hipMemsetParamsAlignment\": %zu,\n"
+        "  \"hipMemsetParamsOffsetDst\": %zu,\n"
+        "  \"hipMemsetParamsOffsetElementSize\": %zu,\n"
+        "  \"hipMemsetParamsOffsetHeight\": %zu,\n"
+        "  \"hipMemsetParamsOffsetPitch\": %zu,\n"
+        "  \"hipMemsetParamsOffsetValue\": %zu,\n"
+        "  \"hipMemsetParamsOffsetWidth\": %zu,\n"
+        "  \"hipMemAllocNodeParamsSize\": %zu,\n"
+        "  \"hipMemAllocNodeParamsAlignment\": %zu,\n"
+        "  \"hipMemAllocNodeParamsOffsetPoolProps\": %zu,\n"
+        "  \"hipMemAllocNodeParamsOffsetAccessDescs\": %zu,\n"
+        "  \"hipMemAllocNodeParamsOffsetAccessDescCount\": %zu,\n"
+        "  \"hipMemAllocNodeParamsOffsetBytesize\": %zu,\n"
+        "  \"hipMemAllocNodeParamsOffsetDptr\": %zu,\n"
         "  \"hipMemLocationTypeDevice\": %d,\n"
         "  \"hipMemAccessFlagsProtNone\": %d,\n"
         "  \"hipMemAccessFlagsProtReadWrite\": %d,\n"
@@ -171,6 +212,20 @@ int main()
         "  \"hipMemPoolAttrReservedMemHigh\": %d,\n"
         "  \"hipMemPoolAttrUsedMemCurrent\": %d,\n"
         "  \"hipMemPoolAttrUsedMemHigh\": %d,\n"
+        "  \"hipGraphNodeTypeKernel\": %d,\n"
+        "  \"hipGraphNodeTypeMemcpy\": %d,\n"
+        "  \"hipGraphNodeTypeMemset\": %d,\n"
+        "  \"hipGraphNodeTypeEmpty\": %d,\n"
+        "  \"hipGraphNodeTypeMemAlloc\": %d,\n"
+        "  \"hipGraphNodeTypeMemFree\": %d,\n"
+        "  \"hipGraphExecUpdateSuccess\": %d,\n"
+        "  \"hipGraphExecUpdateError\": %d,\n"
+        "  \"hipGraphExecUpdateErrorTopologyChanged\": %d,\n"
+        "  \"hipGraphExecUpdateErrorNodeTypeChanged\": %d,\n"
+        "  \"hipGraphExecUpdateErrorFunctionChanged\": %d,\n"
+        "  \"hipGraphExecUpdateErrorParametersChanged\": %d,\n"
+        "  \"hipGraphExecUpdateErrorNotSupported\": %d,\n"
+        "  \"hipGraphExecUpdateErrorUnsupportedFunctionChange\": %d,\n"
         "  \"hipSuccess\": %d,\n"
         "  \"hiprtcSuccess\": %d,\n"
         "  \"hiprtcCompilation\": %d,\n"
@@ -200,6 +255,10 @@ int main()
         alignof(hipMemoryAdvise),
         sizeof(hipStreamCaptureMode),
         alignof(hipStreamCaptureMode),
+        sizeof(hipGraphNodeType),
+        alignof(hipGraphNodeType),
+        sizeof(hipGraphExecUpdateResult),
+        alignof(hipGraphExecUpdateResult),
         sizeof(void*),
         alignof(void*),
         sizeof(hiprtcResult),
@@ -244,6 +303,29 @@ int main()
         offsetof(hipMemPoolProps, win32SecurityAttributes),
         offsetof(hipMemPoolProps, maxSize),
         offsetof(hipMemPoolProps, reserved),
+        sizeof(hipKernelNodeParams),
+        alignof(hipKernelNodeParams),
+        offsetof(hipKernelNodeParams, blockDim),
+        offsetof(hipKernelNodeParams, extra),
+        offsetof(hipKernelNodeParams, func),
+        offsetof(hipKernelNodeParams, gridDim),
+        offsetof(hipKernelNodeParams, kernelParams),
+        offsetof(hipKernelNodeParams, sharedMemBytes),
+        sizeof(hipMemsetParams),
+        alignof(hipMemsetParams),
+        offsetof(hipMemsetParams, dst),
+        offsetof(hipMemsetParams, elementSize),
+        offsetof(hipMemsetParams, height),
+        offsetof(hipMemsetParams, pitch),
+        offsetof(hipMemsetParams, value),
+        offsetof(hipMemsetParams, width),
+        sizeof(hipMemAllocNodeParams),
+        alignof(hipMemAllocNodeParams),
+        offsetof(hipMemAllocNodeParams, poolProps),
+        offsetof(hipMemAllocNodeParams, accessDescs),
+        offsetof(hipMemAllocNodeParams, accessDescCount),
+        offsetof(hipMemAllocNodeParams, bytesize),
+        offsetof(hipMemAllocNodeParams, dptr),
         static_cast<int>(hipMemLocationTypeDevice),
         static_cast<int>(hipMemAccessFlagsProtNone),
         static_cast<int>(hipMemAccessFlagsProtReadWrite),
@@ -257,6 +339,20 @@ int main()
         static_cast<int>(hipMemPoolAttrReservedMemHigh),
         static_cast<int>(hipMemPoolAttrUsedMemCurrent),
         static_cast<int>(hipMemPoolAttrUsedMemHigh),
+        static_cast<int>(hipGraphNodeTypeKernel),
+        static_cast<int>(hipGraphNodeTypeMemcpy),
+        static_cast<int>(hipGraphNodeTypeMemset),
+        static_cast<int>(hipGraphNodeTypeEmpty),
+        static_cast<int>(hipGraphNodeTypeMemAlloc),
+        static_cast<int>(hipGraphNodeTypeMemFree),
+        static_cast<int>(hipGraphExecUpdateSuccess),
+        static_cast<int>(hipGraphExecUpdateError),
+        static_cast<int>(hipGraphExecUpdateErrorTopologyChanged),
+        static_cast<int>(hipGraphExecUpdateErrorNodeTypeChanged),
+        static_cast<int>(hipGraphExecUpdateErrorFunctionChanged),
+        static_cast<int>(hipGraphExecUpdateErrorParametersChanged),
+        static_cast<int>(hipGraphExecUpdateErrorNotSupported),
+        static_cast<int>(hipGraphExecUpdateErrorUnsupportedFunctionChange),
         static_cast<int>(hipSuccess),
         static_cast<int>(HIPRTC_SUCCESS),
         static_cast<int>(HIPRTC_ERROR_COMPILATION),

@@ -84,7 +84,7 @@ public sealed class HipStream : IDisposable
 
                 List<IDisposable> captureLeases = _captureLeases ?? new List<IDisposable>();
                 _captureLeases = null;
-                return new HipGraph(_nativeApi, graph, new HipGraphCaptureResources(captureLeases));
+                return new HipGraph(_nativeApi, graph, new HipGraphResources(captureLeases), HipGraphKind.Captured, DeviceOrdinal);
             }
             finally
             {

@@ -12,13 +12,13 @@ internal sealed class HipGraphHandle : SafeHandle
 {
     private readonly IHipNativeApi _nativeApi;
     private readonly object _sync = new();
-    private HipGraphCaptureResources? _captureResources;
+    private HipGraphResources? _resources;
     private bool _nativeReleased;
 
-    internal HipGraphHandle(IHipNativeApi nativeApi, IntPtr handle, HipGraphCaptureResources? captureResources = null) : base(IntPtr.Zero, true)
+    internal HipGraphHandle(IHipNativeApi nativeApi, IntPtr handle, HipGraphResources? resources = null) : base(IntPtr.Zero, true)
     {
         _nativeApi = nativeApi;
-        _captureResources = captureResources;
+        _resources = resources;
         SetHandle(handle);
     }
 
@@ -36,10 +36,10 @@ internal sealed class HipGraphHandle : SafeHandle
                 _nativeReleased = true;
             }
 
-            if (_captureResources is not null)
+            if (_resources is not null)
             {
-                _captureResources.ReleaseInitialReference();
-                _captureResources = null;
+                _resources.ReleaseInitialReference();
+                _resources = null;
             }
 
             SetHandle(IntPtr.Zero);
@@ -48,12 +48,12 @@ internal sealed class HipGraphHandle : SafeHandle
         }
     }
 
-    internal IDisposable? AcquireCaptureReference()
+    internal IDisposable? AcquireResourceReference()
     {
         lock (_sync)
         {
             if (IsClosed || IsInvalid || _nativeReleased) throw new ObjectDisposedException(nameof(HipGraphHandle));
-            return _captureResources?.AcquireReference();
+            return _resources?.AcquireReference();
         }
     }
 
@@ -66,8 +66,8 @@ internal sealed class HipGraphHandle : SafeHandle
             _nativeReleased = true;
             try
             {
-                _captureResources?.ReleaseInitialReference();
-                _captureResources = null;
+                _resources?.ReleaseInitialReference();
+                _resources = null;
                 SetHandle(IntPtr.Zero);
                 return true;
             }

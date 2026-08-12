@@ -15,10 +15,11 @@ public sealed class HipModule : IDisposable
     private int _asyncReferences;
     private bool _disposeRequested;
 
-    internal HipModule(IHipNativeApi nativeApi, IntPtr module)
+    internal HipModule(IHipNativeApi nativeApi, IntPtr module, int deviceOrdinal)
     {
         _nativeApi = nativeApi;
         _handle = new HipModuleHandle(nativeApi, module);
+        DeviceOrdinal = deviceOrdinal;
     }
 
     /// <summary>获取 module 是否已经释放 / Gets whether the module has been released.</summary>
@@ -76,6 +77,8 @@ public sealed class HipModule : IDisposable
     }
 
     internal IHipNativeApi NativeApi => _nativeApi;
+
+    internal int DeviceOrdinal { get; }
 
     internal void AcquireAsyncReference()
     {
