@@ -101,6 +101,88 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
 
     public HipError FreeAsync(IntPtr pointer, IntPtr stream) => Optional(() => HipNativeMethods.FreeAsync(pointer, stream));
 
+    public HipError DeviceGetDefaultMemPool(out IntPtr memoryPool, int deviceOrdinal)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.DeviceGetDefaultMemPool(out value, deviceOrdinal));
+        memoryPool = value;
+        return error;
+    }
+
+    public HipError DeviceGetMemPool(out IntPtr memoryPool, int deviceOrdinal)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.DeviceGetMemPool(out value, deviceOrdinal));
+        memoryPool = value;
+        return error;
+    }
+
+    public HipError DeviceSetMemPool(int deviceOrdinal, IntPtr memoryPool) =>
+        Optional(() => HipNativeMethods.DeviceSetMemPool(deviceOrdinal, memoryPool));
+
+    public HipError MemPoolCreate(out IntPtr memoryPool, ref HipMemoryPoolPropertiesNative properties)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipMemoryPoolPropertiesNative nativeProperties = properties;
+        HipError error = Optional(() => HipNativeMethods.MemPoolCreate(out value, ref nativeProperties));
+        properties = nativeProperties;
+        memoryPool = value;
+        return error;
+    }
+
+    public HipError MemPoolDestroy(IntPtr memoryPool) => Optional(() => HipNativeMethods.MemPoolDestroy(memoryPool));
+
+    public HipError MemPoolTrimTo(IntPtr memoryPool, UIntPtr minimumBytesToKeep) =>
+        Optional(() => HipNativeMethods.MemPoolTrimTo(memoryPool, minimumBytesToKeep));
+
+    public HipError MemPoolGetAttribute(IntPtr memoryPool, HipMemoryPoolAttributeNative attribute, IntPtr value) =>
+        Optional(() => HipNativeMethods.MemPoolGetAttribute(memoryPool, attribute, value));
+
+    public HipError MemPoolSetAttribute(IntPtr memoryPool, HipMemoryPoolAttributeNative attribute, IntPtr value) =>
+        Optional(() => HipNativeMethods.MemPoolSetAttribute(memoryPool, attribute, value));
+
+    public unsafe HipError MemPoolSetAccess(IntPtr memoryPool, HipMemoryPoolAccessDescriptorNative[] descriptors)
+    {
+        fixed (HipMemoryPoolAccessDescriptorNative* pointer = descriptors)
+        {
+            UIntPtr count = UIntPtr.Size == 4 ? new UIntPtr(checked((uint)descriptors.Length)) : new UIntPtr((ulong)descriptors.Length);
+            try
+            {
+                return HipNativeMethods.MemPoolSetAccess(memoryPool, (IntPtr)pointer, count);
+            }
+            catch (EntryPointNotFoundException)
+            {
+                return HipError.NotSupported;
+            }
+        }
+    }
+
+    public unsafe HipError MemPoolGetAccess(out HipMemoryPoolAccess access, IntPtr memoryPool, ref HipMemLocation location)
+    {
+        HipMemoryPoolAccess value = HipMemoryPoolAccess.None;
+        HipMemLocation nativeLocation = location;
+        HipError error;
+        try
+        {
+            error = HipNativeMethods.MemPoolGetAccess((IntPtr)(&value), memoryPool, (IntPtr)(&nativeLocation));
+        }
+        catch (EntryPointNotFoundException)
+        {
+            error = HipError.NotSupported;
+        }
+        location = nativeLocation;
+        access = value;
+        return error;
+    }
+
+    public HipError MallocFromPoolAsync(out IntPtr pointer, UIntPtr byteCount, IntPtr memoryPool, IntPtr stream)
+    {
+        IntPtr value = IntPtr.Zero;
+        HipError error = Optional(() => HipNativeMethods.MallocFromPoolAsync(out value, byteCount, memoryPool, stream));
+        pointer = value;
+        return error;
+    }
+
     public HipError DeviceCanAccessPeer(out int canAccessPeer, int deviceId, int peerDeviceId)
     {
         int value = 0;

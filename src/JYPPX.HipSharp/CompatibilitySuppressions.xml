@@ -9,6 +9,12 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.HipSharp.Memory.HipMemoryPoolAccess</Target>
+    <Left>lib/net7.0/JYPPX.HipSharp.dll</Left>
+    <Right>lib/net8.0/JYPPX.HipSharp.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:JYPPX.HipSharp.Rtc.HipRtcResult</Target>
     <Left>lib/net7.0/JYPPX.HipSharp.dll</Left>
     <Right>lib/net8.0/JYPPX.HipSharp.dll</Right>

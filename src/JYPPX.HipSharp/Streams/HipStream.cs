@@ -103,7 +103,7 @@ public sealed class HipStream : IDisposable
         {
             ThrowIfDisposed();
             HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamSynchronize(_handle.DangerousGetHandle()), "hipStreamSynchronize");
-            if (ClearPending())
+            while (ClearPending())
             {
                 HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamSynchronize(_handle.DangerousGetHandle()), "hipStreamSynchronize");
             }
@@ -123,12 +123,13 @@ public sealed class HipStream : IDisposable
             HipError error = _nativeApi.StreamQuery(_handle.DangerousGetHandle());
             if (error == HipError.Success)
             {
-                if (!ClearPending()) return true;
-                HipError afterRelease = _nativeApi.StreamQuery(_handle.DangerousGetHandle());
-                if (afterRelease == HipError.Success) return true;
-                if (afterRelease == HipError.NotReady) return false;
-                HipCall.ThrowIfFailed(_nativeApi, afterRelease, "hipStreamQuery");
-                return false;
+                while (ClearPending())
+                {
+                    HipError afterRelease = _nativeApi.StreamQuery(_handle.DangerousGetHandle());
+                    if (afterRelease == HipError.NotReady) return false;
+                    HipCall.ThrowIfFailed(_nativeApi, afterRelease, "hipStreamQuery");
+                }
+                return true;
             }
             if (error == HipError.NotReady) return false;
             HipCall.ThrowIfFailed(_nativeApi, error, "hipStreamQuery");
@@ -152,7 +153,7 @@ public sealed class HipStream : IDisposable
             }
             HipError syncError = _nativeApi.StreamSynchronize(_handle.DangerousGetHandle());
             if (syncError != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, syncError, "hipStreamSynchronize");
-            if (ClearPending())
+            while (ClearPending())
             {
                 HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamSynchronize(_handle.DangerousGetHandle()), "hipStreamSynchronize");
             }

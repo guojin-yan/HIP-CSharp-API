@@ -27,6 +27,17 @@ static_assert(std::is_same<decltype(&hipMemAdvise), hipError_t (*)(const void*, 
 using HipMallocAsyncSignature = hipError_t (*)(void**, std::size_t, hipStream_t);
 static_assert(std::is_same<decltype(static_cast<HipMallocAsyncSignature>(&hipMallocAsync)), HipMallocAsyncSignature>::value, "hipMallocAsync signature mismatch");
 static_assert(std::is_same<decltype(&hipFreeAsync), hipError_t (*)(void*, hipStream_t)>::value, "hipFreeAsync signature mismatch");
+static_assert(std::is_same<decltype(&hipDeviceGetDefaultMemPool), hipError_t (*)(hipMemPool_t*, int)>::value, "hipDeviceGetDefaultMemPool signature mismatch");
+static_assert(std::is_same<decltype(&hipDeviceGetMemPool), hipError_t (*)(hipMemPool_t*, int)>::value, "hipDeviceGetMemPool signature mismatch");
+static_assert(std::is_same<decltype(&hipDeviceSetMemPool), hipError_t (*)(int, hipMemPool_t)>::value, "hipDeviceSetMemPool signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolCreate), hipError_t (*)(hipMemPool_t*, const hipMemPoolProps*)>::value, "hipMemPoolCreate signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolDestroy), hipError_t (*)(hipMemPool_t)>::value, "hipMemPoolDestroy signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolTrimTo), hipError_t (*)(hipMemPool_t, std::size_t)>::value, "hipMemPoolTrimTo signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolGetAttribute), hipError_t (*)(hipMemPool_t, hipMemPoolAttr, void*)>::value, "hipMemPoolGetAttribute signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolSetAttribute), hipError_t (*)(hipMemPool_t, hipMemPoolAttr, void*)>::value, "hipMemPoolSetAttribute signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolSetAccess), hipError_t (*)(hipMemPool_t, const hipMemAccessDesc*, std::size_t)>::value, "hipMemPoolSetAccess signature mismatch");
+static_assert(std::is_same<decltype(&hipMemPoolGetAccess), hipError_t (*)(hipMemAccessFlags*, hipMemPool_t, hipMemLocation*)>::value, "hipMemPoolGetAccess signature mismatch");
+static_assert(std::is_same<decltype(&hipMallocFromPoolAsync), hipError_t (*)(void**, std::size_t, hipMemPool_t, hipStream_t)>::value, "hipMallocFromPoolAsync signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceCanAccessPeer), hipError_t (*)(int*, int, int)>::value, "hipDeviceCanAccessPeer signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceEnablePeerAccess), hipError_t (*)(int, unsigned int)>::value, "hipDeviceEnablePeerAccess signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceDisablePeerAccess), hipError_t (*)(int)>::value, "hipDeviceDisablePeerAccess signature mismatch");
@@ -91,7 +102,7 @@ int main()
 {
     std::printf(
         "{\n"
-        "  \"schemaVersion\": 3,\n"
+        "  \"schemaVersion\": 4,\n"
         "  \"normalizedManifestHash\": \"%s\",\n"
         "  \"headerHash\": \"%s\",\n"
         "  \"staticAssertions\": true,\n"
@@ -133,6 +144,33 @@ int main()
         "  \"hipMemcpy3DParmsOffsetDstPtr\": %zu,\n"
         "  \"hipMemcpy3DParmsOffsetExtent\": %zu,\n"
         "  \"hipMemcpy3DParmsOffsetKind\": %zu,\n"
+        "  \"hipMemLocationSize\": %zu,\n"
+        "  \"hipMemLocationAlignment\": %zu,\n"
+        "  \"hipMemAccessDescSize\": %zu,\n"
+        "  \"hipMemAccessDescAlignment\": %zu,\n"
+        "  \"hipMemAccessDescOffsetLocation\": %zu,\n"
+        "  \"hipMemAccessDescOffsetFlags\": %zu,\n"
+        "  \"hipMemPoolPropsSize\": %zu,\n"
+        "  \"hipMemPoolPropsAlignment\": %zu,\n"
+        "  \"hipMemPoolPropsOffsetAllocType\": %zu,\n"
+        "  \"hipMemPoolPropsOffsetHandleTypes\": %zu,\n"
+        "  \"hipMemPoolPropsOffsetLocation\": %zu,\n"
+        "  \"hipMemPoolPropsOffsetWin32SecurityAttributes\": %zu,\n"
+        "  \"hipMemPoolPropsOffsetMaxSize\": %zu,\n"
+        "  \"hipMemPoolPropsOffsetReserved\": %zu,\n"
+        "  \"hipMemLocationTypeDevice\": %d,\n"
+        "  \"hipMemAccessFlagsProtNone\": %d,\n"
+        "  \"hipMemAccessFlagsProtReadWrite\": %d,\n"
+        "  \"hipMemAllocationTypePinned\": %d,\n"
+        "  \"hipMemHandleTypeNone\": %d,\n"
+        "  \"hipMemPoolReuseFollowEventDependencies\": %d,\n"
+        "  \"hipMemPoolReuseAllowOpportunistic\": %d,\n"
+        "  \"hipMemPoolReuseAllowInternalDependencies\": %d,\n"
+        "  \"hipMemPoolAttrReleaseThreshold\": %d,\n"
+        "  \"hipMemPoolAttrReservedMemCurrent\": %d,\n"
+        "  \"hipMemPoolAttrReservedMemHigh\": %d,\n"
+        "  \"hipMemPoolAttrUsedMemCurrent\": %d,\n"
+        "  \"hipMemPoolAttrUsedMemHigh\": %d,\n"
         "  \"hipSuccess\": %d,\n"
         "  \"hiprtcSuccess\": %d,\n"
         "  \"hiprtcCompilation\": %d,\n"
@@ -192,6 +230,33 @@ int main()
         offsetof(hipMemcpy3DParms, dstPtr),
         offsetof(hipMemcpy3DParms, extent),
         offsetof(hipMemcpy3DParms, kind),
+        sizeof(hipMemLocation),
+        alignof(hipMemLocation),
+        sizeof(hipMemAccessDesc),
+        alignof(hipMemAccessDesc),
+        offsetof(hipMemAccessDesc, location),
+        offsetof(hipMemAccessDesc, flags),
+        sizeof(hipMemPoolProps),
+        alignof(hipMemPoolProps),
+        offsetof(hipMemPoolProps, allocType),
+        offsetof(hipMemPoolProps, handleTypes),
+        offsetof(hipMemPoolProps, location),
+        offsetof(hipMemPoolProps, win32SecurityAttributes),
+        offsetof(hipMemPoolProps, maxSize),
+        offsetof(hipMemPoolProps, reserved),
+        static_cast<int>(hipMemLocationTypeDevice),
+        static_cast<int>(hipMemAccessFlagsProtNone),
+        static_cast<int>(hipMemAccessFlagsProtReadWrite),
+        static_cast<int>(hipMemAllocationTypePinned),
+        static_cast<int>(hipMemHandleTypeNone),
+        static_cast<int>(hipMemPoolReuseFollowEventDependencies),
+        static_cast<int>(hipMemPoolReuseAllowOpportunistic),
+        static_cast<int>(hipMemPoolReuseAllowInternalDependencies),
+        static_cast<int>(hipMemPoolAttrReleaseThreshold),
+        static_cast<int>(hipMemPoolAttrReservedMemCurrent),
+        static_cast<int>(hipMemPoolAttrReservedMemHigh),
+        static_cast<int>(hipMemPoolAttrUsedMemCurrent),
+        static_cast<int>(hipMemPoolAttrUsedMemHigh),
         static_cast<int>(hipSuccess),
         static_cast<int>(HIPRTC_SUCCESS),
         static_cast<int>(HIPRTC_ERROR_COMPILATION),

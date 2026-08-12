@@ -40,6 +40,9 @@ public sealed class AssemblyBaselineTests
                 typeof(HipGraphExec), typeof(HipPeerAccess),
                 typeof(HipRuntimeNativeApi), typeof(HipRtcNativeApi), typeof(HipDim3), typeof(HipExtent),
                 typeof(HipPitchedPtr), typeof(HipMemLocation), typeof(HipIpcMemHandle), typeof(HipIpcEventHandle),
+                typeof(HipMemoryPool), typeof(HipMemoryPoolOptions), typeof(HipMemoryPoolAccess),
+                typeof(HipMemoryPoolAccessDescriptor), typeof(HipMemoryPoolStatistics),
+                typeof(HipMemoryPoolCurrentScope), typeof(HipPooledDeviceMemory),
             },
             managed.GetExportedTypes());
         Assert.AreEqual(459, typeof(HipRuntimeNativeApi).GetMethods(BindingFlags.Public | BindingFlags.Instance | BindingFlags.DeclaredOnly).Length);
@@ -61,6 +64,8 @@ public sealed class AssemblyBaselineTests
         Assert.AreEqual(8, Marshal.SizeOf<HipMemLocation>());
         Assert.AreEqual(64, Marshal.SizeOf<HipIpcMemHandle>());
         Assert.AreEqual(64, Marshal.SizeOf<HipIpcEventHandle>());
+        Assert.AreEqual(88, Marshal.SizeOf<HipMemoryPoolPropertiesNative>());
+        Assert.AreEqual(12, Marshal.SizeOf<HipMemoryPoolAccessDescriptorNative>());
     }
 
     private static string? ReadMetadata(Assembly assembly, string key)

@@ -152,7 +152,7 @@ $frameworkReference
 </Project>
 "@
     [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Consumer.csproj"), $projectText)
-    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.HipSharp.HipRuntime;`nusing HipModule = HipSharp::JYPPX.HipSharp.Modules.HipModule;`nusing HipRtc = HipSharp::JYPPX.HipSharp.Rtc.HipRtc;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length > 0 ? 0 : 1; } }`n")
+    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.HipSharp.HipRuntime;`nusing HipModule = HipSharp::JYPPX.HipSharp.Modules.HipModule;`nusing HipRtc = HipSharp::JYPPX.HipSharp.Rtc.HipRtc;`nusing HipMemoryPool = HipSharp::JYPPX.HipSharp.Memory.HipMemoryPool;`nusing HipMemoryPoolAccess = HipSharp::JYPPX.HipSharp.Memory.HipMemoryPoolAccess;`nusing HipMemoryPoolOptions = HipSharp::JYPPX.HipSharp.Memory.HipMemoryPoolOptions;`nusing HipPooledDeviceMemory = HipSharp::JYPPX.HipSharp.Memory.HipPooledDeviceMemory;`nusing HipStream = HipSharp::JYPPX.HipSharp.Streams.HipStream;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length + typeof(HipMemoryPool).Name.Length > 0 ? 0 : 1; } private static void CompilePoolWorkflow(HipRuntime runtime) { HipStream stream = runtime.CreateStream(); HipMemoryPool pool = runtime.CreateMemoryPool(new HipMemoryPoolOptions(runtime.GetCurrentDevice()) { ReleaseThresholdBytes = 64 }); pool.SetAccess(runtime.GetCurrentDevice(), HipMemoryPoolAccess.ReadWrite); HipPooledDeviceMemory memory = pool.AllocateAsync(16, stream); memory.CopyFromAsync(new byte[16]); stream.Synchronize(); memory.Dispose(); stream.Synchronize(); pool.TrimTo(0); pool.Dispose(); stream.Dispose(); } }`n")
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
@@ -186,7 +186,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "pending-owner-authorized-m8.1-exact-candidate"
+    runtimeAndGpuValidation = "pending-owner-authorized-m8.3-symbol-runtime-gpu-validation"
     publishable = $false
 }
 $reportPath = Join-Path $auditDirectory "package-audit.json"

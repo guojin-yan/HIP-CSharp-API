@@ -16,6 +16,13 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly HashSet<IntPtr> _graphExecs = new();
     private readonly HashSet<IntPtr> _capturingStreams = new();
     private readonly Dictionary<IntPtr, List<Action>> _pendingStreamActions = new();
+    private readonly HashSet<IntPtr> _memoryPools = new();
+    private readonly Dictionary<int, IntPtr> _defaultMemoryPools = new();
+    private readonly Dictionary<int, IntPtr> _currentMemoryPools = new();
+    private readonly Dictionary<IntPtr, Dictionary<int, ulong>> _poolAttributes = new();
+    private readonly Dictionary<(IntPtr Pool, int Device), HipMemoryPoolAccess> _poolAccess = new();
+    private readonly Dictionary<IntPtr, IntPtr> _allocationPools = new();
+    private int _nextPool = 0x9000;
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -42,6 +49,20 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal HipError MallocAsyncResult { get; set; } = HipError.Success;
 
     internal HipError FreeAsyncResult { get; set; } = HipError.Success;
+
+    internal HipError MemoryPoolCreateResult { get; set; } = HipError.Success;
+
+    internal HipError MemoryPoolDestroyResult { get; set; } = HipError.Success;
+
+    internal HipError MemoryPoolTrimResult { get; set; } = HipError.Success;
+
+    internal HipError MemoryPoolAttributeResult { get; set; } = HipError.Success;
+
+    internal HipError MemoryPoolAccessResult { get; set; } = HipError.Success;
+
+    internal HipError DeviceSetMemoryPoolResult { get; set; } = HipError.Success;
+
+    internal HipError MallocFromPoolResult { get; set; } = HipError.Success;
 
     internal HipError FreeResult { get; set; } = HipError.Success;
 
@@ -74,6 +95,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal bool ReturnManagedPointerOnFailure { get; set; }
 
     internal bool ReturnAsyncPointerOnFailure { get; set; }
+
+    internal bool ReturnMemoryPoolOnFailure { get; set; }
+
+    internal bool ReturnNullMemoryPoolOnSuccess { get; set; }
+
+    internal bool ReturnPoolPointerOnFailure { get; set; }
+
+    internal bool ReturnNullPoolPointerOnSuccess { get; set; }
 
     internal bool ReturnGraphOnEndCaptureFailure { get; set; }
 
@@ -118,6 +147,32 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int AsyncFreeCount { get; private set; }
 
     internal int FreeAsyncCallCount { get; private set; }
+
+    internal int MemoryPoolCreateCount { get; private set; }
+
+    internal int MemoryPoolDestroyCount { get; private set; }
+
+    internal int MemoryPoolTrimCount { get; private set; }
+
+    internal int MemoryPoolSetAttributeCount { get; private set; }
+
+    internal int MemoryPoolGetAttributeCount { get; private set; }
+
+    internal int MemoryPoolSetAccessCount { get; private set; }
+
+    internal int MemoryPoolGetAccessCount { get; private set; }
+
+    internal int PoolAllocationCount { get; private set; }
+
+    internal int PendingPoolAllocationCount { get; private set; }
+
+    internal IntPtr LastPoolHandle { get; private set; }
+
+    internal IntPtr LastPoolAllocationStream { get; private set; }
+
+    internal ulong LastPoolAllocationBytes { get; private set; }
+
+    internal ulong LastPoolMaximumSizeBytes { get; private set; }
 
     internal int MemAdviseCount { get; private set; }
 
@@ -321,11 +376,187 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         {
             if (_allocations.ContainsKey(pointer))
             {
+                if (_allocationPools.TryGetValue(pointer, out IntPtr pool))
+                {
+                    _poolAttributes[pool][(int)HipMemoryPoolAttributeNative.UsedMemCurrent] -= (ulong)_allocations[pointer];
+                    _allocationPools.Remove(pointer);
+                }
                 Free(pointer);
                 AsyncFreeCount++;
             }
         });
         return HipError.Success;
+    }
+
+    public HipError DeviceGetDefaultMemPool(out IntPtr memoryPool, int deviceOrdinal)
+    {
+        if (deviceOrdinal < 0 || deviceOrdinal >= 2)
+        {
+            memoryPool = IntPtr.Zero;
+            return HipError.InvalidDevice;
+        }
+        if (!_defaultMemoryPools.TryGetValue(deviceOrdinal, out memoryPool))
+        {
+            memoryPool = new IntPtr(0xA000 + deviceOrdinal);
+            _defaultMemoryPools.Add(deviceOrdinal, memoryPool);
+            _memoryPools.Add(memoryPool);
+            _poolAttributes[memoryPool] = DefaultPoolAttributes();
+            _currentMemoryPools[deviceOrdinal] = memoryPool;
+        }
+        return HipError.Success;
+    }
+
+    public HipError DeviceGetMemPool(out IntPtr memoryPool, int deviceOrdinal)
+    {
+        HipError error = DeviceGetDefaultMemPool(out memoryPool, deviceOrdinal);
+        if (error != HipError.Success) return error;
+        if (_currentMemoryPools.TryGetValue(deviceOrdinal, out IntPtr current)) memoryPool = current;
+        return HipError.Success;
+    }
+
+    public HipError DeviceSetMemPool(int deviceOrdinal, IntPtr memoryPool)
+    {
+        if (deviceOrdinal < 0 || deviceOrdinal >= 2 || !_memoryPools.Contains(memoryPool)) return HipError.InvalidValue;
+        if (DeviceSetMemoryPoolResult != HipError.Success) return DeviceSetMemoryPoolResult;
+        _currentMemoryPools[deviceOrdinal] = memoryPool;
+        return HipError.Success;
+    }
+
+    public HipError MemPoolCreate(out IntPtr memoryPool, ref HipMemoryPoolPropertiesNative properties)
+    {
+        memoryPool = IntPtr.Zero;
+        if (properties.AllocationType != 1 || properties.HandleTypes != 0 || properties.Location.Type != 1 || properties.Location.Id < 0 || properties.Location.Id >= 2)
+            return HipError.InvalidValue;
+        LastPoolMaximumSizeBytes = properties.MaximumSize.ToUInt64();
+        memoryPool = new IntPtr(_nextPool++);
+        _memoryPools.Add(memoryPool);
+        _poolAttributes[memoryPool] = DefaultPoolAttributes();
+        _poolAccess[(memoryPool, properties.Location.Id)] = HipMemoryPoolAccess.ReadWrite;
+        if (MemoryPoolCreateResult != HipError.Success)
+        {
+            if (!ReturnMemoryPoolOnFailure)
+            {
+                _memoryPools.Remove(memoryPool);
+                _poolAttributes.Remove(memoryPool);
+                memoryPool = IntPtr.Zero;
+            }
+            return MemoryPoolCreateResult;
+        }
+        if (ReturnNullMemoryPoolOnSuccess)
+        {
+            _memoryPools.Remove(memoryPool);
+            _poolAttributes.Remove(memoryPool);
+            memoryPool = IntPtr.Zero;
+            return HipError.Success;
+        }
+        MemoryPoolCreateCount++;
+        return HipError.Success;
+    }
+
+    public HipError MemPoolDestroy(IntPtr memoryPool)
+    {
+        if (MemoryPoolDestroyResult != HipError.Success) return MemoryPoolDestroyResult;
+        if (!_memoryPools.Contains(memoryPool)) return HipError.InvalidValue;
+        foreach (KeyValuePair<int, IntPtr> pair in _currentMemoryPools)
+        {
+            if (pair.Value == memoryPool) return HipError.InvalidValue;
+        }
+        _memoryPools.Remove(memoryPool);
+        _poolAttributes.Remove(memoryPool);
+        MemoryPoolDestroyCount++;
+        return HipError.Success;
+    }
+
+    public HipError MemPoolTrimTo(IntPtr memoryPool, UIntPtr minimumBytesToKeep)
+    {
+        if (!_memoryPools.Contains(memoryPool)) return HipError.InvalidValue;
+        if (MemoryPoolTrimResult != HipError.Success) return MemoryPoolTrimResult;
+        ulong minimum = minimumBytesToKeep.ToUInt64();
+        Dictionary<int, ulong> attributes = _poolAttributes[memoryPool];
+        ulong floor = Math.Max(minimum, attributes[(int)HipMemoryPoolAttributeNative.UsedMemCurrent]);
+        if (attributes[(int)HipMemoryPoolAttributeNative.ReservedMemCurrent] > floor)
+            attributes[(int)HipMemoryPoolAttributeNative.ReservedMemCurrent] = floor;
+        MemoryPoolTrimCount++;
+        return HipError.Success;
+    }
+
+    public unsafe HipError MemPoolGetAttribute(IntPtr memoryPool, HipMemoryPoolAttributeNative attribute, IntPtr value)
+    {
+        MemoryPoolGetAttributeCount++;
+        if (!_memoryPools.Contains(memoryPool) || value == IntPtr.Zero) return HipError.InvalidValue;
+        if (MemoryPoolAttributeResult != HipError.Success) return MemoryPoolAttributeResult;
+        ulong stored = _poolAttributes[memoryPool][(int)attribute];
+        if ((int)attribute <= 3) Marshal.WriteInt32(value, stored == 0 ? 0 : 1);
+        else Marshal.WriteInt64(value, unchecked((long)stored));
+        return HipError.Success;
+    }
+
+    public unsafe HipError MemPoolSetAttribute(IntPtr memoryPool, HipMemoryPoolAttributeNative attribute, IntPtr value)
+    {
+        MemoryPoolSetAttributeCount++;
+        if (!_memoryPools.Contains(memoryPool) || value == IntPtr.Zero) return HipError.InvalidValue;
+        if (MemoryPoolAttributeResult != HipError.Success) return MemoryPoolAttributeResult;
+        ulong next = (int)attribute <= 3 ? (uint)Marshal.ReadInt32(value) : unchecked((ulong)Marshal.ReadInt64(value));
+        if ((int)attribute <= 3 && next > 1) return HipError.InvalidValue;
+        if (((int)attribute == 6 || (int)attribute == 8) && next != 0) return HipError.InvalidValue;
+        _poolAttributes[memoryPool][(int)attribute] = next;
+        return HipError.Success;
+    }
+
+    public unsafe HipError MemPoolSetAccess(IntPtr memoryPool, HipMemoryPoolAccessDescriptorNative[] descriptors)
+    {
+        MemoryPoolSetAccessCount++;
+        if (!_memoryPools.Contains(memoryPool) || descriptors.Length == 0) return HipError.InvalidValue;
+        if (MemoryPoolAccessResult != HipError.Success) return MemoryPoolAccessResult;
+        foreach (HipMemoryPoolAccessDescriptorNative descriptor in descriptors)
+        {
+            if (descriptor.Location.Type != 1 || descriptor.Location.Id < 0 || descriptor.Location.Id >= 2) return HipError.InvalidDevice;
+            if (descriptor.Access != HipMemoryPoolAccess.None && descriptor.Access != HipMemoryPoolAccess.ReadWrite) return HipError.InvalidValue;
+            _poolAccess[(memoryPool, descriptor.Location.Id)] = descriptor.Access;
+        }
+        return HipError.Success;
+    }
+
+    public HipError MemPoolGetAccess(out HipMemoryPoolAccess access, IntPtr memoryPool, ref HipMemLocation location)
+    {
+        MemoryPoolGetAccessCount++;
+        access = HipMemoryPoolAccess.None;
+        if (!_memoryPools.Contains(memoryPool) || location.Type != 1 || location.Id < 0 || location.Id >= 2) return HipError.InvalidValue;
+        if (MemoryPoolAccessResult != HipError.Success) return MemoryPoolAccessResult;
+        _poolAccess.TryGetValue((memoryPool, location.Id), out access);
+        return HipError.Success;
+    }
+
+    public HipError MallocFromPoolAsync(out IntPtr pointer, UIntPtr byteCount, IntPtr memoryPool, IntPtr stream)
+    {
+        LastPoolHandle = memoryPool;
+        LastPoolAllocationStream = stream;
+        LastPoolAllocationBytes = byteCount.ToUInt64();
+        pointer = IntPtr.Zero;
+        if (!_memoryPools.Contains(memoryPool) || !_streams.Contains(stream)) return HipError.InvalidValue;
+        if (MallocFromPoolResult != HipError.Success)
+        {
+            if (ReturnPoolPointerOnFailure) pointer = AllocateRaw(byteCount);
+            return MallocFromPoolResult;
+        }
+        if (ReturnNullPoolPointerOnSuccess) return HipError.Success;
+        HipError error = Malloc(out pointer, byteCount);
+        if (error == HipError.Success)
+        {
+            _allocationPools[pointer] = memoryPool;
+            _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.UsedMemCurrent] += byteCount.ToUInt64();
+            _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.UsedMemHigh] = Math.Max(
+                _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.UsedMemHigh],
+                _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.UsedMemCurrent]);
+            _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.ReservedMemCurrent] += byteCount.ToUInt64();
+            _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.ReservedMemHigh] = Math.Max(
+                _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.ReservedMemHigh],
+                _poolAttributes[memoryPool][(int)HipMemoryPoolAttributeNative.ReservedMemCurrent]);
+            PoolAllocationCount++;
+            PendingPoolAllocationCount++;
+            QueueStreamAction(stream, () => PendingPoolAllocationCount--);
+        }
+        return error;
     }
 
     public HipError DeviceCanAccessPeer(out int canAccessPeer, int deviceId, int peerDeviceId)
@@ -743,6 +974,18 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     }
 
     private static ulong Align(ulong value, ulong alignment) => checked((value + alignment - 1) / alignment * alignment);
+
+    private static Dictionary<int, ulong> DefaultPoolAttributes() => new()
+    {
+        [(int)HipMemoryPoolAttributeNative.ReuseFollowEventDependencies] = 1,
+        [(int)HipMemoryPoolAttributeNative.ReuseAllowOpportunistic] = 1,
+        [(int)HipMemoryPoolAttributeNative.ReuseAllowInternalDependencies] = 1,
+        [(int)HipMemoryPoolAttributeNative.ReleaseThreshold] = 0,
+        [(int)HipMemoryPoolAttributeNative.ReservedMemCurrent] = 0,
+        [(int)HipMemoryPoolAttributeNative.ReservedMemHigh] = 0,
+        [(int)HipMemoryPoolAttributeNative.UsedMemCurrent] = 0,
+        [(int)HipMemoryPoolAttributeNative.UsedMemHigh] = 0,
+    };
 
     private static UIntPtr ToUIntPtr(ulong value) => UIntPtr.Size == 4 ? new UIntPtr(checked((uint)value)) : new UIntPtr(value);
 

@@ -18,6 +18,8 @@ namespace JYPPX.HipSharp;
 public sealed class HipRuntime : IDisposable
 {
     private readonly IHipNativeApi _nativeApi;
+    private readonly object _memoryPoolScopeSync = new();
+    private readonly Dictionary<int, Stack<HipMemoryPoolCurrentScope>> _memoryPoolScopes = new();
     private int _disposeState;
 
     /// <summary>
@@ -244,6 +246,59 @@ public sealed class HipRuntime : IDisposable
         }
     }
 
+    /// <summary>创建仅用于进程内分配且不支持 IPC 导出的 custom memory pool / Creates a custom process-local memory pool that does not support IPC export.</summary>
+    /// <param name="options">backing device 和 typed policy / Backing device and typed policy.</param>
+    /// <returns>拥有原生 pool 的 owner / An owner of the native pool.</returns>
+    public HipMemoryPool CreateMemoryPool(HipMemoryPoolOptions options)
+    {
+        ThrowIfDisposed();
+        if (options is null) throw new ArgumentNullException(nameof(options));
+        if (!ReferenceEquals(_nativeApi, options.Device.NativeApi)) throw new ArgumentException("Device belongs to a different HIP Runtime client.", nameof(options));
+        UIntPtr maximumSize = HipDeviceMemory.ToUIntPtr(options.MaximumSizeBytes, nameof(options.MaximumSizeBytes));
+        var properties = HipMemoryPoolPropertiesNative.ForDevice(options.Device.Ordinal, maximumSize);
+        HipError error = _nativeApi.MemPoolCreate(out IntPtr handle, ref properties);
+        if (error != HipError.Success && handle != IntPtr.Zero)
+        {
+            var partial = new HipMemoryPoolHandle(_nativeApi, handle);
+            if (partial.ReleaseChecked() == HipError.Success) partial.Dispose();
+        }
+        HipCall.ThrowIfFailed(_nativeApi, error, "hipMemPoolCreate");
+        if (handle == IntPtr.Zero) throw new InvalidOperationException("hipMemPoolCreate succeeded but returned a null pool handle.");
+
+        var pool = new HipMemoryPool(this, _nativeApi, handle, options.Device.Ordinal, true);
+        try
+        {
+            pool.ReleaseThresholdBytes = options.ReleaseThresholdBytes;
+            pool.AllowEventDependencyReuse = options.AllowEventDependencyReuse;
+            pool.AllowOpportunisticReuse = options.AllowOpportunisticReuse;
+            pool.AllowInternalDependencyReuse = options.AllowInternalDependencyReuse;
+            return pool;
+        }
+        catch
+        {
+            try { pool.Dispose(); } catch { }
+            throw;
+        }
+    }
+
+    /// <summary>获取设备 default pool 的 borrowed managed view；释放 view 不销毁 Runtime-owned pool / Gets a borrowed managed view of a device's default pool; disposing the view does not destroy the Runtime-owned pool.</summary>
+    public HipMemoryPool GetDefaultMemoryPool(HipDevice device)
+    {
+        ValidateMemoryPoolDevice(device, nameof(device));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGetDefaultMemPool(out IntPtr handle, device.Ordinal), "hipDeviceGetDefaultMemPool");
+        if (handle == IntPtr.Zero) throw new InvalidOperationException("hipDeviceGetDefaultMemPool succeeded but returned a null pool handle.");
+        return new HipMemoryPool(this, _nativeApi, handle, device.Ordinal, false);
+    }
+
+    /// <summary>获取设备 current pool 的 borrowed managed view；释放 view 不销毁 pool / Gets a borrowed managed view of a device's current pool; disposing the view does not destroy the pool.</summary>
+    public HipMemoryPool GetCurrentMemoryPool(HipDevice device)
+    {
+        ValidateMemoryPoolDevice(device, nameof(device));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGetMemPool(out IntPtr handle, device.Ordinal), "hipDeviceGetMemPool");
+        if (handle == IntPtr.Zero) throw new InvalidOperationException("hipDeviceGetMemPool succeeded but returned a null pool handle.");
+        return new HipMemoryPool(this, _nativeApi, handle, device.Ordinal, false);
+    }
+
     /// <summary>
     /// 分配 CPU/GPU 可见的 managed memory；平台不支持时报告原生错误 / Allocates CPU/GPU-visible managed memory and reports native capability failures.
     /// </summary>
@@ -467,7 +522,61 @@ public sealed class HipRuntime : IDisposable
     /// <summary>
     /// 释放此轻量 Runtime facade；已返回的独立资源 owner 保持有效 / Disposes this lightweight Runtime facade; independent resource owners already returned remain valid.
     /// </summary>
-    public void Dispose() => Interlocked.Exchange(ref _disposeState, 1);
+    public void Dispose()
+    {
+        lock (_memoryPoolScopeSync)
+        {
+            foreach (Stack<HipMemoryPoolCurrentScope> scopes in _memoryPoolScopes.Values)
+            {
+                if (scopes.Count != 0) throw new InvalidOperationException("Dispose all current memory-pool scopes before disposing the runtime client.");
+            }
+            Interlocked.Exchange(ref _disposeState, 1);
+        }
+    }
+
+    internal HipMemoryPoolCurrentScope BeginMemoryPoolCurrentScope(HipMemoryPool pool)
+    {
+        lock (_memoryPoolScopeSync)
+        {
+            ThrowIfDisposed();
+            if (!ReferenceEquals(_nativeApi, pool.NativeApi)) throw new ArgumentException("Pool belongs to a different HIP Runtime client.", nameof(pool));
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGetMemPool(out IntPtr previous, pool.DeviceOrdinal), "hipDeviceGetMemPool");
+            if (previous == IntPtr.Zero) throw new InvalidOperationException("hipDeviceGetMemPool succeeded but returned a null pool handle.");
+            pool.AcquireCurrentUse();
+            try
+            {
+                HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceSetMemPool(pool.DeviceOrdinal, pool.DangerousGetHandle()), "hipDeviceSetMemPool");
+                var scope = new HipMemoryPoolCurrentScope(this, pool, previous);
+                if (!_memoryPoolScopes.TryGetValue(pool.DeviceOrdinal, out Stack<HipMemoryPoolCurrentScope>? stack))
+                {
+                    stack = new Stack<HipMemoryPoolCurrentScope>();
+                    _memoryPoolScopes.Add(pool.DeviceOrdinal, stack);
+                }
+                stack.Push(scope);
+                return scope;
+            }
+            catch
+            {
+                pool.ReleaseCurrentUse();
+                throw;
+            }
+        }
+    }
+
+    internal void EndMemoryPoolCurrentScope(HipMemoryPoolCurrentScope scope)
+    {
+        lock (_memoryPoolScopeSync)
+        {
+            ThrowIfDisposed();
+            if (!_memoryPoolScopes.TryGetValue(scope.Pool.DeviceOrdinal, out Stack<HipMemoryPoolCurrentScope>? stack) || stack.Count == 0 || !ReferenceEquals(stack.Peek(), scope))
+                throw new InvalidOperationException("Current memory-pool scopes must be disposed in LIFO order.");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceSetMemPool(scope.Pool.DeviceOrdinal, scope.PreviousHandle), "hipDeviceSetMemPool");
+            stack.Pop();
+            scope.Pool.ReleaseCurrentUse();
+        }
+    }
+
+    internal void ThrowIfDisposedInternal() => ThrowIfDisposed();
 
     private static unsafe ulong CheckedElementBytes<T>(ulong elementCount, string parameterName) where T : unmanaged
     {
@@ -492,5 +601,12 @@ public sealed class HipRuntime : IDisposable
     private void ThrowIfDisposed()
     {
         if (Volatile.Read(ref _disposeState) != 0) throw new ObjectDisposedException(nameof(HipRuntime));
+    }
+
+    private void ValidateMemoryPoolDevice(HipDevice device, string parameterName)
+    {
+        ThrowIfDisposed();
+        if (device is null) throw new ArgumentNullException(parameterName);
+        if (!ReferenceEquals(_nativeApi, device.NativeApi)) throw new ArgumentException("Device belongs to a different HIP Runtime client.", parameterName);
     }
 }

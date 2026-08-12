@@ -26,6 +26,8 @@ public sealed class HipDevice
     /// <summary>获取设备名称 / Gets the device name.</summary>
     public string Name => Info.Name;
 
+    internal IHipNativeApi NativeApi => _nativeApi;
+
     /// <summary>
     /// 将此设备设为当前设备 / Makes this device current.
     /// </summary>

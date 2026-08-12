@@ -126,8 +126,8 @@ if evidence["gitCommit"] != expected_commit:
     raise SystemExit("ABI evidence commit does not match the detached checkout")
 if evidence["normalizedManifestHash"].upper() != expected_manifest_hash:
     raise SystemExit("ABI evidence normalized manifest hash does not match the checkout")
-if evidence["schemaVersion"] != 3 or len(evidence.get("functions", [])) != 68:
-    raise SystemExit("ABI evidence must use schema 3 and include all 68 manifest functions")
+if evidence["schemaVersion"] != 4 or len(evidence.get("functions", [])) != 79:
+    raise SystemExit("ABI evidence must use schema 4 and include all 79 manifest functions")
 advanced = {
     "hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync",
     "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync",
@@ -139,6 +139,12 @@ managed_memory = {
     "hipMemset2D", "hipMemset2DAsync", "hipMemset3D", "hipMemset3DAsync",
     "hipMemcpy2D", "hipMemcpy2DAsync", "hipMemcpy3D", "hipMemcpy3DAsync",
 }
+memory_pool = {
+    "hipDeviceGetDefaultMemPool", "hipDeviceGetMemPool", "hipDeviceSetMemPool",
+    "hipMemPoolCreate", "hipMemPoolDestroy", "hipMemPoolTrimTo",
+    "hipMemPoolGetAttribute", "hipMemPoolSetAttribute", "hipMemPoolSetAccess",
+    "hipMemPoolGetAccess", "hipMallocFromPoolAsync",
+}
 found = {item["entryPoint"] for item in evidence["functions"] if item["found"]}
 missing_advanced = sorted(advanced - found)
 if missing_advanced:
@@ -146,9 +152,12 @@ if missing_advanced:
 missing_memory = sorted(managed_memory - found)
 if missing_memory:
     raise SystemExit("M8.2 managed memory exports are missing: " + ", ".join(missing_memory))
+missing_pool = sorted(memory_pool - found)
+if missing_pool:
+    raise SystemExit("M8.3 memory pool exports are missing: " + ", ".join(missing_pool))
 if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
     raise SystemExit("ABI evidence must include both official header hashes")
-print("M6 ABI evidence schema fields present")
+print("M8.3 ABI evidence schema fields present")
 PY
 
 python3 - <<'PY'

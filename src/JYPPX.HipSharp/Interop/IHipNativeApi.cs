@@ -41,6 +41,28 @@ internal interface IHipNativeApi
 
     public HipError FreeAsync(IntPtr pointer, IntPtr stream);
 
+    public HipError DeviceGetDefaultMemPool(out IntPtr memoryPool, int deviceOrdinal);
+
+    public HipError DeviceGetMemPool(out IntPtr memoryPool, int deviceOrdinal);
+
+    public HipError DeviceSetMemPool(int deviceOrdinal, IntPtr memoryPool);
+
+    public HipError MemPoolCreate(out IntPtr memoryPool, ref HipMemoryPoolPropertiesNative properties);
+
+    public HipError MemPoolDestroy(IntPtr memoryPool);
+
+    public HipError MemPoolTrimTo(IntPtr memoryPool, UIntPtr minimumBytesToKeep);
+
+    public HipError MemPoolGetAttribute(IntPtr memoryPool, HipMemoryPoolAttributeNative attribute, IntPtr value);
+
+    public HipError MemPoolSetAttribute(IntPtr memoryPool, HipMemoryPoolAttributeNative attribute, IntPtr value);
+
+    public HipError MemPoolSetAccess(IntPtr memoryPool, HipMemoryPoolAccessDescriptorNative[] descriptors);
+
+    public HipError MemPoolGetAccess(out HipMemoryPoolAccess access, IntPtr memoryPool, ref HipMemLocation location);
+
+    public HipError MallocFromPoolAsync(out IntPtr pointer, UIntPtr byteCount, IntPtr memoryPool, IntPtr stream);
+
     public HipError DeviceCanAccessPeer(out int canAccessPeer, int deviceId, int peerDeviceId);
 
     public HipError DeviceEnablePeerAccess(int peerDeviceId, uint flags);
