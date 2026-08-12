@@ -334,6 +334,59 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
+    public void ManagedExpansionSampleAndBothLinuxGatesUseTheVersionedResultContract()
+    {
+        string sampleDirectory = Path.Combine(RepositoryRoot, "samples", "HipManagedExpansionValidation");
+        string program = File.ReadAllText(Path.Combine(sampleDirectory, "Program.cs"));
+        string model = File.ReadAllText(Path.Combine(sampleDirectory, "ValidationResult.cs"));
+        string project = File.ReadAllText(Path.Combine(sampleDirectory, "HipManagedExpansionValidation.csproj"));
+        string verifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-managed-expansion.ps1"));
+        string cloudGate = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "cloud-test.sh"));
+        string runtimeGate = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "runtime-gate.sh"));
+
+        foreach (string stage in new[]
+        {
+            "m8.2-pitched-memory",
+            "m8.3-memory-pool",
+            "m8.4-explicit-graph",
+            "m8.5-kernel-occupancy",
+            "m8.6-module-globals",
+        })
+        {
+            StringAssert.Contains(program + model, stage);
+            StringAssert.Contains(verifier, stage);
+            StringAssert.Contains(cloudGate, stage);
+            StringAssert.Contains(runtimeGate, stage);
+        }
+
+        StringAssert.Contains(project, "<TargetFramework>net10.0</TargetFramework>");
+        StringAssert.Contains(program, "GetGlobal<int>(\"validation_values\")");
+        StringAssert.Contains(program, "GetGlobal(\"validation_bytes\")");
+        StringAssert.Contains(program, "LaunchCooperative");
+        StringAssert.Contains(program, "AddMemoryAllocation");
+        StringAssert.Contains(program, "CreateMemoryPool");
+        StringAssert.Contains(program, "Allocate3D<int>");
+        StringAssert.Contains(program, "IsMemoryPoolNotSupported");
+        StringAssert.Contains(program, "IsGraphMemoryNodeNotSupported");
+        StringAssert.Contains(program, "attributes-occupancy");
+        Assert.IsFalse(program.Contains("catch (HipException exception) when (exception.Error == HipError.NotSupported)", StringComparison.Ordinal));
+        StringAssert.Contains(model, "PerformanceClaim");
+        StringAssert.Contains(model, "Iterations");
+        StringAssert.Contains(model, "Capability");
+        StringAssert.Contains(verifier, "--self-test");
+        StringAssert.Contains(verifier, "--self-test-failure");
+        StringAssert.Contains(verifier, "not-an-architecture");
+        StringAssert.Contains(verifier, "--unknown-option");
+        StringAssert.Contains(cloudGate, "--environment official-host");
+        StringAssert.Contains(runtimeGate, "--environment package-only");
+        StringAssert.Contains(runtimeGate, "make_multi_file_consumer managed-expansion HipManagedExpansionValidation");
+        StringAssert.Contains(cloudGate, "evidence[\"schemaVersion\"] != 7 or len(evidence.get(\"functions\", [])) != 100");
+        Assert.IsFalse(program.Contains("IntPtr", StringComparison.Ordinal));
+        Assert.IsFalse(program.Contains("JYPPX.HipSharp.LowLevel", StringComparison.Ordinal));
+        Assert.IsFalse(program.Contains("DangerousGetHandle", StringComparison.Ordinal));
+    }
+
+    [TestMethod]
     public void SourceDocumentationIsBilingualAndDocFxReady()
     {
         string docfxPath = Path.Combine(RepositoryRoot, "docs", "docfx.json");
@@ -400,7 +453,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.HipSharp.dll"));
         StringAssert.Contains(
             File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1")),
-            "pending-owner-authorized-m8.6-module-global-symbol-runtime-gpu-validation");
+            "pending-owner-authorized-m8.7-official-host-and-package-only-managed-expansion-validation");
     }
 
     [TestMethod]

@@ -50,5 +50,6 @@ finally {
 }
 
 & (Join-Path $PSScriptRoot "verify-public-api.ps1") -Configuration $Configuration
+& (Join-Path $PSScriptRoot "verify-managed-expansion.ps1") -Configuration $Configuration -NoBuild
 & (Join-Path $PSScriptRoot "verify-package.ps1") -PackagePath $packagePath -Configuration $Configuration -ExpectedVersion $Version
-Write-Host "Tests, package audit, and clean consumer builds passed."
+Write-Host "Tests, managed expansion contract, package audit, and clean consumer builds passed."

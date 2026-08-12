@@ -126,11 +126,30 @@ EOF
   dotnet build "${directory}/Consumer.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" | tee "${evidence_dir}/${name}-build.txt"
 }
 
+make_multi_file_consumer() {
+  local name="$1" source="$2"
+  local directory="${runtime_root}/${name}"
+  mkdir -p "${directory}"
+  cp "${repository_root}/samples/${source}/"*.cs "${directory}/"
+  cat > "${directory}/Consumer.csproj" <<EOF
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="JYPPX.HIP.CSharp.API" Version="${core_version}" />
+    <PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="${runtime_version}" />
+  </ItemGroup>
+</Project>
+EOF
+  dotnet restore "${directory}/Consumer.csproj" --configfile "${runtime_root}/NuGet.config" --packages "${runtime_root}/packages" --force --no-cache | tee "${evidence_dir}/${name}-restore.txt"
+  dotnet build "${directory}/Consumer.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" | tee "${evidence_dir}/${name}-build.txt"
+}
+
 make_consumer device-info DeviceInfo
 make_consumer memory-copy MemoryCopy
 make_consumer hiprtc-vector-add HipRtcVectorAdd
 make_consumer stream-event-vector-add HipStreamEventVectorAdd
 make_consumer advanced-features HipAdvancedFeatures
+make_multi_file_consumer managed-expansion HipManagedExpansionValidation
 
 native_directory="$(find "${runtime_root}/stream-event-vector-add/bin/Release/net10.0" -type f -name 'libamdhip64.so' -printf '%h\n' -quit)"
 [[ -n "${native_directory}" ]] || { echo "NuGet native assets were not copied to the consumer output." >&2; exit 1; }
@@ -154,7 +173,69 @@ done
 (cd "${runtime_root}/hiprtc-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --length 256 --repeat 20 2>&1) | tee "${evidence_dir}/hiprtc-vector-add-run.txt"
 (cd "${runtime_root}/stream-event-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/stream-event-vector-add-run.txt"
 (cd "${runtime_root}/advanced-features" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/advanced-features-run.txt"
+(cd "${runtime_root}/managed-expansion" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --expected-commit "${expected_commit}" --environment package-only --graph-launch-repeats 3 2>&1) | tee "${evidence_dir}/managed-expansion-run.json"
 (cd "${runtime_root}/advanced-features" && dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 250 --stress-rounds 10 --stress-streams 4 --stress-length 4194304 2>&1) | tee "${evidence_dir}/advanced-features-stress-run.txt"
+
+python3 - "${evidence_dir}/managed-expansion-run.json" "${expected_commit}" <<'PY'
+import json
+import sys
+
+lines = [line.strip() for line in open(sys.argv[1], encoding="utf-8") if line.strip().startswith("{") and '"workload":"hip-managed-expansion"' in line]
+if len(lines) != 1:
+    raise SystemExit("Expected exactly one package-only managed expansion JSON result")
+result = json.loads(lines[0])
+expected = [
+    "m8.2-pitched-memory",
+    "m8.3-memory-pool",
+    "m8.4-explicit-graph",
+    "m8.5-kernel-occupancy",
+    "m8.6-module-globals",
+]
+if result.get("schemaVersion") != 1 or result.get("status") != "passed":
+    raise SystemExit("Package-only managed expansion validation did not pass")
+if result.get("repositoryCommit") != sys.argv[2] or result.get("environment") != "package-only":
+    raise SystemExit("Package-only managed expansion identity is invalid")
+if [stage.get("name") for stage in result.get("stages", [])] != expected:
+    raise SystemExit("Package-only managed expansion stage order is invalid")
+stages = {stage["name"]: stage for stage in result["stages"]}
+if any(not isinstance(stage.get("iterations"), int) or stage.get("iterations") < 0 or not stage.get("capability") for stage in stages.values()):
+    raise SystemExit("Package-only managed expansion capability or iteration evidence is invalid")
+if stages["m8.2-pitched-memory"].get("status") != "passed" or stages["m8.6-module-globals"].get("status") != "passed":
+    raise SystemExit("Package-only required managed expansion data stages did not pass")
+pool = stages["m8.3-memory-pool"]
+if pool.get("status") not in ("passed", "skipped"):
+    raise SystemExit("Package-only managed expansion memory-pool status is invalid")
+if pool.get("status") == "skipped" and not pool.get("detail", "").startswith("not-supported:hip"):
+    raise SystemExit("Package-only managed expansion memory-pool skip is invalid")
+if pool.get("iterations") != (0 if pool.get("status") == "skipped" else 1):
+    raise SystemExit("Package-only managed expansion memory-pool iteration count is invalid")
+graph = stages["m8.4-explicit-graph"]
+graph_subtests = {item.get("name"): item for item in graph.get("subtests", [])}
+if graph.get("status") != "passed" or graph.get("iterations") != 3 or graph_subtests.get("regular-explicit-dag", {}).get("status") != "passed":
+    raise SystemExit("Package-only managed expansion regular explicit graph did not pass")
+graph_memory = graph_subtests.get("graph-memory-nodes", {})
+if graph_memory.get("status") not in ("passed", "skipped"):
+    raise SystemExit("Package-only managed expansion graph-memory status is invalid")
+if graph_memory.get("status") == "skipped" and not graph_memory.get("detail", "").startswith("not-supported:hipGraphAddMem"):
+    raise SystemExit("Package-only managed expansion graph-memory skip is invalid")
+kernel = stages["m8.5-kernel-occupancy"]
+kernel_subtests = {item.get("name"): item for item in kernel.get("subtests", [])}
+if kernel.get("status") != "passed" or kernel_subtests.get("attributes-occupancy", {}).get("status") != "passed":
+    raise SystemExit("Package-only managed expansion attributes or occupancy did not pass")
+cooperative = kernel_subtests.get("cooperative-launch", {})
+if cooperative.get("status") not in ("passed", "skipped"):
+    raise SystemExit("Package-only managed expansion cooperative-launch status is invalid")
+if cooperative.get("status") == "skipped" and cooperative.get("detail") != "capability=false":
+    raise SystemExit("Package-only managed expansion cooperative-launch skip is invalid")
+if any(stage.get("managedNegative") is not True for stage in result["stages"]):
+    raise SystemExit("Package-only managed expansion is missing a managed negative")
+expected_skips = ["m8.3-memory-pool"] if pool.get("status") == "skipped" else []
+if result.get("skippedStages") != expected_skips:
+    raise SystemExit("Package-only managed expansion skipped-stage aggregation is invalid")
+if result.get("performanceClaim") is not False or result.get("failureIndex") != -1 or result.get("failureStage") != "":
+    raise SystemExit("Package-only managed expansion result contract is invalid")
+print("Package-only M8.2-M8.6 managed expansion workload passed")
+PY
 
 while IFS= read -r -d '' evidence_file; do
   if grep -q '/opt/rocm' "${evidence_file}"; then

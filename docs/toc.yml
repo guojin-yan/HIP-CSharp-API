@@ -16,6 +16,8 @@
       href: guides/kernel-occupancy.md
     - name: Managed Module Globals / 托管 Module 全局符号
       href: guides/module-globals.md
+    - name: Managed Expansion Validation / 高层托管扩展验证
+      href: guides/managed-expansion-validation.md
     - name: Pitched Memory and 2D/3D Copy / Pitched Memory 与 2D/3D Copy
       href: guides/pitched-memory.md
     - name: Managed Memory Pools / 托管 Memory Pool

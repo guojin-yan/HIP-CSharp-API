@@ -246,6 +246,74 @@ dotnet run --project ./samples/HipAdvancedFeatures/HipAdvancedFeatures.csproj \
   --graph-launch-repeats 3 \
   --lifecycle-repeats 100 2>&1 | tee "${evidence_dir}/advanced-features.txt"
 
+dotnet run --project ./samples/HipManagedExpansionValidation/HipManagedExpansionValidation.csproj \
+  -c Release --no-build -- \
+  --arch "${gpu_architecture}" \
+  --expected-commit "${actual_commit}" \
+  --environment official-host \
+  --graph-launch-repeats 3 2>&1 | tee "${evidence_dir}/managed-expansion.json"
+
+python3 - "${evidence_dir}/managed-expansion.json" "${actual_commit}" <<'PY'
+import json
+import sys
+
+lines = [line.strip() for line in open(sys.argv[1], encoding="utf-8") if line.strip().startswith("{") and '"workload":"hip-managed-expansion"' in line]
+if len(lines) != 1:
+    raise SystemExit("Expected exactly one managed expansion JSON result")
+result = json.loads(lines[0])
+expected = [
+    "m8.2-pitched-memory",
+    "m8.3-memory-pool",
+    "m8.4-explicit-graph",
+    "m8.5-kernel-occupancy",
+    "m8.6-module-globals",
+]
+if result.get("schemaVersion") != 1 or result.get("status") != "passed":
+    raise SystemExit("Managed expansion validation did not pass")
+if result.get("repositoryCommit") != sys.argv[2] or result.get("environment") != "official-host":
+    raise SystemExit("Managed expansion validation commit is stale")
+if [stage.get("name") for stage in result.get("stages", [])] != expected:
+    raise SystemExit("Managed expansion validation stage order is invalid")
+stages = {stage["name"]: stage for stage in result["stages"]}
+if any(not isinstance(stage.get("iterations"), int) or stage.get("iterations") < 0 or not stage.get("capability") for stage in stages.values()):
+    raise SystemExit("Managed expansion capability or iteration evidence is invalid")
+if stages["m8.2-pitched-memory"].get("status") != "passed" or stages["m8.6-module-globals"].get("status") != "passed":
+    raise SystemExit("Required managed expansion data stages did not pass")
+pool = stages["m8.3-memory-pool"]
+if pool.get("status") not in ("passed", "skipped"):
+    raise SystemExit("Managed expansion memory-pool status is invalid")
+if pool.get("status") == "skipped" and not pool.get("detail", "").startswith("not-supported:hip"):
+    raise SystemExit("Managed expansion memory-pool skip is invalid")
+if pool.get("iterations") != (0 if pool.get("status") == "skipped" else 1):
+    raise SystemExit("Managed expansion memory-pool iteration count is invalid")
+graph = stages["m8.4-explicit-graph"]
+graph_subtests = {item.get("name"): item for item in graph.get("subtests", [])}
+if graph.get("status") != "passed" or graph.get("iterations") != 3 or graph_subtests.get("regular-explicit-dag", {}).get("status") != "passed":
+    raise SystemExit("Managed expansion regular explicit graph did not pass")
+graph_memory = graph_subtests.get("graph-memory-nodes", {})
+if graph_memory.get("status") not in ("passed", "skipped"):
+    raise SystemExit("Managed expansion graph-memory status is invalid")
+if graph_memory.get("status") == "skipped" and not graph_memory.get("detail", "").startswith("not-supported:hipGraphAddMem"):
+    raise SystemExit("Managed expansion graph-memory skip is invalid")
+kernel = stages["m8.5-kernel-occupancy"]
+kernel_subtests = {item.get("name"): item for item in kernel.get("subtests", [])}
+if kernel.get("status") != "passed" or kernel_subtests.get("attributes-occupancy", {}).get("status") != "passed":
+    raise SystemExit("Managed expansion attributes or occupancy did not pass")
+cooperative = kernel_subtests.get("cooperative-launch", {})
+if cooperative.get("status") not in ("passed", "skipped"):
+    raise SystemExit("Managed expansion cooperative-launch status is invalid")
+if cooperative.get("status") == "skipped" and cooperative.get("detail") != "capability=false":
+    raise SystemExit("Managed expansion cooperative-launch skip is invalid")
+if any(stage.get("managedNegative") is not True for stage in result["stages"]):
+    raise SystemExit("Managed expansion validation is missing a managed negative")
+expected_skips = ["m8.3-memory-pool"] if pool.get("status") == "skipped" else []
+if result.get("skippedStages") != expected_skips:
+    raise SystemExit("Managed expansion skipped-stage aggregation is invalid")
+if result.get("performanceClaim") is not False or result.get("failureIndex") != -1 or result.get("failureStage") != "":
+    raise SystemExit("Managed expansion validation result contract is invalid")
+print("M8.2-M8.6 managed expansion workload passed")
+PY
+
 bash ./tools/radeon/cloud-stress.sh "${actual_commit}"
 
 echo "Radeon Cloud complete API validation passed for ${actual_commit}."

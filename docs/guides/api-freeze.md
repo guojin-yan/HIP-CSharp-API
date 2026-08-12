@@ -10,7 +10,7 @@ The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYP
 | --- | --- |
 | Formal | Public runtime, device, memory, stream/event, module/kernel, HIPRTC, peer, graph, value, enum, and exception types under `JYPPX.HipSharp` |
 | Diagnostic | Public loader attempts, diagnostics, and load exception under `JYPPX.HipSharp.Loading`; stable for 0.9 but not the primary compute API |
-| Sample-only | Types compiled only from the five projects under `samples/`; they are not core package API |
+| Sample-only | Types compiled only from the six projects under `samples/`; they are not core package API. The M8.7 validation result model is sample-only and does not change the frozen Core surface. |
 | Internal | All non-exported implementation types, including generated interop, native handles, leases, and native boundaries |
 
 ## Ownership and disposal / 所有权与释放
