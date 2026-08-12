@@ -151,6 +151,7 @@ public sealed class HipManagedMemory : IDisposable, IHipPointerOwner
     }
 
     IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
+    int? IHipPointerOwner.DeviceOrdinal => null;
     HipStream? IHipPointerOwner.RequiredStream => null;
     IntPtr IHipPointerOwner.AcquirePointer(out bool addedReference) => AcquirePointer(out addedReference);
     void IHipPointerOwner.ReleasePointer() => ReleasePointer();

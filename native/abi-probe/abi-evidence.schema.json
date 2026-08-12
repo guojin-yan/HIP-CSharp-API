@@ -5,7 +5,7 @@
   "type": "object",
   "required": [ "schemaVersion", "gitCommit", "normalizedManifestHash", "environment", "compiler", "headers", "libraries", "types", "functions" ],
   "properties": {
-    "schemaVersion": { "const": 5 },
+    "schemaVersion": { "const": 6 },
     "gitCommit": { "type": "string", "pattern": "^[0-9a-f]{40}$" },
     "normalizedManifestHash": { "type": "string", "pattern": "^[0-9A-Fa-f]{64}$" },
     "environment": {
@@ -45,7 +45,7 @@
     },
     "types": { "type": "array", "minItems": 40, "items": { "type": "object" } },
     "compiler": { "type": "object" },
-    "functions": { "type": "array", "minItems": 93, "items": { "type": "object" } },
+    "functions": { "type": "array", "minItems": 99, "items": { "type": "object" } },
     "offsets": { "type": "object" }
   }
 }

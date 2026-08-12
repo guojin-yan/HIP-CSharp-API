@@ -363,6 +363,7 @@ public sealed unsafe class HipPitchedDeviceMemory<T> : IDisposable, IHipPointerO
     internal IHipNativeApi NativeApi => _nativeApi;
 
     IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
+    int? IHipPointerOwner.DeviceOrdinal => DeviceOrdinal;
     HipStream? IHipPointerOwner.RequiredStream => null;
 
     IntPtr IHipPointerOwner.AcquirePointer(out bool addedReference) => AcquirePointer(out addedReference);

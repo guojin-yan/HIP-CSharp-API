@@ -7,9 +7,9 @@ The package now contains two low-level entry-point surfaces generated from the p
 - `HipRuntimeNativeApi`: 459 public declarations from `hip/hip_runtime_api.h`, including the 11 HIP memory-pool exports kept low-level for raw ABI callers.
 - `HipRtcNativeApi`: 18 public declarations from `hip/hiprtc.h`, including name expressions, linker, and bitcode calls.
 
-The existing `HipRuntime` and `HipRtc` classes remain the preferred managed surface. They validate arguments, translate errors, and own streams, events, linear, pitched, and pooled allocations, explicit and captured graphs, programs, and modules. The managed manifest currently contains 84 Runtime and 9 HIPRTC entries; the complete low-level model remains 459 Runtime and 18 HIPRTC declarations. The low-level classes are for callers that need an entry point not yet covered by a managed owner.
+The existing `HipRuntime` and `HipRtc` classes remain the preferred managed surface. They validate arguments, translate errors, and own streams, events, linear, pitched, and pooled allocations, explicit and captured graphs, programs, modules, and module kernel occupancy/cooperative launch. The managed manifest currently contains 90 Runtime and 9 HIPRTC entries; 369 Runtime and 9 HIPRTC declarations remain low-level-only. The complete low-level model remains 459 Runtime and 18 HIPRTC declarations.
 
-现有的 `HipRuntime` 与 `HipRtc` 仍是推荐的托管 API；它们负责参数检查、错误转换以及 stream、event、linear/pitched/pooled allocation、显式与捕获 graph、program、module 的所有权。managed manifest 当前包含 84 个 Runtime 和 9 个 HIPRTC 入口；完整低层 model 仍包含 459 个 Runtime 与 18 个 HIPRTC 声明。低层类型用于需要调用尚未有托管 owner 的入口。
+现有的 `HipRuntime` 与 `HipRtc` 仍是推荐的托管 API；它们负责参数检查、错误转换以及 stream、event、linear/pitched/pooled allocation、显式与捕获 graph、program、module 和 module kernel occupancy/cooperative launch 的所有权。managed manifest 当前包含 90 个 Runtime 和 9 个 HIPRTC 入口；仍有 369 个 Runtime 和 9 个 HIPRTC 声明仅提供低层调用。完整低层 model 仍包含 459 个 Runtime 与 18 个 HIPRTC 声明。
 
 ## Raw ABI rules / 原生 ABI 规则
 

@@ -46,6 +46,7 @@ public sealed class HipAsyncDeviceMemory : IDisposable, IHipPointerOwner
     internal void ReleasePointer() => _core.ReleasePointer();
 
     IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
+    int? IHipPointerOwner.DeviceOrdinal => DeviceOrdinal;
     HipStream? IHipPointerOwner.RequiredStream => AllocationStream;
     IntPtr IHipPointerOwner.AcquirePointer(out bool addedReference) => AcquirePointer(out addedReference);
     void IHipPointerOwner.ReleasePointer() => ReleasePointer();

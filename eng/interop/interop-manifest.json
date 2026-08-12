@@ -1525,6 +1525,129 @@
       ]
     },
     {
+      "managedName": "FuncGetAttribute",
+      "entryPoint": "hipFuncGetAttribute",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "读取 module kernel function 属性",
+      "summaryEn": "Reads a module kernel function attribute",
+      "parameters": [
+        { "declaration": "out int value", "name": "value", "direction": "out", "ownership": "caller" },
+        { "declaration": "HipFunctionAttributeNative attribute", "name": "attribute", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" }
+      ]
+    },
+    {
+      "managedName": "ModuleOccupancyMaxActiveBlocksPerMultiprocessor",
+      "entryPoint": "hipModuleOccupancyMaxActiveBlocksPerMultiprocessor",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "查询每个 multiprocessor 的最大 active block 数",
+      "summaryEn": "Queries maximum active blocks per multiprocessor",
+      "parameters": [
+        { "declaration": "out int activeBlocks", "name": "activeBlocks", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" },
+        { "declaration": "int blockSize", "name": "blockSize", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr dynamicSharedMemoryBytes", "name": "dynamicSharedMemoryBytes", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "ModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags",
+      "entryPoint": "hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "使用 flags 查询每个 multiprocessor 的最大 active block 数",
+      "summaryEn": "Queries maximum active blocks per multiprocessor with flags",
+      "parameters": [
+        { "declaration": "out int activeBlocks", "name": "activeBlocks", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" },
+        { "declaration": "int blockSize", "name": "blockSize", "direction": "in", "ownership": "value" },
+        { "declaration": "UIntPtr dynamicSharedMemoryBytes", "name": "dynamicSharedMemoryBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "ModuleOccupancyMaxPotentialBlockSize",
+      "entryPoint": "hipModuleOccupancyMaxPotentialBlockSize",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "查询 potential block size launch plan",
+      "summaryEn": "Queries a potential-block-size launch plan",
+      "parameters": [
+        { "declaration": "out int minimumGridSize", "name": "minimumGridSize", "direction": "out", "ownership": "caller" },
+        { "declaration": "out int blockSize", "name": "blockSize", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" },
+        { "declaration": "UIntPtr dynamicSharedMemoryBytes", "name": "dynamicSharedMemoryBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "int blockSizeLimit", "name": "blockSizeLimit", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "ModuleOccupancyMaxPotentialBlockSizeWithFlags",
+      "entryPoint": "hipModuleOccupancyMaxPotentialBlockSizeWithFlags",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "使用 flags 查询 potential block size launch plan",
+      "summaryEn": "Queries a potential-block-size launch plan with flags",
+      "parameters": [
+        { "declaration": "out int minimumGridSize", "name": "minimumGridSize", "direction": "out", "ownership": "caller" },
+        { "declaration": "out int blockSize", "name": "blockSize", "direction": "out", "ownership": "caller" },
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" },
+        { "declaration": "UIntPtr dynamicSharedMemoryBytes", "name": "dynamicSharedMemoryBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "int blockSizeLimit", "name": "blockSizeLimit", "direction": "in", "ownership": "value" },
+        { "declaration": "uint flags", "name": "flags", "direction": "in", "ownership": "value" }
+      ]
+    },
+    {
+      "managedName": "ModuleLaunchCooperativeKernel",
+      "entryPoint": "hipModuleLaunchCooperativeKernel",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "2.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": false,
+      "optional": true,
+      "summaryZh": "提交单设备 cooperative module kernel",
+      "summaryEn": "Submits a single-device cooperative module kernel",
+      "parameters": [
+        { "declaration": "IntPtr function", "name": "function", "direction": "in", "ownership": "borrowed-module" },
+        { "declaration": "uint gridDimX", "name": "gridDimX", "direction": "in", "ownership": "value" },
+        { "declaration": "uint gridDimY", "name": "gridDimY", "direction": "in", "ownership": "value" },
+        { "declaration": "uint gridDimZ", "name": "gridDimZ", "direction": "in", "ownership": "value" },
+        { "declaration": "uint blockDimX", "name": "blockDimX", "direction": "in", "ownership": "value" },
+        { "declaration": "uint blockDimY", "name": "blockDimY", "direction": "in", "ownership": "value" },
+        { "declaration": "uint blockDimZ", "name": "blockDimZ", "direction": "in", "ownership": "value" },
+        { "declaration": "uint sharedMemoryBytes", "name": "sharedMemoryBytes", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr stream", "name": "stream", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr kernelParameters", "name": "kernelParameters", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
       "managedName": "ModuleLaunchKernel",
       "entryPoint": "hipModuleLaunchKernel",
       "library": "amdhip64",

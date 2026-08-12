@@ -400,6 +400,74 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
         }
     }
 
+    public HipError FuncGetAttribute(out int value, HipFunctionAttributeNative attribute, IntPtr function)
+    {
+        int result = 0;
+        HipError error = Optional(() => HipNativeMethods.FuncGetAttribute(out result, attribute, function));
+        value = result;
+        return error;
+    }
+
+    public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessor(
+        out int activeBlocks,
+        IntPtr function,
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes)
+    {
+        int result = 0;
+        HipError error = Optional(() => HipNativeMethods.ModuleOccupancyMaxActiveBlocksPerMultiprocessor(
+            out result, function, blockSize, dynamicSharedMemoryBytes));
+        activeBlocks = result;
+        return error;
+    }
+
+    public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
+        out int activeBlocks,
+        IntPtr function,
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes,
+        uint flags)
+    {
+        int result = 0;
+        HipError error = Optional(() => HipNativeMethods.ModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
+            out result, function, blockSize, dynamicSharedMemoryBytes, flags));
+        activeBlocks = result;
+        return error;
+    }
+
+    public HipError ModuleOccupancyMaxPotentialBlockSize(
+        out int minimumGridSize,
+        out int blockSize,
+        IntPtr function,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit)
+    {
+        int grid = 0;
+        int block = 0;
+        HipError error = Optional(() => HipNativeMethods.ModuleOccupancyMaxPotentialBlockSize(
+            out grid, out block, function, dynamicSharedMemoryBytes, blockSizeLimit));
+        minimumGridSize = grid;
+        blockSize = block;
+        return error;
+    }
+
+    public HipError ModuleOccupancyMaxPotentialBlockSizeWithFlags(
+        out int minimumGridSize,
+        out int blockSize,
+        IntPtr function,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit,
+        uint flags)
+    {
+        int grid = 0;
+        int block = 0;
+        HipError error = Optional(() => HipNativeMethods.ModuleOccupancyMaxPotentialBlockSizeWithFlags(
+            out grid, out block, function, dynamicSharedMemoryBytes, blockSizeLimit, flags));
+        minimumGridSize = grid;
+        blockSize = block;
+        return error;
+    }
+
     public HipError ModuleLaunchKernel(
         IntPtr function,
         uint gridX,
@@ -423,6 +491,29 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
             stream,
             kernelParameters,
             IntPtr.Zero);
+
+    public HipError ModuleLaunchCooperativeKernel(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr stream,
+        IntPtr kernelParameters) =>
+        Optional(() => HipNativeMethods.ModuleLaunchCooperativeKernel(
+            function,
+            gridX,
+            gridY,
+            gridZ,
+            blockX,
+            blockY,
+            blockZ,
+            sharedMemoryBytes,
+            stream,
+            kernelParameters));
 
     public string GetErrorName(HipError error) => ReadBorrowedString(HipNativeMethods.GetErrorName(error));
 

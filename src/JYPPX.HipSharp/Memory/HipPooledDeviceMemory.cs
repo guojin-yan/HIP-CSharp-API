@@ -45,6 +45,7 @@ public sealed class HipPooledDeviceMemory : IDisposable, IHipPointerOwner
     public void Dispose() => _core.Dispose();
 
     IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
+    int? IHipPointerOwner.DeviceOrdinal => DeviceOrdinal;
     HipStream? IHipPointerOwner.RequiredStream => AllocationStream;
     IntPtr IHipPointerOwner.AcquirePointer(out bool addedReference) => _core.AcquirePointer(out addedReference);
     void IHipPointerOwner.ReleasePointer() => _core.ReleasePointer();

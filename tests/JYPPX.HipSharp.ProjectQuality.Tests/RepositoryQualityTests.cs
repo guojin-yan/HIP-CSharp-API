@@ -92,6 +92,9 @@ public sealed class RepositoryQualityTests
             "hipMemcpy2D", "hipMemcpy2DAsync", "hipMemcpy3D", "hipMemcpy3DAsync",
             "hipHostMalloc", "hipHostFree", "hipDeviceSynchronize",
             "hipGetErrorName", "hipGetErrorString", "hipModuleLoadData", "hipModuleUnload", "hipModuleGetFunction",
+            "hipFuncGetAttribute", "hipModuleOccupancyMaxActiveBlocksPerMultiprocessor",
+            "hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags", "hipModuleOccupancyMaxPotentialBlockSize",
+            "hipModuleOccupancyMaxPotentialBlockSizeWithFlags", "hipModuleLaunchCooperativeKernel",
             "hipModuleLaunchKernel", "hiprtcVersion", "hiprtcGetErrorString", "hiprtcCreateProgram",
             "hiprtcDestroyProgram", "hiprtcCompileProgram", "hiprtcGetProgramLogSize", "hiprtcGetProgramLog",
             "hiprtcGetCodeSize", "hiprtcGetCode",
@@ -107,14 +110,14 @@ public sealed class RepositoryQualityTests
             Regex.IsMatch(header.GetProperty("sha256").GetString()!, "^[0-9A-F]{64}$", RegexOptions.CultureInvariant)));
         Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
             header.GetProperty("source").GetString()!.Contains("/ROCm/HIP/", StringComparison.Ordinal)));
-        Assert.AreEqual(93, expectedEntryPoints.Length);
+        Assert.AreEqual(99, expectedEntryPoints.Length);
         Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
         CollectionAssert.AreEqual(
             expectedEntryPoints,
             functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
-        Assert.AreEqual(53, functions.EnumerateArray().Count(function => function.GetProperty("optional").GetBoolean()));
+        Assert.AreEqual(59, functions.EnumerateArray().Count(function => function.GetProperty("optional").GetBoolean()));
         Assert.AreEqual(40, functions.EnumerateArray().Count(function => !function.GetProperty("optional").GetBoolean()));
-        Assert.AreEqual(84, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
+        Assert.AreEqual(90, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
         Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
         string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.HipSharp", "Generated", "HipNativeMethods.g.cs"));
@@ -381,6 +384,7 @@ public sealed class RepositoryQualityTests
             "T:JYPPX.HipSharp.Graphs.HipGraphNodeType",
             "T:JYPPX.HipSharp.Memory.HipMemoryCopyKind",
             "T:JYPPX.HipSharp.Memory.HipMemoryPoolAccess",
+            "T:JYPPX.HipSharp.Modules.HipOccupancyFlags",
             "T:JYPPX.HipSharp.Rtc.HipRtcResult",
             "T:JYPPX.HipSharp.Types.HipDeviceAttribute",
             "T:JYPPX.HipSharp.Types.HipError",
@@ -396,7 +400,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.HipSharp.dll"));
         StringAssert.Contains(
             File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1")),
-            "pending-owner-authorized-m8.4-symbol-runtime-gpu-validation");
+            "pending-owner-authorized-m8.5-symbol-runtime-gpu-validation");
     }
 
     [TestMethod]

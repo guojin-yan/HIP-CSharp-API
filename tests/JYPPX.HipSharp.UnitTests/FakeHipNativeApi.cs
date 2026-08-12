@@ -6,6 +6,7 @@ using System.Runtime.InteropServices;
 using JYPPX.HipSharp.Graphs;
 using JYPPX.HipSharp.Interop;
 using JYPPX.HipSharp.Memory;
+using JYPPX.HipSharp.Modules;
 using JYPPX.HipSharp.Types;
 
 namespace JYPPX.HipSharp.UnitTests;
@@ -43,6 +44,12 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal HipError ModuleGetFunctionResult { get; set; } = HipError.Success;
 
     internal HipError ModuleLaunchResult { get; set; } = HipError.Success;
+
+    internal HipError FunctionAttributeResult { get; set; } = HipError.Success;
+
+    internal HipError OccupancyResult { get; set; } = HipError.Success;
+
+    internal HipError CooperativeLaunchResult { get; set; } = HipError.Success;
 
     internal HipError SynchronizeResult { get; set; } = HipError.Success;
 
@@ -146,6 +153,49 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal IList<long> LastKernelArgumentValues { get; } = new List<long>();
 
+    internal IDictionary<HipFunctionAttributeNative, int> FunctionAttributes { get; } =
+        new Dictionary<HipFunctionAttributeNative, int>
+        {
+            [HipFunctionAttributeNative.MaxThreadsPerBlock] = 1024,
+            [HipFunctionAttributeNative.SharedSizeBytes] = 2048,
+            [HipFunctionAttributeNative.ConstantSizeBytes] = 128,
+            [HipFunctionAttributeNative.LocalSizeBytes] = 32,
+            [HipFunctionAttributeNative.NumberOfRegisters] = 24,
+            [HipFunctionAttributeNative.BinaryVersion] = 1100,
+            [HipFunctionAttributeNative.MaxDynamicSharedSizeBytes] = 65536,
+        };
+
+    internal IDictionary<HipFunctionAttributeNative, HipError> FunctionAttributeResults { get; } =
+        new Dictionary<HipFunctionAttributeNative, HipError>();
+
+    internal IList<HipFunctionAttributeNative> FunctionAttributeCalls { get; } = new List<HipFunctionAttributeNative>();
+
+    internal int ActiveBlocksPerMultiprocessor { get; set; } = 4;
+
+    internal int PotentialMinimumGridSize { get; set; } = 80;
+
+    internal int PotentialBlockSize { get; set; } = 256;
+
+    internal int MultiprocessorCountValue { get; set; } = 20;
+
+    internal int WarpSizeValue { get; set; } = 64;
+
+    internal int CooperativeLaunchCapability { get; set; } = 1;
+
+    internal int LastOccupancyBlockSize { get; private set; }
+
+    internal ulong LastOccupancyDynamicSharedMemoryBytes { get; private set; }
+
+    internal int LastOccupancyBlockSizeLimit { get; private set; }
+
+    internal int LastPotentialBlockSizeLimit { get; private set; }
+
+    internal uint LastOccupancyFlags { get; private set; }
+
+    internal int OccupancyNonFlagsCallCount { get; private set; }
+
+    internal int OccupancyFlagsCallCount { get; private set; }
+
     internal byte[] LastModuleCodeObject { get; private set; } = Array.Empty<byte>();
 
     internal string LastKernelName { get; private set; } = string.Empty;
@@ -163,6 +213,26 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int ModuleUnloadCount { get; private set; }
 
     internal int ModuleLaunchCount { get; private set; }
+
+    internal int CooperativeLaunchCount { get; private set; }
+
+    internal IntPtr LastLaunchedFunction { get; private set; }
+
+    internal uint LastGridX { get; private set; }
+
+    internal uint LastGridY { get; private set; }
+
+    internal uint LastGridZ { get; private set; }
+
+    internal uint LastBlockX { get; private set; }
+
+    internal uint LastBlockY { get; private set; }
+
+    internal uint LastBlockZ { get; private set; }
+
+    internal uint LastLaunchSharedMemoryBytes { get; private set; }
+
+    internal IntPtr LastLaunchStream { get; private set; }
 
     internal int AsyncCopyCount { get; private set; }
 
@@ -352,7 +422,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId)
     {
-        value = attribute == HipDeviceAttribute.MaxThreadsPerBlock ? 1024 : 0;
+        value = attribute switch
+        {
+            HipDeviceAttribute.MaxThreadsPerBlock => 1024,
+            HipDeviceAttribute.CooperativeLaunch => CooperativeLaunchCapability,
+            HipDeviceAttribute.MultiprocessorCount => MultiprocessorCountValue,
+            HipDeviceAttribute.WarpSize => WarpSizeValue,
+            _ => 0,
+        };
         return deviceId >= 0 && deviceId < 2 ? HipError.Success : HipError.InvalidDevice;
     }
 
@@ -1174,6 +1251,65 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return ModuleGetFunctionResult;
     }
 
+    public HipError FuncGetAttribute(out int value, HipFunctionAttributeNative attribute, IntPtr function)
+    {
+        FunctionAttributeCalls.Add(attribute);
+        value = FunctionAttributes.TryGetValue(attribute, out int configured) ? configured : 0;
+        return FunctionAttributeResults.TryGetValue(attribute, out HipError result) ? result : FunctionAttributeResult;
+    }
+
+    public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessor(
+        out int activeBlocks,
+        IntPtr function,
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes)
+    {
+        RecordOccupancy(blockSize, dynamicSharedMemoryBytes, 0, 0, withFlags: false);
+        activeBlocks = ActiveBlocksPerMultiprocessor;
+        return OccupancyResult;
+    }
+
+    public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
+        out int activeBlocks,
+        IntPtr function,
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes,
+        uint flags)
+    {
+        RecordOccupancy(blockSize, dynamicSharedMemoryBytes, 0, flags, withFlags: true);
+        activeBlocks = ActiveBlocksPerMultiprocessor;
+        return OccupancyResult;
+    }
+
+    public HipError ModuleOccupancyMaxPotentialBlockSize(
+        out int minimumGridSize,
+        out int blockSize,
+        IntPtr function,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit)
+    {
+        LastPotentialBlockSizeLimit = blockSizeLimit;
+        RecordOccupancy(0, dynamicSharedMemoryBytes, blockSizeLimit, 0, withFlags: false);
+        minimumGridSize = PotentialMinimumGridSize;
+        blockSize = PotentialBlockSize;
+        return OccupancyResult;
+    }
+
+    public HipError ModuleOccupancyMaxPotentialBlockSizeWithFlags(
+        out int minimumGridSize,
+        out int blockSize,
+        IntPtr function,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit,
+        uint flags)
+    {
+        LastPotentialBlockSizeLimit = blockSizeLimit;
+        RecordOccupancy(0, dynamicSharedMemoryBytes, blockSizeLimit, flags, withFlags: true);
+        minimumGridSize = PotentialMinimumGridSize;
+        blockSize = PotentialBlockSize;
+        return OccupancyResult;
+    }
+
     public HipError ModuleLaunchKernel(
         IntPtr function,
         uint gridX,
@@ -1187,17 +1323,26 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         IntPtr kernelParameters)
     {
         ModuleLaunchCount++;
-        LastKernelArgumentValues.Clear();
-        for (int index = 0; index < ExpectedKernelPointerArguments.Count; index++)
-        {
-            IntPtr valueStorage = Marshal.ReadIntPtr(kernelParameters, index * IntPtr.Size);
-            long value = ExpectedKernelPointerArguments[index]
-                ? Marshal.ReadIntPtr(valueStorage).ToInt64()
-                : Marshal.ReadInt32(valueStorage);
-            LastKernelArgumentValues.Add(value);
-        }
+        RecordKernelLaunch(function, gridX, gridY, gridZ, blockX, blockY, blockZ, sharedMemoryBytes, stream, kernelParameters);
 
         return ModuleLaunchResult;
+    }
+
+    public HipError ModuleLaunchCooperativeKernel(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr stream,
+        IntPtr kernelParameters)
+    {
+        CooperativeLaunchCount++;
+        RecordKernelLaunch(function, gridX, gridY, gridZ, blockX, blockY, blockZ, sharedMemoryBytes, stream, kernelParameters);
+        return CooperativeLaunchResult;
     }
 
     public string GetErrorName(HipError error) => error == HipError.OutOfMemory ? "hipErrorOutOfMemory" : "hipErrorUnknown";
@@ -1215,6 +1360,53 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         foreach (IntPtr pointer in _graphAllocationPointers.Keys) Marshal.FreeHGlobal(pointer);
         _graphAllocationPointers.Clear();
         _activeGraphAllocations.Clear();
+    }
+
+    private void RecordOccupancy(
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit,
+        uint flags,
+        bool withFlags)
+    {
+        LastOccupancyBlockSize = blockSize;
+        LastOccupancyDynamicSharedMemoryBytes = dynamicSharedMemoryBytes.ToUInt64();
+        LastOccupancyBlockSizeLimit = blockSizeLimit;
+        LastOccupancyFlags = flags;
+        if (withFlags) OccupancyFlagsCallCount++;
+        else OccupancyNonFlagsCallCount++;
+    }
+
+    private void RecordKernelLaunch(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr stream,
+        IntPtr kernelParameters)
+    {
+        LastLaunchedFunction = function;
+        LastGridX = gridX;
+        LastGridY = gridY;
+        LastGridZ = gridZ;
+        LastBlockX = blockX;
+        LastBlockY = blockY;
+        LastBlockZ = blockZ;
+        LastLaunchSharedMemoryBytes = sharedMemoryBytes;
+        LastLaunchStream = stream;
+        LastKernelArgumentValues.Clear();
+        for (int index = 0; index < ExpectedKernelPointerArguments.Count; index++)
+        {
+            IntPtr valueStorage = Marshal.ReadIntPtr(kernelParameters, index * IntPtr.Size);
+            long value = ExpectedKernelPointerArguments[index]
+                ? Marshal.ReadIntPtr(valueStorage).ToInt64()
+                : Marshal.ReadInt32(valueStorage);
+            LastKernelArgumentValues.Add(value);
+        }
     }
 
     private HipError AddGraphNode(out IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, FakeGraphNode value)

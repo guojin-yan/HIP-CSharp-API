@@ -203,6 +203,7 @@ public sealed class HipDeviceMemory : IDisposable, IHipPointerOwner
     internal IHipNativeApi NativeApi => _nativeApi;
 
     IHipNativeApi IHipPointerOwner.NativeApi => _nativeApi;
+    int? IHipPointerOwner.DeviceOrdinal => DeviceOrdinal;
     HipStream? IHipPointerOwner.RequiredStream => null;
 
     internal IntPtr DangerousAcquireHandle(out bool addedReference)

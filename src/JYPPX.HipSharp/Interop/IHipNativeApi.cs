@@ -171,7 +171,49 @@ internal interface IHipNativeApi
 
     public HipError ModuleGetFunction(IntPtr module, string kernelName, out IntPtr function);
 
+    public HipError FuncGetAttribute(out int value, HipFunctionAttributeNative attribute, IntPtr function);
+
+    public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessor(
+        out int activeBlocks,
+        IntPtr function,
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes);
+
+    public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags(
+        out int activeBlocks,
+        IntPtr function,
+        int blockSize,
+        UIntPtr dynamicSharedMemoryBytes,
+        uint flags);
+
+    public HipError ModuleOccupancyMaxPotentialBlockSize(
+        out int minimumGridSize,
+        out int blockSize,
+        IntPtr function,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit);
+
+    public HipError ModuleOccupancyMaxPotentialBlockSizeWithFlags(
+        out int minimumGridSize,
+        out int blockSize,
+        IntPtr function,
+        UIntPtr dynamicSharedMemoryBytes,
+        int blockSizeLimit,
+        uint flags);
+
     public HipError ModuleLaunchKernel(
+        IntPtr function,
+        uint gridX,
+        uint gridY,
+        uint gridZ,
+        uint blockX,
+        uint blockY,
+        uint blockZ,
+        uint sharedMemoryBytes,
+        IntPtr stream,
+        IntPtr kernelParameters);
+
+    public HipError ModuleLaunchCooperativeKernel(
         IntPtr function,
         uint gridX,
         uint gridY,

@@ -10,6 +10,7 @@ namespace JYPPX.HipSharp.Memory;
 internal interface IHipPointerOwner
 {
     public IHipNativeApi NativeApi { get; }
+    public int? DeviceOrdinal { get; }
     public HipStream? RequiredStream { get; }
     public IntPtr AcquirePointer(out bool addedReference);
     public void ReleasePointer();

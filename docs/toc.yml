@@ -12,6 +12,8 @@
       href: guides/advanced-apis.md
     - name: Explicit HIP Graphs / 显式 HIP Graph
       href: guides/explicit-graphs.md
+    - name: Kernel Occupancy and Cooperative Launch / Kernel Occupancy 与 Cooperative Launch
+      href: guides/kernel-occupancy.md
     - name: Pitched Memory and 2D/3D Copy / Pitched Memory 与 2D/3D Copy
       href: guides/pitched-memory.md
     - name: Managed Memory Pools / 托管 Memory Pool

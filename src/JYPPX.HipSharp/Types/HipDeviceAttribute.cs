@@ -11,6 +11,9 @@ public enum HipDeviceAttribute
     /// <summary>每个 block 的共享内存字节数 / Shared-memory bytes per block.</summary>
     MaxSharedMemoryPerBlock = 8,
 
+    /// <summary>是否支持单设备 cooperative launch / Whether single-device cooperative launch is supported.</summary>
+    CooperativeLaunch = 11,
+
     /// <summary>设备主时钟频率（kHz） / Device clock rate in kHz.</summary>
     ClockRate = 13,
 
@@ -19,4 +22,10 @@ public enum HipDeviceAttribute
 
     /// <summary>设备计算能力次版本 / Compute capability minor version.</summary>
     ComputeCapabilityMinor = 76,
+
+    /// <summary>设备的 multiprocessor 数量 / Number of multiprocessors on the device.</summary>
+    MultiprocessorCount = 64,
+
+    /// <summary>warp 宽度（线程数） / Warp width, in threads.</summary>
+    WarpSize = 89,
 }

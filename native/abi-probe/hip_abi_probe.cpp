@@ -97,6 +97,32 @@ static_assert(std::is_same<decltype(&hipGetErrorString), const char* (*)(hipErro
 static_assert(std::is_same<decltype(&hipModuleLoadData), hipError_t (*)(hipModule_t*, const void*)>::value, "hipModuleLoadData signature mismatch");
 static_assert(std::is_same<decltype(&hipModuleUnload), hipError_t (*)(hipModule_t)>::value, "hipModuleUnload signature mismatch");
 static_assert(std::is_same<decltype(&hipModuleGetFunction), hipError_t (*)(hipFunction_t*, hipModule_t, const char*)>::value, "hipModuleGetFunction signature mismatch");
+static_assert(std::is_same<decltype(&hipFuncGetAttribute), hipError_t (*)(int*, hipFunction_attribute, hipFunction_t)>::value, "hipFuncGetAttribute signature mismatch");
+static_assert(
+    std::is_same<
+        decltype(&hipModuleOccupancyMaxActiveBlocksPerMultiprocessor),
+        hipError_t (*)(int*, hipFunction_t, int, std::size_t)>::value,
+    "hipModuleOccupancyMaxActiveBlocksPerMultiprocessor signature mismatch");
+static_assert(
+    std::is_same<
+        decltype(&hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags),
+        hipError_t (*)(int*, hipFunction_t, int, std::size_t, unsigned int)>::value,
+    "hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags signature mismatch");
+static_assert(
+    std::is_same<
+        decltype(&hipModuleOccupancyMaxPotentialBlockSize),
+        hipError_t (*)(int*, int*, hipFunction_t, std::size_t, int)>::value,
+    "hipModuleOccupancyMaxPotentialBlockSize signature mismatch");
+static_assert(
+    std::is_same<
+        decltype(&hipModuleOccupancyMaxPotentialBlockSizeWithFlags),
+        hipError_t (*)(int*, int*, hipFunction_t, std::size_t, int, unsigned int)>::value,
+    "hipModuleOccupancyMaxPotentialBlockSizeWithFlags signature mismatch");
+static_assert(
+    std::is_same<
+        decltype(&hipModuleLaunchCooperativeKernel),
+        hipError_t (*)(hipFunction_t, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, unsigned int, hipStream_t, void**)>::value,
+    "hipModuleLaunchCooperativeKernel signature mismatch");
 static_assert(
     std::is_same<
         decltype(&hipModuleLaunchKernel),
@@ -116,7 +142,7 @@ int main()
 {
     std::printf(
         "{\n"
-        "  \"schemaVersion\": 5,\n"
+        "  \"schemaVersion\": 6,\n"
         "  \"normalizedManifestHash\": \"%s\",\n"
         "  \"headerHash\": \"%s\",\n"
         "  \"staticAssertions\": true,\n"
@@ -132,6 +158,8 @@ int main()
         "  \"hipGraphNodeTypeAlignment\": %zu,\n"
         "  \"hipGraphExecUpdateResultSize\": %zu,\n"
         "  \"hipGraphExecUpdateResultAlignment\": %zu,\n"
+        "  \"hipFunctionAttributeSize\": %zu,\n"
+        "  \"hipFunctionAttributeAlignment\": %zu,\n"
         "  \"pointerSize\": %zu,\n"
         "  \"pointerAlignment\": %zu,\n"
         "  \"hiprtcResultSize\": %zu,\n"
@@ -226,6 +254,18 @@ int main()
         "  \"hipGraphExecUpdateErrorParametersChanged\": %d,\n"
         "  \"hipGraphExecUpdateErrorNotSupported\": %d,\n"
         "  \"hipGraphExecUpdateErrorUnsupportedFunctionChange\": %d,\n"
+        "  \"hipFuncAttributeMaxThreadsPerBlock\": %d,\n"
+        "  \"hipFuncAttributeSharedSizeBytes\": %d,\n"
+        "  \"hipFuncAttributeConstSizeBytes\": %d,\n"
+        "  \"hipFuncAttributeLocalSizeBytes\": %d,\n"
+        "  \"hipFuncAttributeNumRegs\": %d,\n"
+        "  \"hipFuncAttributeBinaryVersion\": %d,\n"
+        "  \"hipFuncAttributeMaxDynamicSharedSizeBytes\": %d,\n"
+        "  \"hipOccupancyDefault\": %u,\n"
+        "  \"hipOccupancyDisableCachingOverride\": %u,\n"
+        "  \"hipDeviceAttributeCooperativeLaunch\": %d,\n"
+        "  \"hipDeviceAttributeMultiprocessorCount\": %d,\n"
+        "  \"hipDeviceAttributeWarpSize\": %d,\n"
         "  \"hipSuccess\": %d,\n"
         "  \"hiprtcSuccess\": %d,\n"
         "  \"hiprtcCompilation\": %d,\n"
@@ -259,6 +299,8 @@ int main()
         alignof(hipGraphNodeType),
         sizeof(hipGraphExecUpdateResult),
         alignof(hipGraphExecUpdateResult),
+        sizeof(hipFunction_attribute),
+        alignof(hipFunction_attribute),
         sizeof(void*),
         alignof(void*),
         sizeof(hiprtcResult),
@@ -353,6 +395,18 @@ int main()
         static_cast<int>(hipGraphExecUpdateErrorParametersChanged),
         static_cast<int>(hipGraphExecUpdateErrorNotSupported),
         static_cast<int>(hipGraphExecUpdateErrorUnsupportedFunctionChange),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_CONST_SIZE_BYTES),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_NUM_REGS),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_BINARY_VERSION),
+        static_cast<int>(HIP_FUNC_ATTRIBUTE_MAX_DYNAMIC_SHARED_SIZE_BYTES),
+        static_cast<unsigned int>(hipOccupancyDefault),
+        static_cast<unsigned int>(hipOccupancyDisableCachingOverride),
+        static_cast<int>(hipDeviceAttributeCooperativeLaunch),
+        static_cast<int>(hipDeviceAttributeMultiprocessorCount),
+        static_cast<int>(hipDeviceAttributeWarpSize),
         static_cast<int>(hipSuccess),
         static_cast<int>(HIPRTC_SUCCESS),
         static_cast<int>(HIPRTC_ERROR_COMPILATION),
