@@ -30,10 +30,12 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly Dictionary<IntPtr, Dictionary<int, ulong>> _poolAttributes = new();
     private readonly Dictionary<(IntPtr Pool, int Device), HipMemoryPoolAccess> _poolAccess = new();
     private readonly Dictionary<IntPtr, IntPtr> _allocationPools = new();
+    private readonly Dictionary<(IntPtr Module, string Name), (IntPtr Pointer, int Length)> _moduleGlobals = new();
     private int _nextPool = 0x9000;
     private int _nextGraph = 0x7000;
     private int _nextGraphExec = 0x8000;
     private int _nextGraphNode = 0xB000;
+    private int _nextModule = 0x2000;
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -42,6 +44,18 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal HipError ModuleUnloadResult { get; set; } = HipError.Success;
 
     internal HipError ModuleGetFunctionResult { get; set; } = HipError.Success;
+
+    internal HipError ModuleGetGlobalResult { get; set; } = HipError.Success;
+
+    internal HipError MemcpyResult { get; set; } = HipError.Success;
+
+    internal HipError MemcpyAsyncResult { get; set; } = HipError.Success;
+
+    internal bool ReturnNullModuleGlobal { get; set; }
+
+    internal bool ReturnZeroModuleGlobalSize { get; set; }
+
+    internal bool ReturnOverflowModuleGlobalRange { get; set; }
 
     internal HipError ModuleLaunchResult { get; set; } = HipError.Success;
 
@@ -200,6 +214,12 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal string LastKernelName { get; private set; } = string.Empty;
 
+    internal string LastModuleGlobalName { get; private set; } = string.Empty;
+
+    internal IntPtr LastModuleGlobalModule { get; private set; }
+
+    internal int ModuleGetGlobalCallCount { get; private set; }
+
     internal uint LastInitFlags { get; private set; }
 
     internal int LastSetDevice { get; private set; }
@@ -235,6 +255,16 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal IntPtr LastLaunchStream { get; private set; }
 
     internal int AsyncCopyCount { get; private set; }
+
+    internal int MemcpyCallCount { get; private set; }
+
+    internal int MemcpyAsyncCallCount { get; private set; }
+
+    internal HipMemoryCopyKind LastMemcpyKind { get; private set; }
+
+    internal ulong LastMemcpyByteCount { get; private set; }
+
+    internal IntPtr LastMemcpyStream { get; private set; }
 
     internal int StreamDestroyCount { get; private set; }
 
@@ -1031,6 +1061,11 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError Memcpy(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind)
     {
+        MemcpyCallCount++;
+        LastMemcpyKind = kind;
+        LastMemcpyByteCount = byteCount.ToUInt64();
+        LastMemcpyStream = IntPtr.Zero;
+        if (MemcpyResult != HipError.Success) return MemcpyResult;
         int count = checked((int)byteCount.ToUInt64());
         var buffer = new byte[count];
         Marshal.Copy(source, buffer, 0, count);
@@ -1041,7 +1076,16 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError MemcpyAsync(IntPtr destination, IntPtr source, UIntPtr byteCount, HipMemoryCopyKind kind, IntPtr stream)
     {
         AsyncCopyCount++;
-        return Memcpy(destination, source, byteCount, kind);
+        MemcpyAsyncCallCount++;
+        LastMemcpyKind = kind;
+        LastMemcpyByteCount = byteCount.ToUInt64();
+        LastMemcpyStream = stream;
+        if (MemcpyAsyncResult != HipError.Success) return MemcpyAsyncResult;
+        int count = checked((int)byteCount.ToUInt64());
+        var buffer = new byte[count];
+        Marshal.Copy(source, buffer, 0, count);
+        Marshal.Copy(buffer, 0, destination, count);
+        return HipError.Success;
     }
 
     public HipError Memset(IntPtr destination, int value, UIntPtr byteCount)
@@ -1230,7 +1274,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError ModuleLoadData(byte[] codeObject, out IntPtr module)
     {
         LastModuleCodeObject = (byte[])codeObject.Clone();
-        module = ModuleLoadResult == HipError.Success ? new IntPtr(0x2000) : IntPtr.Zero;
+        module = ModuleLoadResult == HipError.Success ? new IntPtr(_nextModule++) : IntPtr.Zero;
         return ModuleLoadResult;
     }
 
@@ -1249,6 +1293,37 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         LastKernelName = kernelName;
         function = ModuleGetFunctionResult == HipError.Success ? new IntPtr(0x3000) : IntPtr.Zero;
         return ModuleGetFunctionResult;
+    }
+
+    public HipError ModuleGetGlobal(IntPtr module, string symbolName, out IntPtr pointer, out UIntPtr byteCount)
+    {
+        ModuleGetGlobalCallCount++;
+        LastModuleGlobalModule = module;
+        LastModuleGlobalName = symbolName;
+        pointer = IntPtr.Zero;
+        byteCount = UIntPtr.Zero;
+        if (ModuleGetGlobalResult != HipError.Success) return ModuleGetGlobalResult;
+        if (symbolName == "missing") return HipError.InvalidValue;
+        var key = (module, symbolName);
+        if (!_moduleGlobals.TryGetValue(key, out (IntPtr Pointer, int Length) global))
+        {
+            byte[] contents = symbolName == "counter"
+                ? new byte[] { 0, 0, 0, 0 }
+                : symbolName == "values"
+                    ? new byte[16]
+                    : new byte[8];
+            IntPtr allocation = Marshal.AllocHGlobal(contents.Length);
+            Marshal.Copy(contents, 0, allocation, contents.Length);
+            global = (allocation, contents.Length);
+            _moduleGlobals.Add(key, global);
+        }
+        pointer = ReturnNullModuleGlobal ? IntPtr.Zero : ReturnOverflowModuleGlobalRange
+            ? (IntPtr.Size == 4 ? new IntPtr(unchecked((int)0xFFFFFFFEU)) : new IntPtr(-2))
+            : global.Pointer;
+        byteCount = ReturnZeroModuleGlobalSize ? UIntPtr.Zero : ReturnOverflowModuleGlobalRange
+            ? new UIntPtr(4)
+            : new UIntPtr((uint)global.Length);
+        return HipError.Success;
     }
 
     public HipError FuncGetAttribute(out int value, HipFunctionAttributeNative attribute, IntPtr function)
@@ -1360,6 +1435,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         foreach (IntPtr pointer in _graphAllocationPointers.Keys) Marshal.FreeHGlobal(pointer);
         _graphAllocationPointers.Clear();
         _activeGraphAllocations.Clear();
+        foreach ((IntPtr pointer, int _) in _moduleGlobals.Values) Marshal.FreeHGlobal(pointer);
+        _moduleGlobals.Clear();
     }
 
     private void RecordOccupancy(

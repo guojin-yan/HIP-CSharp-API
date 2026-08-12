@@ -126,8 +126,8 @@ if evidence["gitCommit"] != expected_commit:
     raise SystemExit("ABI evidence commit does not match the detached checkout")
 if evidence["normalizedManifestHash"].upper() != expected_manifest_hash:
     raise SystemExit("ABI evidence normalized manifest hash does not match the checkout")
-if evidence["schemaVersion"] != 6 or len(evidence.get("functions", [])) != 99:
-    raise SystemExit("ABI evidence must use schema 6 and include all 99 manifest functions")
+if evidence["schemaVersion"] != 7 or len(evidence.get("functions", [])) != 100:
+    raise SystemExit("ABI evidence must use schema 7 and include all 100 manifest functions")
 advanced = {
     "hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync",
     "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync",
@@ -151,11 +151,12 @@ explicit_graph = {
     "hipGraphExecMemcpyNodeSetParams1D", "hipGraphAddMemsetNode", "hipGraphExecMemsetNodeSetParams",
     "hipGraphAddMemAllocNode", "hipGraphAddMemFreeNode", "hipGraphUpload", "hipGraphDestroyNode",
 }
-kernel_occupancy = {
+managed_module_exports = {
     "hipFuncGetAttribute", "hipModuleOccupancyMaxActiveBlocksPerMultiprocessor",
     "hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags",
     "hipModuleOccupancyMaxPotentialBlockSize", "hipModuleOccupancyMaxPotentialBlockSizeWithFlags",
     "hipModuleLaunchCooperativeKernel",
+    "hipModuleGetGlobal",
 }
 found = {item["entryPoint"] for item in evidence["functions"] if item["found"]}
 missing_advanced = sorted(advanced - found)
@@ -170,12 +171,12 @@ if missing_pool:
 missing_graph = sorted(explicit_graph - found)
 if missing_graph:
     raise SystemExit("M8.4 explicit graph exports are missing: " + ", ".join(missing_graph))
-missing_kernel_occupancy = sorted(kernel_occupancy - found)
-if missing_kernel_occupancy:
-    raise SystemExit("M8.5 kernel occupancy exports are missing: " + ", ".join(missing_kernel_occupancy))
+missing_managed_module = sorted(managed_module_exports - found)
+if missing_managed_module:
+    raise SystemExit("M8.5/M8.6 managed module exports are missing: " + ", ".join(missing_managed_module))
 if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
     raise SystemExit("ABI evidence must include both official header hashes")
-print("M8.5 ABI evidence schema and managed-owner exports passed")
+print("M8.6 ABI evidence schema and managed-owner exports passed")
 PY
 
 python3 - <<'PY'

@@ -15,6 +15,7 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。manage
 - [Advanced HIP APIs / HIP 高级 API](guides/advanced-apis.md)
 - [Explicit HIP graphs / 显式 HIP Graph](guides/explicit-graphs.md)
 - [Kernel occupancy and cooperative launch / Kernel Occupancy 与 Cooperative Launch](guides/kernel-occupancy.md)
+- [Managed module globals / 托管 Module 全局符号](guides/module-globals.md)
 - [Pitched memory and 2D/3D copy / Pitched memory 与 2D/3D copy](guides/pitched-memory.md)
 - [Managed memory pools / 托管 Memory Pool](guides/memory-pools.md)
 - [Windows runtime static audit / Windows Runtime 静态审计](guides/windows-runtime-static-audit.md)

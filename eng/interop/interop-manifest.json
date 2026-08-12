@@ -1525,6 +1525,48 @@
       ]
     },
     {
+      "managedName": "ModuleGetGlobal",
+      "entryPoint": "hipModuleGetGlobal",
+      "library": "amdhip64",
+      "returnType": "HipError",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [
+        "linux-x64",
+        "win-x64"
+      ],
+      "synchronous": true,
+      "optional": true,
+      "summaryZh": "按名称查询 module-owned 全局符号范围",
+      "summaryEn": "Queries a module-owned global symbol range by name",
+      "parameters": [
+        {
+          "declaration": "out IntPtr pointer",
+          "name": "pointer",
+          "direction": "out",
+          "ownership": "borrowed-module"
+        },
+        {
+          "declaration": "out UIntPtr byteCount",
+          "name": "byteCount",
+          "direction": "out",
+          "ownership": "caller"
+        },
+        {
+          "declaration": "IntPtr module",
+          "name": "module",
+          "direction": "in",
+          "ownership": "borrowed"
+        },
+        {
+          "declaration": "IntPtr name",
+          "name": "name",
+          "direction": "in",
+          "ownership": "borrowed-call"
+        }
+      ]
+    },
+    {
       "managedName": "FuncGetAttribute",
       "entryPoint": "hipFuncGetAttribute",
       "library": "amdhip64",

@@ -97,6 +97,7 @@ static_assert(std::is_same<decltype(&hipGetErrorString), const char* (*)(hipErro
 static_assert(std::is_same<decltype(&hipModuleLoadData), hipError_t (*)(hipModule_t*, const void*)>::value, "hipModuleLoadData signature mismatch");
 static_assert(std::is_same<decltype(&hipModuleUnload), hipError_t (*)(hipModule_t)>::value, "hipModuleUnload signature mismatch");
 static_assert(std::is_same<decltype(&hipModuleGetFunction), hipError_t (*)(hipFunction_t*, hipModule_t, const char*)>::value, "hipModuleGetFunction signature mismatch");
+static_assert(std::is_same<decltype(&hipModuleGetGlobal), hipError_t (*)(hipDeviceptr_t*, std::size_t*, hipModule_t, const char*)>::value, "hipModuleGetGlobal signature mismatch");
 static_assert(std::is_same<decltype(&hipFuncGetAttribute), hipError_t (*)(int*, hipFunction_attribute, hipFunction_t)>::value, "hipFuncGetAttribute signature mismatch");
 static_assert(
     std::is_same<
@@ -142,7 +143,7 @@ int main()
 {
     std::printf(
         "{\n"
-        "  \"schemaVersion\": 6,\n"
+        "  \"schemaVersion\": 7,\n"
         "  \"normalizedManifestHash\": \"%s\",\n"
         "  \"headerHash\": \"%s\",\n"
         "  \"staticAssertions\": true,\n"

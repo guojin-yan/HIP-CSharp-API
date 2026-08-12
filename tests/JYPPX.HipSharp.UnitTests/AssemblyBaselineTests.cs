@@ -33,6 +33,7 @@ public sealed class AssemblyBaselineTests
                 typeof(HipRtcException), typeof(HipRtcVersion), typeof(HipModule), typeof(HipKernel),
                 typeof(HipKernelArgument), typeof(HipLaunchDimensions), typeof(HipKernelAttributes),
                 typeof(HipOccupancyFlags), typeof(HipOccupancyInfo), typeof(HipOccupancyPlan),
+                typeof(HipModuleGlobal), typeof(HipModuleGlobal<>),
                 typeof(JYPPX.HipSharp.Streams.HipStream), typeof(JYPPX.HipSharp.Streams.HipEvent),
                 typeof(HipStreamFlags), typeof(HipEventFlags), typeof(HipDeviceAttribute),
                 typeof(HipPinnedMemory), typeof(HipTypedMemory<>),

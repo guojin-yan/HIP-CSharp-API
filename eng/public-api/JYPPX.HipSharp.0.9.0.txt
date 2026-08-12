@@ -197,6 +197,7 @@ M|formal|public virtual|System.Void JYPPX.HipSharp.Peer.HipPeerAccess.Dispose()
 M|formal|public virtual|System.Void JYPPX.HipSharp.Rtc.HipRtcProgram.Dispose()
 M|formal|public virtual|System.Void JYPPX.HipSharp.Streams.HipEvent.Dispose()
 M|formal|public virtual|System.Void JYPPX.HipSharp.Streams.HipStream.Dispose()
+M|formal|public|HipModuleGlobal<T> JYPPX.HipSharp.Modules.HipModule.GetGlobal<T>(System.String name);where=T:struct&System.ValueType
 M|formal|public|HipPitchedDeviceMemory<T> JYPPX.HipSharp.HipRuntime.Allocate2D<T>(System.UInt64 width,System.UInt64 height);where=T:struct&System.ValueType
 M|formal|public|HipPitchedDeviceMemory<T> JYPPX.HipSharp.HipRuntime.Allocate3D<T>(System.UInt64 width,System.UInt64 height,System.UInt64 depth);where=T:struct&System.ValueType
 M|formal|public|HipTypedMemory<T> JYPPX.HipSharp.HipRuntime.Allocate<T>(System.UInt64 elementCount);where=T:struct&System.ValueType
@@ -231,6 +232,7 @@ M|formal|public|JYPPX.HipSharp.Memory.HipPooledDeviceMemory JYPPX.HipSharp.Memor
 M|formal|public|JYPPX.HipSharp.Modules.HipKernel JYPPX.HipSharp.Modules.HipModule.GetKernel(System.String name)
 M|formal|public|JYPPX.HipSharp.Modules.HipKernelAttributes JYPPX.HipSharp.Modules.HipKernel.GetAttributes()
 M|formal|public|JYPPX.HipSharp.Modules.HipModule JYPPX.HipSharp.HipRuntime.LoadModule(System.Byte[] codeObject)
+M|formal|public|JYPPX.HipSharp.Modules.HipModuleGlobal JYPPX.HipSharp.Modules.HipModule.GetGlobal(System.String name)
 M|formal|public|JYPPX.HipSharp.Modules.HipOccupancyInfo JYPPX.HipSharp.Modules.HipKernel.GetOccupancy(System.Int32 blockSize,System.UInt64 dynamicSharedMemoryBytes=0,JYPPX.HipSharp.Modules.HipOccupancyFlags flags=Default)
 M|formal|public|JYPPX.HipSharp.Modules.HipOccupancyPlan JYPPX.HipSharp.Modules.HipKernel.GetOccupancyPlan(System.UInt64 dynamicSharedMemoryBytes=0,System.Int32 blockSizeLimit=0,JYPPX.HipSharp.Modules.HipOccupancyFlags flags=Default)
 M|formal|public|JYPPX.HipSharp.Peer.HipPeerAccess JYPPX.HipSharp.HipRuntime.EnablePeerAccess(System.Int32 accessingDevice,System.Int32 peerDevice)
@@ -801,6 +803,30 @@ M|formal|public|System.Void JYPPX.HipSharp.Modules.HipKernel.Launch(JYPPX.HipSha
 M|formal|public|System.Void JYPPX.HipSharp.Modules.HipKernel.Launch(JYPPX.HipSharp.Streams.HipStream stream,JYPPX.HipSharp.Modules.HipLaunchDimensions grid,JYPPX.HipSharp.Modules.HipLaunchDimensions block,System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.Modules.HipKernelArgument> arguments,System.UInt32 sharedMemoryBytes=0)
 M|formal|public|System.Void JYPPX.HipSharp.Modules.HipKernel.LaunchCooperative(JYPPX.HipSharp.Modules.HipLaunchDimensions grid,JYPPX.HipSharp.Modules.HipLaunchDimensions block,System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.Modules.HipKernelArgument> arguments,System.UInt32 sharedMemoryBytes=0)
 M|formal|public|System.Void JYPPX.HipSharp.Modules.HipKernel.LaunchCooperative(JYPPX.HipSharp.Streams.HipStream stream,JYPPX.HipSharp.Modules.HipLaunchDimensions grid,JYPPX.HipSharp.Modules.HipLaunchDimensions block,System.Collections.Generic.IReadOnlyList<JYPPX.HipSharp.Modules.HipKernelArgument> arguments,System.UInt32 sharedMemoryBytes=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyFrom(JYPPX.HipSharp.Memory.HipDeviceMemory source,System.UInt64 byteCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyFrom(JYPPX.HipSharp.Memory.HipPinnedMemory source,System.UInt64 byteCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyFrom(System.Byte[] source,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyFromAsync(JYPPX.HipSharp.Memory.HipDeviceMemory source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyFromAsync(JYPPX.HipSharp.Memory.HipPinnedMemory source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyFromAsync(System.Byte[] source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyTo(JYPPX.HipSharp.Memory.HipDeviceMemory destination,System.UInt64 byteCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyTo(JYPPX.HipSharp.Memory.HipPinnedMemory destination,System.UInt64 byteCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyTo(System.Byte[] destination,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyToAsync(JYPPX.HipSharp.Memory.HipDeviceMemory destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyToAsync(JYPPX.HipSharp.Memory.HipPinnedMemory destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 byteCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal.CopyToAsync(System.Byte[] destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyFrom(JYPPX.HipSharp.Memory.HipDeviceMemory source,System.UInt64 elementCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyFrom(JYPPX.HipSharp.Memory.HipPinnedMemory source,System.UInt64 elementCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyFrom(T[] source,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyFromAsync(JYPPX.HipSharp.Memory.HipDeviceMemory source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 elementCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyFromAsync(JYPPX.HipSharp.Memory.HipPinnedMemory source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 elementCount,System.UInt64 destinationOffset=0,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyFromAsync(T[] source,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyTo(JYPPX.HipSharp.Memory.HipDeviceMemory destination,System.UInt64 elementCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyTo(JYPPX.HipSharp.Memory.HipPinnedMemory destination,System.UInt64 elementCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyTo(T[] destination,System.UInt64 sourceOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyToAsync(JYPPX.HipSharp.Memory.HipDeviceMemory destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 elementCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyToAsync(JYPPX.HipSharp.Memory.HipPinnedMemory destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 elementCount,System.UInt64 sourceOffset=0,System.UInt64 destinationOffset=0)
+M|formal|public|System.Void JYPPX.HipSharp.Modules.HipModuleGlobal<T>.CopyToAsync(T[] destination,JYPPX.HipSharp.Streams.HipStream stream,System.UInt64 sourceOffset=0)
 M|formal|public|System.Void JYPPX.HipSharp.Peer.HipPeerAccess.CopyAsync(JYPPX.HipSharp.Memory.HipDeviceMemory destination,JYPPX.HipSharp.Memory.HipDeviceMemory source,System.UInt64 byteCount,JYPPX.HipSharp.Streams.HipStream stream)
 M|formal|public|System.Void JYPPX.HipSharp.Streams.HipEvent.Record(JYPPX.HipSharp.Streams.HipStream stream)
 M|formal|public|System.Void JYPPX.HipSharp.Streams.HipEvent.Synchronize()
@@ -858,6 +884,8 @@ P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipPinnedMemor
 P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipPitchedDeviceMemory<T>.IsDisposed
 P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Memory.HipPooledDeviceMemory.IsDisposed
 P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Modules.HipModule.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Modules.HipModuleGlobal.IsValid
+P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Modules.HipModuleGlobal<T>.IsValid
 P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Peer.HipPeerAccess.IsEnabled
 P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Peer.HipPeerAccess.IsSupported
 P|formal|get:public,set:none|System.Boolean JYPPX.HipSharp.Peer.HipPeerAccess.WasAlreadyEnabled
@@ -908,6 +936,8 @@ P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipException.ErrorName
 P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipException.NativeMessage
 P|formal|get:public,set:none|System.String JYPPX.HipSharp.HipException.Operation
 P|formal|get:public,set:none|System.String JYPPX.HipSharp.Modules.HipKernel.Name
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Modules.HipModuleGlobal.Name
+P|formal|get:public,set:none|System.String JYPPX.HipSharp.Modules.HipModuleGlobal<T>.Name
 P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcCompilation.CodeSha256
 P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcCompilation.Log
 P|formal|get:public,set:none|System.String JYPPX.HipSharp.Rtc.HipRtcException.CompilationLog
@@ -952,6 +982,9 @@ P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipKernelAttri
 P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipKernelAttributes.LocalMemoryBytesPerThread
 P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipKernelAttributes.MaximumDynamicSharedMemoryBytes
 P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipKernelAttributes.StaticSharedMemoryBytes
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipModuleGlobal.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipModuleGlobal<T>.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipModuleGlobal<T>.ElementCount
 P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Modules.HipOccupancyInfo.DynamicSharedMemoryBytes
 P|formal|get:public,set:none|System.UInt64 JYPPX.HipSharp.Rtc.HipRtcCompilation.CodeSize
 P|formal|get:public,set:none|System.UIntPtr JYPPX.HipSharp.Types.HipExtent.Depth
@@ -994,6 +1027,8 @@ T|formal|public sealed class|JYPPX.HipSharp.Memory.HipTypedMemory<T>;interfaces=
 T|formal|public sealed class|JYPPX.HipSharp.Modules.HipKernel;interfaces=
 T|formal|public sealed class|JYPPX.HipSharp.Modules.HipKernelArgument;interfaces=
 T|formal|public sealed class|JYPPX.HipSharp.Modules.HipModule;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.HipSharp.Modules.HipModuleGlobal;interfaces=
+T|formal|public sealed class|JYPPX.HipSharp.Modules.HipModuleGlobal<T>;interfaces=;where=T:struct&System.ValueType
 T|formal|public sealed class|JYPPX.HipSharp.Peer.HipPeerAccess;interfaces=System.IDisposable
 T|formal|public sealed class|JYPPX.HipSharp.Rtc.HipRtc;interfaces=
 T|formal|public sealed class|JYPPX.HipSharp.Rtc.HipRtcCompilation;interfaces=

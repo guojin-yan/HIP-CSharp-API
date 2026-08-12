@@ -400,6 +400,20 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
         }
     }
 
+    public HipError ModuleGetGlobal(IntPtr module, string symbolName, out IntPtr pointer, out UIntPtr byteCount)
+    {
+        IntPtr resultPointer = IntPtr.Zero;
+        UIntPtr resultByteCount = UIntPtr.Zero;
+        using (var nativeName = new Utf8NativeString(symbolName, nameof(symbolName)))
+        {
+            HipError error = Optional(() => HipNativeMethods.ModuleGetGlobal(
+                out resultPointer, out resultByteCount, module, nativeName.Pointer));
+            pointer = resultPointer;
+            byteCount = resultByteCount;
+            return error;
+        }
+    }
+
     public HipError FuncGetAttribute(out int value, HipFunctionAttributeNative attribute, IntPtr function)
     {
         int result = 0;

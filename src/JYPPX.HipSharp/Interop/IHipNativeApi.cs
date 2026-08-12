@@ -171,6 +171,8 @@ internal interface IHipNativeApi
 
     public HipError ModuleGetFunction(IntPtr module, string kernelName, out IntPtr function);
 
+    public HipError ModuleGetGlobal(IntPtr module, string symbolName, out IntPtr pointer, out UIntPtr byteCount);
+
     public HipError FuncGetAttribute(out int value, HipFunctionAttributeNative attribute, IntPtr function);
 
     public HipError ModuleOccupancyMaxActiveBlocksPerMultiprocessor(

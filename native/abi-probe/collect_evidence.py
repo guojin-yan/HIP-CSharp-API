@@ -32,7 +32,7 @@ def main() -> int:
     rocm_version_path = pathlib.Path("/opt/rocm/.info/version")
     rocm_version = rocm_version_path.read_text(encoding="utf-8").strip() if rocm_version_path.exists() else "reported-by-hipconfig"
     report = {
-        "schemaVersion": 6,
+        "schemaVersion": 7,
         "gitCommit": command("git", "rev-parse", "HEAD"),
         "normalizedManifestHash": normalized_manifest_hash,
         "environment": {
