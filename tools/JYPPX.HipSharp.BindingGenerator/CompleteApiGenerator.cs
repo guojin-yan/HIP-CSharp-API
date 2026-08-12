@@ -93,7 +93,7 @@ internal static class CompleteApiGenerator
     }
 
     internal static string Serialize(CompleteApiModel model) =>
-        JsonSerializer.Serialize(model, JsonOptions()) + "\n";
+        JsonSerializer.Serialize(model, JsonOptions()).Replace("\r\n", "\n", StringComparison.Ordinal) + "\n";
 
     internal static CompleteApiModel Deserialize(string json) =>
         JsonSerializer.Deserialize<CompleteApiModel>(json, JsonOptions())
