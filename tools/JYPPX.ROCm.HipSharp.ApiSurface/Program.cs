@@ -87,7 +87,8 @@ static List<string> GenerateSemanticSurface(Assembly assembly)
             string bodyValue = body is null
                 ? "none"
                 : $"max={body.MaxStackSize};init={body.InitLocals};locals={string.Join(',', body.LocalVariables.Select(local => FormatType(local.LocalType) + (local.IsPinned ? " pinned" : string.Empty)))};exceptions={string.Join(',', body.ExceptionHandlingClauses.Select(FormatExceptionClause))};il={Convert.ToHexString(body.GetILAsByteArray() ?? Array.Empty<byte>())}";
-            lines.Add($"M|{typeName}|{(int)method.Attributes}|{(int)method.MethodImplementationFlags}|{returnType}|{method.Name}|generic={method.GetGenericArguments().Length}|params={parameters}|{bodyValue}");
+            int genericArgumentCount = method is MethodInfo genericMethod ? genericMethod.GetGenericArguments().Length : 0;
+            lines.Add($"M|{typeName}|{(int)method.Attributes}|{(int)method.MethodImplementationFlags}|{returnType}|{method.Name}|generic={genericArgumentCount}|params={parameters}|{bodyValue}");
         }
     }
     return lines.OrderBy(line => line, StringComparer.Ordinal).ToList();
@@ -99,8 +100,12 @@ static string FieldIdentity(FieldInfo field) => field.Name + "|" + FormatType(fi
 
 static string MethodIdentity(MethodBase method) => method.Name + "|" + string.Join(',', method.GetParameters().Select(parameter => FormatType(parameter.ParameterType)));
 
-static string FormatExceptionClause(ExceptionHandlingClause clause) =>
-    $"{clause.Flags}:{clause.TryOffset}:{clause.TryLength}:{clause.HandlerOffset}:{clause.HandlerLength}:{clause.FilterOffset}:{FormatOptionalType(clause.CatchType)}";
+static string FormatExceptionClause(ExceptionHandlingClause clause)
+{
+    int filterOffset = clause.Flags == ExceptionHandlingClauseOptions.Filter ? clause.FilterOffset : -1;
+    string catchType = clause.Flags == ExceptionHandlingClauseOptions.Clause ? FormatOptionalType(clause.CatchType) : string.Empty;
+    return $"{clause.Flags}:{clause.TryOffset}:{clause.TryLength}:{clause.HandlerOffset}:{clause.HandlerLength}:{filterOffset}:{catchType}";
+}
 
 static List<string> GenerateSurface(Assembly assembly, CategoryConfiguration categories)
 {

@@ -548,6 +548,20 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
+    public void AssemblySemanticSnapshotHandlesConstructors()
+    {
+        string tool = Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.ApiSurface", "JYPPX.ROCm.HipSharp.ApiSurface.csproj");
+        string assembly = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", "net10.0", "JYPPX.ROCm.HipSharp.dll");
+        string snapshot = Path.Combine(RepositoryRoot, "artifacts", "project-quality", "semantic-net10.0.txt");
+        ProcessResult result = RunProcess("dotnet", "run", "--project", tool, "--configuration", "Release", "--no-build", "--no-restore", "--", "--assembly", assembly, "--semantic", snapshot);
+
+        Assert.AreEqual(0, result.ExitCode, result.Output);
+        string text = File.ReadAllText(snapshot);
+        StringAssert.StartsWith(text, "# HipSharp assembly semantic snapshot schema 1");
+        StringAssert.Contains(text, "|.ctor|generic=0|");
+    }
+
+    [TestMethod]
     public void ProgramRepositoryCannotReachPrivatePlanningDirectories()
     {
         string[] forbidden = { "plan", "diary", "Radeon_Cloud" };
