@@ -191,6 +191,11 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual(91, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
         Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
+        string abiProbe = File.ReadAllText(Path.Combine(RepositoryRoot, "native", "abi-probe", "hip_abi_probe.cpp"));
+        StringAssert.Contains(abiProbe, "static_cast<HipMallocAsyncSignature>(&hipMallocAsync)");
+        StringAssert.Contains(abiProbe, "static_cast<HipMallocFromPoolAsyncSignature>(&hipMallocFromPoolAsync)");
+        Assert.IsFalse(abiProbe.Contains("decltype(&hipMallocFromPoolAsync)", StringComparison.Ordinal));
+
         string generated = File.ReadAllText(Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "Generated", "HipNativeMethods.g.cs"));
         StringAssert.Contains(generated, "NET7_0_OR_GREATER");
         StringAssert.Contains(generated, "LibraryImport");

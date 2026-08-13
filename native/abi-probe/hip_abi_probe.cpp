@@ -37,7 +37,8 @@ static_assert(std::is_same<decltype(&hipMemPoolGetAttribute), hipError_t (*)(hip
 static_assert(std::is_same<decltype(&hipMemPoolSetAttribute), hipError_t (*)(hipMemPool_t, hipMemPoolAttr, void*)>::value, "hipMemPoolSetAttribute signature mismatch");
 static_assert(std::is_same<decltype(&hipMemPoolSetAccess), hipError_t (*)(hipMemPool_t, const hipMemAccessDesc*, std::size_t)>::value, "hipMemPoolSetAccess signature mismatch");
 static_assert(std::is_same<decltype(&hipMemPoolGetAccess), hipError_t (*)(hipMemAccessFlags*, hipMemPool_t, hipMemLocation*)>::value, "hipMemPoolGetAccess signature mismatch");
-static_assert(std::is_same<decltype(&hipMallocFromPoolAsync), hipError_t (*)(void**, std::size_t, hipMemPool_t, hipStream_t)>::value, "hipMallocFromPoolAsync signature mismatch");
+using HipMallocFromPoolAsyncSignature = hipError_t (*)(void**, std::size_t, hipMemPool_t, hipStream_t);
+static_assert(std::is_same<decltype(static_cast<HipMallocFromPoolAsyncSignature>(&hipMallocFromPoolAsync)), HipMallocFromPoolAsyncSignature>::value, "hipMallocFromPoolAsync signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceCanAccessPeer), hipError_t (*)(int*, int, int)>::value, "hipDeviceCanAccessPeer signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceEnablePeerAccess), hipError_t (*)(int, unsigned int)>::value, "hipDeviceEnablePeerAccess signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceDisablePeerAccess), hipError_t (*)(int)>::value, "hipDeviceDisablePeerAccess signature mismatch");
