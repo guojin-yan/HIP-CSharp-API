@@ -21,7 +21,7 @@ foreach ($path in @($project, $program, $resultModel, (Join-Path $repositoryRoot
 $programText = Get-Content -Raw -LiteralPath $program
 $modelText = Get-Content -Raw -LiteralPath $resultModel
 $forbidden = @(
-    'JYPPX.HipSharp.LowLevel',
+    'JYPPX.ROCm.HipSharp.LowLevel',
     'HipRuntimeNativeApi',
     'HipRtcNativeApi',
     'DllImport',

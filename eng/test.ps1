@@ -31,7 +31,7 @@ $packageDirectory = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
 } else {
     [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputDirectory))
 }
-$packagePath = Join-Path $packageDirectory "JYPPX.HIP.CSharp.API.$Version.nupkg"
+$packagePath = Join-Path $packageDirectory "JYPPX.ROCm.HIP.CSharp.API.$Version.nupkg"
 $previousPackagePath = $env:HIPSHARP_PACKAGE_PATH
 $env:HIPSHARP_PACKAGE_PATH = $packagePath
 

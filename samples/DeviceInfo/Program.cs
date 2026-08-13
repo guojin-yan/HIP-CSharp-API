@@ -1,6 +1,6 @@
 using System;
-using JYPPX.HipSharp;
-using JYPPX.HipSharp.Types;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Types;
 
 try
 {

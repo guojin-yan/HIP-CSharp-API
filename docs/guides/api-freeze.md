@@ -1,15 +1,19 @@
 # 0.9 public API freeze review / 0.9 公开 API 冻结审查
 
-The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYPPX.HipSharp.0.9.0.txt`. The automated gate compares that baseline with every one of the 15 target-framework assemblies and checks bilingual Chinese/English XML summaries. Package validation provides a second compatibility check during packing. Its only suppression category covers the BCL-provided `ISpanFormattable` enum interface introduced in .NET 8, not a HipSharp-declared contract.
+The pre-release JYPPX ROCm family rename invalidated the former namespace snapshot. The post-migration `JYPPX.ROCm.HipSharp` surface described below is the new freeze baseline; no legacy namespace or forwarding assembly is part of the contract. See the [naming migration decision](../design/jyppx-rocm-naming-migration.md).
 
-0.9.0 候选冻结 `eng/public-api/JYPPX.HipSharp.0.9.0.txt` 中记录的导出面。自动门禁会比较该基线与全部 15 个目标框架程序集，并检查中英文双语 XML summary；打包时的 package validation 提供第二层兼容性检查。
+发布前 JYPPX ROCm 家族重命名使原 namespace snapshot 作废。下述迁移后的 `JYPPX.ROCm.HipSharp` surface 是新的冻结基线；旧 namespace 和类型转发程序集都不属于契约。参见[命名迁移决策](../design/jyppx-rocm-naming-migration.md)。
+
+The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYPPX.ROCm.HipSharp.0.9.0.txt`. The automated gate compares that baseline with every one of the 15 target-framework assemblies and checks bilingual Chinese/English XML summaries. Package validation provides a second compatibility check during packing. Its only suppression category covers the BCL-provided `ISpanFormattable` enum interface introduced in .NET 8, not a HipSharp-declared contract.
+
+0.9.0 候选冻结 `eng/public-api/JYPPX.ROCm.HipSharp.0.9.0.txt` 中记录的导出面。自动门禁会比较该基线与全部 15 个目标框架程序集，并检查中英文双语 XML summary；打包时的 package validation 提供第二层兼容性检查。
 
 ## Surface categories / API 分类
 
 | Category | Contract |
 | --- | --- |
-| Formal | Public runtime, device, memory, stream/event, module/kernel, HIPRTC, peer, graph, value, enum, and exception types under `JYPPX.HipSharp` |
-| Diagnostic | Public loader attempts, diagnostics, and load exception under `JYPPX.HipSharp.Loading`; stable for 0.9 but not the primary compute API |
+| Formal | Public runtime, device, memory, stream/event, module/kernel, HIPRTC, peer, graph, value, enum, and exception types under `JYPPX.ROCm.HipSharp` |
+| Diagnostic | Public loader attempts, diagnostics, and load exception under `JYPPX.ROCm.HipSharp.Loading`; stable for 0.9 but not the primary compute API |
 | Sample-only | Types compiled only from the six projects under `samples/`; they are not core package API. The M8.7 validation result model is sample-only and does not change the frozen Core surface. |
 | Internal | All non-exported implementation types, including generated interop, native handles, leases, and native boundaries |
 

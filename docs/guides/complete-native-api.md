@@ -22,17 +22,17 @@ Constructing a low-level client loads its corresponding logical library through 
 创建低层客户端时，会通过与托管 owner 相同的已验证 resolver 加载对应 logical library：
 
 ```csharp
-using JYPPX.HipSharp.Interop;
-using JYPPX.HipSharp.Types;
+using JYPPX.ROCm.HipSharp.Interop;
+using JYPPX.ROCm.HipSharp.Types;
 
 var runtime = new HipRuntimeNativeApi();
 var rtc = new HipRtcNativeApi();
 HipError result = runtime.Init(0);
 ```
 
-Pointer, callback, string-buffer, and pointer-to-structure parameters are exposed as `IntPtr`. The caller owns allocation, pinning, encoding, and release of those buffers. By-value ABI structures have explicit layouts in `JYPPX.HipSharp.Types`: `HipDim3`, `HipExtent`, `HipPitchedPtr`, `HipMemLocation`, `HipIpcMemHandle`, and `HipIpcEventHandle`.
+Pointer, callback, string-buffer, and pointer-to-structure parameters are exposed as `IntPtr`. The caller owns allocation, pinning, encoding, and release of those buffers. By-value ABI structures have explicit layouts in `JYPPX.ROCm.HipSharp.Types`: `HipDim3`, `HipExtent`, `HipPitchedPtr`, `HipMemLocation`, `HipIpcMemHandle`, and `HipIpcEventHandle`.
 
-指针、回调、字符串缓冲区和复杂结构体指针参数统一暴露为 `IntPtr`；缓冲区的分配、pin、编码和释放由调用方负责。按值传递的 ABI 结构在 `JYPPX.HipSharp.Types` 中提供了明确布局：`HipDim3`、`HipExtent`、`HipPitchedPtr`、`HipMemLocation`、`HipIpcMemHandle` 和 `HipIpcEventHandle`。
+指针、回调、字符串缓冲区和复杂结构体指针参数统一暴露为 `IntPtr`；缓冲区的分配、pin、编码和释放由调用方负责。按值传递的 ABI 结构在 `JYPPX.ROCm.HipSharp.Types` 中提供了明确布局：`HipDim3`、`HipExtent`、`HipPitchedPtr`、`HipMemLocation`、`HipIpcMemHandle` 和 `HipIpcEventHandle`。
 
 The raw methods do not add synchronization or ownership. A successful native return value only means that HIP accepted the call. A header declaration also does not guarantee that every platform library exports it; an unavailable entry point raises the normal .NET native entry-point exception. Use the managed owners when a lifecycle contract matters.
 

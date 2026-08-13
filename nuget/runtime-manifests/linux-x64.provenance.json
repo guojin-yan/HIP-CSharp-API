@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "packageId": "JYPPX.HipSharp.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
   "packageVersion": "7.2.1",
   "rid": "linux-x64",
   "source": {

@@ -10,9 +10,9 @@
 偏移使用字节为单位。原生指针和 `hipMemcpy3DParms` 均保留为实现细节。
 
 ```csharp
-using JYPPX.HipSharp;
-using JYPPX.HipSharp.Memory;
-using JYPPX.HipSharp.Streams;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Memory;
+using JYPPX.ROCm.HipSharp.Streams;
 
 using var runtime = new HipRuntime();
 HipMemoryInfo info = runtime.GetMemoryInfo();

@@ -4,9 +4,9 @@
   "version": 1,
   "metadata": {
     "component": {
-      "bom-ref": "pkg:nuget/JYPPX.HipSharp.Runtime.linux-x64@7.2.1",
+      "bom-ref": "pkg:nuget/JYPPX.ROCm.HipSharp.Runtime.linux-x64@7.2.1",
       "type": "application",
-      "name": "JYPPX.HipSharp.Runtime.linux-x64",
+      "name": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
       "version": "7.2.1",
       "properties": [
         {
@@ -480,7 +480,7 @@
   ],
   "dependencies": [
     {
-      "ref": "pkg:nuget/JYPPX.HipSharp.Runtime.linux-x64@7.2.1",
+      "ref": "pkg:nuget/JYPPX.ROCm.HipSharp.Runtime.linux-x64@7.2.1",
       "dependsOn": [
         "file:runtimes/linux-x64/native/libamd_comgr.so.3",
         "file:runtimes/linux-x64/native/libamd_comgr.so.3.0.0",

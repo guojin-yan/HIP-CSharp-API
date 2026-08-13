@@ -11,17 +11,17 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 $coreVersion = Get-HipSharpVersion -Kind Core -RepositoryRoot $repositoryRoot
-$tool = Join-Path $repositoryRoot "tools/JYPPX.HipSharp.ApiSurface/JYPPX.HipSharp.ApiSurface.csproj"
+$tool = Join-Path $repositoryRoot "tools/JYPPX.ROCm.HipSharp.ApiSurface/JYPPX.ROCm.HipSharp.ApiSurface.csproj"
 $categories = Join-Path $PSScriptRoot "public-api/categories.json"
-$snapshot = Join-Path $PSScriptRoot "public-api/JYPPX.HipSharp.$coreVersion.txt"
+$snapshot = Join-Path $PSScriptRoot "public-api/JYPPX.ROCm.HipSharp.$coreVersion.txt"
 $frameworks = @(
     "net46", "net461", "net462", "net47", "net471", "net472", "net48", "net481",
     "netcoreapp3.1", "net5.0", "net6.0", "net7.0", "net8.0", "net9.0", "net10.0"
 )
 
 function Invoke-Snapshot([string]$framework, [string]$target, [string]$mode) {
-    $assembly = Join-Path $repositoryRoot "src/JYPPX.HipSharp/bin/$Configuration/$framework/JYPPX.HipSharp.dll"
-    $xml = Join-Path $repositoryRoot "src/JYPPX.HipSharp/bin/$Configuration/$framework/JYPPX.HipSharp.xml"
+    $assembly = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HipSharp.dll"
+    $xml = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HipSharp.xml"
     if (-not (Test-Path -LiteralPath $assembly -PathType Leaf) -or -not (Test-Path -LiteralPath $xml -PathType Leaf)) {
         throw "Public API input is missing for $framework. Build all target frameworks first."
     }

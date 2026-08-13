@@ -1,0 +1,53 @@
+# JYPPX ROCm naming migration / JYPPX ROCm 命名迁移
+
+## Decision / 决策
+
+HIP-CSharp-API remains an independent repository and product under the JYPPX ROCm product family. `JYPPX.ROCm` is a naming layer for namespaces, assemblies, and packages; it is not a public base assembly or NuGet package.
+
+HIP-CSharp-API 继续作为 JYPPX ROCm 产品家族中的独立仓库和独立产品。`JYPPX.ROCm` 仅是命名空间、程序集和包名的家族层，不对应公共基础程序集或 NuGet 包。
+
+| Asset / 资产 | Before / 迁移前 | Frozen name / 冻结名称 |
+| --- | --- | --- |
+| Root namespace / 根命名空间 | `JYPPX.HipSharp` | `JYPPX.ROCm.HipSharp` |
+| Core assembly / 核心程序集 | `JYPPX.HipSharp.dll` | `JYPPX.ROCm.HipSharp.dll` |
+| Managed NuGet | `JYPPX.HIP.CSharp.API` | `JYPPX.ROCm.HIP.CSharp.API` |
+| Linux runtime NuGet | `JYPPX.HipSharp.Runtime.linux-x64` | `JYPPX.ROCm.HipSharp.Runtime.linux-x64` |
+| Windows runtime NuGet | `JYPPX.HipSharp.Runtime.win-x64` | `JYPPX.ROCm.HipSharp.Runtime.win-x64` |
+
+The repository name, GitHub URL, `HipSharp.sln`, public HIP type/member names, native entry points, logical library names, pinned HIP 7.2.1 headers, and Core/runtime versions do not change.
+
+仓库名、GitHub 地址、`HipSharp.sln`、公开 HIP 类型/成员名、原生 EntryPoint、logical library、固定 HIP 7.2.1 头文件以及 Core/runtime 版本均不改变。
+
+## Family and dependency boundary / 家族与依赖边界
+
+MIGraphX remains in `MIGraphX-CSharp-API` as `JYPPX.ROCm.MIGraphX`. rocFFT, rocBLAS, and other algorithm libraries share the `ROCm-Libraries-CSharp-API` repository and solution, while each library retains its own project, assembly, NuGet, runtime package, and validation matrix. Strongly typed adapters are optional and module-specific, for example `JYPPX.ROCm.RocFft.HipSharp` and `JYPPX.ROCm.MIGraphX.HipSharp`.
+
+MIGraphX 继续位于独立的 `MIGraphX-CSharp-API` 仓库并使用 `JYPPX.ROCm.MIGraphX`。rocFFT、rocBLAS 等算法库共享 `ROCm-Libraries-CSharp-API` 仓库和解决方案，但每个库保留独立项目、程序集、NuGet、runtime 包和验证矩阵。强类型 adapter 是可选且按模块建立的，例如 `JYPPX.ROCm.RocFft.HipSharp` 与 `JYPPX.ROCm.MIGraphX.HipSharp`。
+
+The HipSharp Core never depends on an adapter, MIGraphX, or an algorithm library. No `JYPPX.ROCm`, `JYPPX.ROCm.Native`, `JYPPX.ROCm.Common`, or `JYPPX.ROCm.Runtime` project/package is created.
+
+HipSharp Core 永远不依赖 adapter、MIGraphX 或算法库；不创建 `JYPPX.ROCm`、`JYPPX.ROCm.Native`、`JYPPX.ROCm.Common` 或 `JYPPX.ROCm.Runtime` 项目/包。
+
+## Compatibility policy / 兼容策略
+
+NuGet.org had no exact match for the former managed or runtime package IDs when this migration was performed, and both READMEs identify `0.9.0` as an unpublished local candidate. This is therefore an intentional pre-release breaking rename: there is no compatibility namespace, facade, forwarding assembly, legacy NuGet, or dual public surface.
+
+执行迁移时，NuGet.org 对原 managed/runtime 包 ID 均无精确命中，且中英文 README 都将 `0.9.0` 标记为未发布本地候选。因此本次属于发布前有意破坏性重命名：不保留兼容命名空间、facade、类型转发程序集、旧 NuGet 或新旧双公开面。
+
+The former public API snapshot is invalidated by this pre-release namespace decision. `eng/public-api/JYPPX.ROCm.HipSharp.0.9.0.txt`, generated from the renamed assembly, is the new freeze baseline. All ownership, disposal, error, ABI, and target-framework contracts remain unchanged.
+
+原 public API snapshot 因发布前 namespace 决策作废。由新程序集生成的 `eng/public-api/JYPPX.ROCm.HipSharp.0.9.0.txt` 是新的冻结基线；所有 ownership、dispose、error、ABI 和目标框架契约保持不变。
+
+## Affected assets and gates / 影响面与门禁
+
+The migration covers project paths and references, explicit namespaces and usings, generator templates and outputs, public API categories/snapshot, DocFX, samples, tests, package consumers, package validation suppressions, runtime manifests/schema/provenance/SBOM, and build/package/supply-chain scripts.
+
+Required gates are deterministic interop generation, 459 Runtime plus 18 HIPRTC low-level declarations, the 100-entry managed-owner manifest, all 15 target frameworks, public API parity, managed package content and clean consumers, runtime manifest/supply-chain static tests, Windows skeleton rejection tests, DocFX, and old-name residue scans. Historical or static evidence is never upgraded to current GPU execution evidence.
+
+Changing the Linux runtime package ID creates a new package identity even though its native allowlist and source hashes are unchanged. The renamed base manifest therefore remains `packEnabled=false` and `verified=false`; former package-ID audits, loader maps, and GPU results are historical only. A hash-bound clean-SHA candidate and newly Owner-authorized exact-package validation are required before any final package can be enabled.
+
+Linux runtime 包 ID 的改变会创建新的包身份，即使 native allowlist 和来源哈希保持不变。重命名后的基础 manifest 因此保持 `packEnabled=false`、`verified=false`；旧包 ID 的 package audit、loader map 和 GPU 结果只作为历史资料。只有绑定 clean SHA 的候选通过新一次 Owner 授权的 exact-package 验证后，才允许启用 final 包。
+
+## Rollback boundary / 回滚边界
+
+Rollback is an all-or-nothing source-control operation performed before publication. It must restore project paths, namespaces, assembly/package IDs, generator templates and outputs, public API assets, manifests, tests, and documentation together. Partial rollback or shipping both name families is forbidden. Native payloads, hashes, licenses, ABI declarations, and historical GPU evidence are outside this naming rollback and must not be regenerated or reinterpreted.

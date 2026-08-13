@@ -4,9 +4,9 @@
       "src": [
         {
           "files": [
-            "JYPPX.HipSharp.csproj"
+            "JYPPX.ROCm.HipSharp.csproj"
           ],
-          "src": "../src/JYPPX.HipSharp"
+          "src": "../src/JYPPX.ROCm.HipSharp"
         }
       ],
       "dest": "api",
@@ -33,6 +33,7 @@
       {
         "files": [
           "compatibility/**/*.md",
+          "design/**/*.md",
           "guides/**/*.md",
           "releases/**/*.md",
           "*.md",

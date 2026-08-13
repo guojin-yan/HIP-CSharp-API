@@ -1,9 +1,9 @@
 {
   "schemaVersion": 1,
-  "packageId": "JYPPX.HipSharp.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
   "unpackedBytes": 415070520,
   "packageBytes": 162891900,
   "nugetLimitBytes": 262144000,
-  "topology": "single-package-verified-isolated-GPU",
-  "decision": "The complete allowlisted payload compressed to 162891900 bytes in the validated candidate, below the 262144000-byte gate. The exact final nupkg size is recorded by its external package audit to avoid a self-referential manifest. Component splitting is rejected because HIP/HSA/COMGR share one lockstep ROCm release and one loader closure."
+  "topology": "single-package-pending-identity-revalidation",
+  "decision": "The unchanged allowlisted payload historically compressed below the 262144000-byte gate. The renamed package requires a new exact-package audit and isolated GPU validation before its final nupkg size can be promoted. Component splitting remains rejected because HIP/HSA/COMGR share one lockstep ROCm release and one loader closure."
 }

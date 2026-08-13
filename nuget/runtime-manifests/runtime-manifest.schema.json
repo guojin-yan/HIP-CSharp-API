@@ -5,7 +5,7 @@
   "required": ["schemaVersion", "packageId", "packageVersion", "rid", "packEnabled", "verified", "nativeAssetPath", "source", "packages", "files", "licenses", "dependencyClosure", "systemDependencies", "driverBoundary", "sbom", "verification"],
   "properties": {
     "schemaVersion": { "const": 2 },
-    "packageId": { "pattern": "^JYPPX\\.HipSharp\\.Runtime\\.(linux|win)-x64$" },
+    "packageId": { "pattern": "^JYPPX\\.ROCm\\.HipSharp\\.Runtime\\.(linux|win)-x64$" },
     "packageVersion": { "type": "string", "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
     "rid": { "enum": ["linux-x64", "win-x64"] },
     "packEnabled": { "type": "boolean" },

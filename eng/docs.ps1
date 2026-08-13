@@ -8,7 +8,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$project = Join-Path $repositoryRoot "src/JYPPX.HipSharp/JYPPX.HipSharp.csproj"
+$project = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj"
 $docfxConfig = Join-Path $repositoryRoot "docs/docfx.json"
 
 Push-Location $repositoryRoot

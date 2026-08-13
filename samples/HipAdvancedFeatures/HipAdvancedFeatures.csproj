@@ -6,6 +6,6 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\JYPPX.HipSharp\JYPPX.HipSharp.csproj" />
+    <ProjectReference Include="..\..\src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj" />
   </ItemGroup>
 </Project>

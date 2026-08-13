@@ -100,7 +100,7 @@ function New-Case([string] $Name) {
     )
     $manifest = [ordered]@{
         schemaVersion = 2
-        packageId = 'JYPPX.HipSharp.Runtime.win-x64'
+        packageId = 'JYPPX.ROCm.HipSharp.Runtime.win-x64'
         packageVersion = '7.2.0'
         rid = 'win-x64'
         nativeAssetPath = 'runtimes/win-x64/native'

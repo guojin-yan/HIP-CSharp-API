@@ -1,10 +1,10 @@
 {
   "formalNamespacePrefixes": [
-    "JYPPX.HipSharp"
+    "JYPPX.ROCm.HipSharp"
   ],
   "diagnosticNamespacePrefixes": [
-    "JYPPX.HipSharp.Diagnostics",
-    "JYPPX.HipSharp.Loading"
+    "JYPPX.ROCm.HipSharp.Diagnostics",
+    "JYPPX.ROCm.HipSharp.Loading"
   ],
   "sampleOnlyRoots": [
     "samples/DeviceInfo",
@@ -14,7 +14,7 @@
     "samples/HipAdvancedFeatures"
   ],
   "internalNamespacePrefixes": [
-    "JYPPX.HipSharp.Generated",
-    "JYPPX.HipSharp.Interop"
+    "JYPPX.ROCm.HipSharp.Generated",
+    "JYPPX.ROCm.HipSharp.Interop"
   ]
 }

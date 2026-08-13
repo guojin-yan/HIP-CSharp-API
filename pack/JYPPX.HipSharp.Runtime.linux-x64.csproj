@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <PackageId>JYPPX.HipSharp.Runtime.linux-x64</PackageId>
-    <PackageVersion>$(HipSharpLinuxRuntimeVersion)</PackageVersion>
-    <RuntimeAssetRid>linux-x64</RuntimeAssetRid>
-    <RuntimeManifestPath>..\nuget\runtime-manifests\linux-x64.json</RuntimeManifestPath>
-    <RuntimeStagingPath Condition="'$(RuntimeStagingPath)' == ''">..\eng\native-assets\staging\linux-x64</RuntimeStagingPath>
-  </PropertyGroup>
-</Project>

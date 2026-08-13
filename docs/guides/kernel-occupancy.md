@@ -5,8 +5,8 @@ M8.5 adds typed resource attributes, occupancy estimates, launch plans, and sing
 M8.5 为 module-owned `HipKernel` 增加 typed 资源属性、occupancy 估算、launch plan 和单设备 cooperative launch。该 API 始终使用 `hipFunction_t`，不会把编译期函数地址错误转换为 module function，也不公开 native attribute enum 或要求用户构造 `void**` 参数数组。
 
 ```csharp
-using JYPPX.HipSharp;
-using JYPPX.HipSharp.Modules;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Modules;
 
 using var runtime = new HipRuntime();
 HipDevice device = runtime.GetCurrentDevice();

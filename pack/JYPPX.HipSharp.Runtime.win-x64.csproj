@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <PackageId>JYPPX.HipSharp.Runtime.win-x64</PackageId>
-    <PackageVersion>$(HipSharpWindowsRuntimeVersion)</PackageVersion>
-    <RuntimeAssetRid>win-x64</RuntimeAssetRid>
-    <RuntimeManifestPath>..\nuget\runtime-manifests\win-x64.json</RuntimeManifestPath>
-    <RuntimeStagingPath Condition="'$(RuntimeStagingPath)' == ''">..\eng\native-assets\staging\win-x64</RuntimeStagingPath>
-  </PropertyGroup>
-</Project>

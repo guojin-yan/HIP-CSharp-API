@@ -12,7 +12,7 @@
     <PackageIcon>logo.jpg</PackageIcon>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseFile>LICENSE</PackageLicenseFile>
-    <Description>AMD ROCm user-mode runtime assets for JYPPX.HipSharp. Package generation is guarded by signed provenance, dependency closure, licenses, SBOM, package audit, and isolated GPU validation.</Description>
+    <Description>AMD ROCm user-mode runtime assets for JYPPX.ROCm.HipSharp. Package generation is guarded by signed provenance, dependency closure, licenses, SBOM, package audit, and isolated GPU validation.</Description>
     <PackageTags>AMD;HIP;ROCm;runtime;native</PackageTags>
   </PropertyGroup>
   <ItemGroup>

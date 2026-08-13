@@ -42,7 +42,7 @@ $archive = [System.IO.Compression.ZipFile]::OpenRead($resolvedPackage)
 try {
     $entries = @($archive.Entries | ForEach-Object { $_.FullName.Replace("\", "/") })
     foreach ($framework in $frameworks) {
-        $expectedFiles = @("JYPPX.HipSharp.dll", "JYPPX.HipSharp.xml")
+        $expectedFiles = @("JYPPX.ROCm.HipSharp.dll", "JYPPX.ROCm.HipSharp.xml")
         foreach ($file in $expectedFiles) {
             $expected = "lib/$framework/$file"
             if ($entries -notcontains $expected) { throw "Package asset is missing: $expected" }
@@ -74,7 +74,7 @@ try {
     [xml]$nuspec = $nuspecText
     $metadata = $nuspec.package.metadata
 
-    if ($metadata.id -ne "JYPPX.HIP.CSharp.API") { throw "Unexpected package ID: $($metadata.id)" }
+    if ($metadata.id -ne "JYPPX.ROCm.HIP.CSharp.API") { throw "Unexpected package ID: $($metadata.id)" }
     if ($metadata.version -ne $ExpectedVersion) { throw "Package version must be $ExpectedVersion; found $($metadata.version)." }
     if ($metadata.readme -ne "README.md") { throw "Package README metadata is invalid." }
     if ($metadata.icon -ne "logo.jpg") { throw "Package icon metadata is invalid." }
@@ -146,13 +146,13 @@ foreach ($framework in $consumerFrameworks) {
     <Nullable>disable</Nullable>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JYPPX.HIP.CSharp.API" Version="$($metadata.version)" Aliases="HipSharp" />
+    <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="$($metadata.version)" Aliases="HipSharp" />
 $frameworkReference
   </ItemGroup>
 </Project>
 "@
     [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Consumer.csproj"), $projectText)
-    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.HipSharp.HipRuntime;`nusing HipModule = HipSharp::JYPPX.HipSharp.Modules.HipModule;`nusing HipRtc = HipSharp::JYPPX.HipSharp.Rtc.HipRtc;`nusing HipMemoryPool = HipSharp::JYPPX.HipSharp.Memory.HipMemoryPool;`nusing HipMemoryPoolAccess = HipSharp::JYPPX.HipSharp.Memory.HipMemoryPoolAccess;`nusing HipMemoryPoolOptions = HipSharp::JYPPX.HipSharp.Memory.HipMemoryPoolOptions;`nusing HipPooledDeviceMemory = HipSharp::JYPPX.HipSharp.Memory.HipPooledDeviceMemory;`nusing HipStream = HipSharp::JYPPX.HipSharp.Streams.HipStream;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length + typeof(HipMemoryPool).Name.Length > 0 ? 0 : 1; } private static void CompilePoolWorkflow(HipRuntime runtime) { HipStream stream = runtime.CreateStream(); HipMemoryPool pool = runtime.CreateMemoryPool(new HipMemoryPoolOptions(runtime.GetCurrentDevice()) { ReleaseThresholdBytes = 64 }); pool.SetAccess(runtime.GetCurrentDevice(), HipMemoryPoolAccess.ReadWrite); HipPooledDeviceMemory memory = pool.AllocateAsync(16, stream); memory.CopyFromAsync(new byte[16]); stream.Synchronize(); memory.Dispose(); stream.Synchronize(); pool.TrimTo(0); pool.Dispose(); stream.Dispose(); } }`n")
+    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.ROCm.HipSharp.HipRuntime;`nusing HipModule = HipSharp::JYPPX.ROCm.HipSharp.Modules.HipModule;`nusing HipRtc = HipSharp::JYPPX.ROCm.HipSharp.Rtc.HipRtc;`nusing HipMemoryPool = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPool;`nusing HipMemoryPoolAccess = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolAccess;`nusing HipMemoryPoolOptions = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolOptions;`nusing HipPooledDeviceMemory = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipPooledDeviceMemory;`nusing HipStream = HipSharp::JYPPX.ROCm.HipSharp.Streams.HipStream;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length + typeof(HipMemoryPool).Name.Length > 0 ? 0 : 1; } private static void CompilePoolWorkflow(HipRuntime runtime) { HipStream stream = runtime.CreateStream(); HipMemoryPool pool = runtime.CreateMemoryPool(new HipMemoryPoolOptions(runtime.GetCurrentDevice()) { ReleaseThresholdBytes = 64 }); pool.SetAccess(runtime.GetCurrentDevice(), HipMemoryPoolAccess.ReadWrite); HipPooledDeviceMemory memory = pool.AllocateAsync(16, stream); memory.CopyFromAsync(new byte[16]); stream.Synchronize(); memory.Dispose(); stream.Synchronize(); pool.TrimTo(0); pool.Dispose(); stream.Dispose(); } }`n")
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `

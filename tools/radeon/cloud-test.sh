@@ -52,7 +52,7 @@ mkdir -p "${NUGET_PACKAGES}"
 echo "Evidence directory: ${evidence_dir}"
 cd "${repository_root}"
 bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
-core_version="$(dotnet msbuild ./src/JYPPX.HipSharp/JYPPX.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion)"
+core_version="$(dotnet msbuild ./src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion)"
 core_version="${core_version//$'\r'/}"
 bash ./eng/build.sh Release "${core_version}" | tee "${evidence_dir}/managed-gate.txt"
 pwsh -NoProfile -File ./eng/generate-interop.ps1 extract-headers \
@@ -207,7 +207,7 @@ if ! command -v pwsh >/dev/null 2>&1; then
   exit 1
 fi
 pwsh -NoProfile -File ./eng/verify-package.ps1 \
-  -PackagePath "${repository_root}/artifacts/packages/JYPPX.HIP.CSharp.API.${core_version}.nupkg" \
+  -PackagePath "${repository_root}/artifacts/packages/JYPPX.ROCm.HIP.CSharp.API.${core_version}.nupkg" \
   -ExpectedVersion "${core_version}" \
   -ExpectedRepositoryCommit "${actual_commit}" \
   | tee "${evidence_dir}/package-audit.txt"

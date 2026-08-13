@@ -13,7 +13,7 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 $Version = Get-HipSharpVersion -Kind Core -Override $Version -RepositoryRoot $repositoryRoot
-$project = Join-Path $repositoryRoot "src/JYPPX.HipSharp/JYPPX.HipSharp.csproj"
+$project = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj"
 $outputPath = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
 } else {
@@ -21,7 +21,7 @@ $outputPath = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
 }
 
 New-Item -ItemType Directory -Force -Path $outputPath | Out-Null
-$package = Join-Path $outputPath "JYPPX.HIP.CSharp.API.$Version.nupkg"
+$package = Join-Path $outputPath "JYPPX.ROCm.HIP.CSharp.API.$Version.nupkg"
 
 Push-Location $repositoryRoot
 try {

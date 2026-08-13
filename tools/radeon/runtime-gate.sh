@@ -78,8 +78,8 @@ print(values['version'])
 PY
 }
 
-core_version="$(read_package_version "${core_package}" JYPPX.HIP.CSharp.API)"
-runtime_version="$(read_package_version "${runtime_package}" JYPPX.HipSharp.Runtime.linux-x64)"
+core_version="$(read_package_version "${core_package}" JYPPX.ROCm.HIP.CSharp.API)"
+runtime_version="$(read_package_version "${runtime_package}" JYPPX.ROCm.HipSharp.Runtime.linux-x64)"
 pwsh -NoProfile -File "${repository_root}/eng/verify-package.ps1" -PackagePath "${core_package}" -ExpectedVersion "${core_version}" -ExpectedRepositoryCommit "${expected_commit}" | tee "${evidence_dir}/core-package-audit.txt"
 runtime_audit_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1" -PackagePath "${runtime_package}")
 [[ "${package_mode}" == "candidate" ]] && runtime_audit_args+=(-Candidate)
@@ -117,8 +117,8 @@ make_consumer() {
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JYPPX.HIP.CSharp.API" Version="${core_version}" />
-    <PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="${runtime_version}" />
+    <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="${core_version}" />
+    <PackageReference Include="JYPPX.ROCm.HipSharp.Runtime.linux-x64" Version="${runtime_version}" />
   </ItemGroup>
 </Project>
 EOF
@@ -135,8 +135,8 @@ make_multi_file_consumer() {
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType><ImplicitUsings>disable</ImplicitUsings><Nullable>enable</Nullable></PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JYPPX.HIP.CSharp.API" Version="${core_version}" />
-    <PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="${runtime_version}" />
+    <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="${core_version}" />
+    <PackageReference Include="JYPPX.ROCm.HipSharp.Runtime.linux-x64" Version="${runtime_version}" />
   </ItemGroup>
 </Project>
 EOF
@@ -280,7 +280,7 @@ fi
 
 core_only="${runtime_root}/core-only"
 cp -R "${runtime_root}/device-info" "${core_only}"
-sed -i '/JYPPX.HipSharp.Runtime.linux-x64/d' "${core_only}/Consumer.csproj"
+sed -i '/JYPPX.ROCm.HipSharp.Runtime.linux-x64/d' "${core_only}/Consumer.csproj"
 rm -rf "${core_only}/bin" "${core_only}/obj"
 dotnet restore "${core_only}/Consumer.csproj" --configfile "${runtime_root}/NuGet.config" --packages "${runtime_root}/core-only-packages" --force --no-cache >/dev/null
 dotnet build "${core_only}/Consumer.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/core-only-packages" >/dev/null
@@ -324,12 +324,12 @@ mix_directory="${runtime_root}/closure-mix"
 mkdir -p "${mix_directory}/alternate"
 cp "${native_directory}/libhiprtc.so" "${mix_directory}/alternate/libhiprtc.so"
 cat > "${mix_directory}/ClosureMix.csproj" <<EOF
-<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><PackageReference Include="JYPPX.HIP.CSharp.API" Version="${core_version}" /><PackageReference Include="JYPPX.HipSharp.Runtime.linux-x64" Version="${runtime_version}" /></ItemGroup></Project>
+<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net10.0</TargetFramework><OutputType>Exe</OutputType></PropertyGroup><ItemGroup><PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="${core_version}" /><PackageReference Include="JYPPX.ROCm.HipSharp.Runtime.linux-x64" Version="${runtime_version}" /></ItemGroup></Project>
 EOF
 cat > "${mix_directory}/Program.cs" <<'EOF'
 using System;
-using JYPPX.HipSharp;
-using JYPPX.HipSharp.Rtc;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Rtc;
 
 _ = new HipRuntime(args[0]);
 try

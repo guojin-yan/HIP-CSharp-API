@@ -10,6 +10,7 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。manage
 - [Platform compatibility / 平台兼容性](compatibility/platforms.md)
 - [0.9.0 release candidate / 0.9.0 发布候选](releases/0.9.0-rc.md)
 - [0.9 API freeze review / 0.9 API 冻结审查](guides/api-freeze.md)
+- [JYPPX ROCm naming migration / JYPPX ROCm 命名迁移](design/jyppx-rocm-naming-migration.md)
 - [HIPRTC VectorAdd guide / HIPRTC VectorAdd 指南](guides/hiprtc-vectoradd.md)
 - [Linux runtime package audit / Linux runtime 包审计](guides/linux-runtime-package.md)
 - [Advanced HIP APIs / HIP 高级 API](guides/advanced-apis.md)
@@ -20,4 +21,4 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。manage
 - [Pitched memory and 2D/3D copy / Pitched memory 与 2D/3D copy](guides/pitched-memory.md)
 - [Managed memory pools / 托管 Memory Pool](guides/memory-pools.md)
 - [Windows runtime static audit / Windows Runtime 静态审计](guides/windows-runtime-static-audit.md)
-- [API reference / API 参考](xref:JYPPX.HipSharp)
+- [API reference / API 参考](xref:JYPPX.ROCm.HipSharp)

@@ -1,25 +1,25 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{827E0CD3-B72D-47B6-A68D-7590B98EB39B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp", "src\JYPPX.HipSharp\JYPPX.HipSharp.csproj", "{50700464-463D-4188-8D7D-13F5D349227A}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp", "src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj", "{50700464-463D-4188-8D7D-13F5D349227A}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{0AB3BF05-4346-4AA6-1389-037BE0695223}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.UnitTests", "tests\JYPPX.HipSharp.UnitTests\JYPPX.HipSharp.UnitTests.csproj", "{F3E5F624-F5CB-4CA4-A5E4-CF3AB837963C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.UnitTests", "tests\JYPPX.ROCm.HipSharp.UnitTests\JYPPX.ROCm.HipSharp.UnitTests.csproj", "{F3E5F624-F5CB-4CA4-A5E4-CF3AB837963C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.ProjectQuality.Tests", "tests\JYPPX.HipSharp.ProjectQuality.Tests\JYPPX.HipSharp.ProjectQuality.Tests.csproj", "{40242FE6-84DA-4C26-A2DB-7AB3975F1C06}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.ProjectQuality.Tests", "tests\JYPPX.ROCm.HipSharp.ProjectQuality.Tests\JYPPX.ROCm.HipSharp.ProjectQuality.Tests.csproj", "{40242FE6-84DA-4C26-A2DB-7AB3975F1C06}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.PackageTests", "tests\JYPPX.HipSharp.PackageTests\JYPPX.HipSharp.PackageTests.csproj", "{C4509C81-F0F3-4B19-B9AE-B4511C9D1B6E}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.PackageTests", "tests\JYPPX.ROCm.HipSharp.PackageTests\JYPPX.ROCm.HipSharp.PackageTests.csproj", "{C4509C81-F0F3-4B19-B9AE-B4511C9D1B6E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pack", "pack", "{78453166-59D3-F6E5-1AF7-6BAE5D72A388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.Runtime.linux-x64", "pack\JYPPX.HipSharp.Runtime.linux-x64.csproj", "{7513D617-40AF-41A6-A9EE-1209D85203D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.Runtime.linux-x64", "pack\JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj", "{7513D617-40AF-41A6-A9EE-1209D85203D9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.Runtime.win-x64", "pack\JYPPX.HipSharp.Runtime.win-x64.csproj", "{5074465D-F319-444A-A90B-F30617838DDE}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.Runtime.win-x64", "pack\JYPPX.ROCm.HipSharp.Runtime.win-x64.csproj", "{5074465D-F319-444A-A90B-F30617838DDE}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "samples", "samples", "{5D20AA90-6969-D8BD-9DCD-8634F4692FDA}"
 EndProject
@@ -31,13 +31,13 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HipRtcVectorAdd", "samples\
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HipStreamEventVectorAdd", "samples\HipStreamEventVectorAdd\HipStreamEventVectorAdd.csproj", "{D7BB9E7D-2A1D-44B8-9D56-4BC2CE680B3E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.BindingGenerator", "tools\JYPPX.HipSharp.BindingGenerator\JYPPX.HipSharp.BindingGenerator.csproj", "{9B7D48B9-4BBE-4A6D-8A50-7BC2E24E2D40}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.BindingGenerator", "tools\JYPPX.ROCm.HipSharp.BindingGenerator\JYPPX.ROCm.HipSharp.BindingGenerator.csproj", "{9B7D48B9-4BBE-4A6D-8A50-7BC2E24E2D40}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HipAdvancedFeatures", "samples\HipAdvancedFeatures\HipAdvancedFeatures.csproj", "{DB211A58-D31E-4F3A-914E-FACB13784BBF}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tools", "tools", "{07C2787E-EAC7-C090-1BA3-A61EC2A24D84}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.HipSharp.ApiSurface", "tools\JYPPX.HipSharp.ApiSurface\JYPPX.HipSharp.ApiSurface.csproj", "{32F56277-4CC1-4882-A3DF-250972DE0452}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.ApiSurface", "tools\JYPPX.ROCm.HipSharp.ApiSurface\JYPPX.ROCm.HipSharp.ApiSurface.csproj", "{32F56277-4CC1-4882-A3DF-250972DE0452}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "HipManagedExpansionValidation", "samples\HipManagedExpansionValidation\HipManagedExpansionValidation.csproj", "{335A4F85-747D-4992-A0BD-B6BBD3AD1CDC}"
 EndProject

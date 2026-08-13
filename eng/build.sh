@@ -8,7 +8,7 @@ solution="${repository_root}/HipSharp.sln"
 package_dir="${repository_root}/artifacts/packages"
 
 if [[ -z "${version}" ]]; then
-  version="$(dotnet msbuild "${repository_root}/src/JYPPX.HipSharp/JYPPX.HipSharp.csproj" \
+  version="$(dotnet msbuild "${repository_root}/src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj" \
     -nologo -getProperty:HipSharpCoreVersion)"
   version="${version//$'\r'/}"
 fi
@@ -19,14 +19,14 @@ if command -v pwsh >/dev/null 2>&1; then
 fi
 dotnet restore "${solution}" --locked-mode
 dotnet build "${solution}" --configuration "${configuration}" --no-restore -p:Version="${version}" -p:PackageVersion="${version}"
-dotnet pack "src/JYPPX.HipSharp/JYPPX.HipSharp.csproj" \
+dotnet pack "src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj" \
   --configuration "${configuration}" \
   --no-build \
   --output "${package_dir}" \
   -p:Version="${version}" \
   -p:PackageVersion="${version}"
 
-export HIPSHARP_PACKAGE_PATH="${package_dir}/JYPPX.HIP.CSharp.API.${version}.nupkg"
+export HIPSHARP_PACKAGE_PATH="${package_dir}/JYPPX.ROCm.HIP.CSharp.API.${version}.nupkg"
 dotnet test "${solution}" \
   --configuration "${configuration}" \
   --no-build \

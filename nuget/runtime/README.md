@@ -1,6 +1,6 @@
-# JYPPX.HipSharp ROCm runtime
+# JYPPX.ROCm.HipSharp ROCm runtime
 
-`JYPPX.HipSharp.Runtime.linux-x64` carries the audited ROCm 7.2.1 user-mode closure used by the managed-only `JYPPX.HIP.CSharp.API` package. It never contains the AMD kernel driver, firmware, GPU device nodes, headers, compilers, static libraries, debug symbols, or a managed assembly.
+`JYPPX.ROCm.HipSharp.Runtime.linux-x64` carries the audited ROCm 7.2.1 user-mode closure used by the managed-only `JYPPX.ROCm.HIP.CSharp.API` package. It never contains the AMD kernel driver, firmware, GPU device nodes, headers, compilers, static libraries, debug symbols, or a managed assembly.
 
 The host must be Ubuntu 24.04 x64 with the AMD `amdgpu`/`amdkfd` kernel driver, `/dev/kfd`, `/dev/dri`, and the system libraries declared in `runtime-manifest.json`. The native files are resolved from the consuming application's `runtimes/linux-x64/native` directory. A conflicting mix of package-provided and system ROCm user-mode libraries is rejected.
 

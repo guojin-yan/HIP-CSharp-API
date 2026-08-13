@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Globalization;
-using JYPPX.HipSharp;
-using JYPPX.HipSharp.Memory;
-using JYPPX.HipSharp.Modules;
-using JYPPX.HipSharp.Rtc;
-using JYPPX.HipSharp.Streams;
-using JYPPX.HipSharp.Types;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Memory;
+using JYPPX.ROCm.HipSharp.Modules;
+using JYPPX.ROCm.HipSharp.Rtc;
+using JYPPX.ROCm.HipSharp.Streams;
+using JYPPX.ROCm.HipSharp.Types;
 
 const string KernelSource = @"
 extern ""C"" __global__ void VectorAdd(const float* a, const float* b, float* c, int length)

@@ -67,7 +67,7 @@ $runtimeManifest = (Get-HipSharpRuntimeManifest $manifestPath).Value
 Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:(-not $Candidate)
 $output = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { [System.IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repositoryRoot $OutputDirectory }
 New-Item -ItemType Directory -Force -Path $output | Out-Null
-$project = Join-Path $repositoryRoot "pack/JYPPX.HipSharp.Runtime.linux-x64.csproj"
+$project = Join-Path $repositoryRoot "pack/JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj"
 $package = Join-Path $output "$($runtimeManifest.packageId).$Version.nupkg"
 if (Test-Path -LiteralPath $package -PathType Leaf) { [System.IO.File]::Delete($package) }
 

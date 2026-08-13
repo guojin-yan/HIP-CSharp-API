@@ -1,67 +1,214 @@
-# HIP-CSharp-API
+<h1 align="center">HIP CSharp API</h1>
 
-HIP-CSharp-API is a .NET binding for the AMD HIP Runtime and HIPRTC Direct C ABIs. The single `JYPPX.HipSharp` assembly exposes both lifecycle-oriented managed owners and complete low-level native entry points for the pinned HIP 7.2.1 C headers.
+<p align="center">
+  Direct AMD HIP Runtime and HIPRTC bindings for C# and .NET, with managed resource owners and a complete generated low-level C ABI.
+</p>
 
-## 0.9.0 release-candidate status
+<p align="center">
+  <a href="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml"><img src="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/github/license/guojin-yan/HIP-CSharp-API.svg" alt="License" /></a>
+  <a href="#-current-status-initial-development"><img src="https://img.shields.io/badge/status-in%20development-f59e0b" alt="In development" /></a>
+  <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-net46%20to%20net10.0-512BD4" alt=".NET target frameworks" /></a>
+  <a href="https://github.com/guojin-yan/HIP-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/HIP-CSharp-API?style=flat&amp;label=Stars" alt="GitHub stars" /></a>
+</p>
 
-Core version `0.9.0` is the local M8.1 release candidate for API-freeze review. A committed API snapshot is compared with all 15 target frameworks, while NuGet package validation checks compatibility during packing. The selected stream-ordered allocation, managed-memory, P2P, and graph APIs retain the M6 ownership and error contracts described in the [freeze review](docs/guides/api-freeze.md).
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-The optional Linux Runtime remains version `7.2.1`. Its signed AMD Noble provenance, six-ELF closure, licenses, CycloneDX SBOM, 415,070,520-byte allowlist, and historical verified package remain regression inputs. A current candidate is bound to the exact clean Git SHA, embeds an explicitly unverified candidate manifest, and is always `publishable=false` until that exact Core/Runtime pair passes newly Owner-authorized isolated host and PRoot GPU gates.
+# HIP CSharp API
 
-| State | Result |
-| --- | --- |
-| Core candidate | `JYPPX.HIP.CSharp.API` `0.9.0`; local only, unpublished, and not yet declared stable |
-| Public API | Frozen snapshot plus identical-surface comparison across all 15 TFMs; formal and diagnostic API are distinguished from sample-only and internal code |
-| Interop ABI | The selected owner manifest drives 55 declarations; the pinned-header complete model drives 459 Runtime + 18 HIPRTC low-level declarations across `LibraryImport` and `DllImport` branches |
-| Linux Runtime candidate | `JYPPX.HipSharp.Runtime.linux-x64` `7.2.1`; guarded, exact-SHA, non-publishable candidate |
-| Historical Linux evidence | M4-M6 passed on separately authorized Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / `gfx1100` sessions; historical evidence does not validate the current packages |
-| Current Linux cloud gate | Pending fresh Owner authorization for the exact candidate packages |
-| Windows | Runtime `7.2.0` skeleton remains disabled, inventory-empty, static-audit-only, and GPU-unvalidated |
-| Supported | Not claimed for any runtime/OS/GPU combination; no performance claim |
+HIP CSharp API provides direct .NET bindings for the AMD HIP Runtime and HIPRTC C APIs. The single `JYPPX.ROCm.HipSharp` assembly combines ergonomic managed owners for common GPU workflows with generated low-level entry points for applications that need the native ABI directly.
 
-## Target frameworks
+## 📖 Introduction
 
-The core project directly targets `net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, and `net10.0`. M1 and M2 hardware validation passed on an authorized Radeon Cloud Ubuntu 24.04.4 instance with ROCm 7.2.1, HIP 7.2.53211, and a `gfx1100` GPU. M2 verified 17 Runtime/Module exports, 9 HIPRTC exports, official-header ABI assertions, and VectorAdd lengths `1`, `127`, `256`, `1000`, and `1048576` for 20 repetitions each. Windows HIP SDK compatibility is retained in the design but has not received AMD GPU validation.
+The project is designed around three boundaries:
 
-The .NET Core 3.1, .NET 5, .NET 6, .NET 7, .NET Framework 4.6, and .NET Framework 4.6.1 targets are end-of-support upstream. They are build/package compatibility targets, not a promise of security updates. .NET 8 and .NET 9 should also be evaluated against their current upstream support status before deployment.
+- **Managed ownership:** device memory, pinned and managed memory, streams, events, modules, kernels, graphs, and HIPRTC programs use explicit `IDisposable` ownership.
+- **Direct native access:** `HipRuntimeNativeApi` and `HipRtcNativeApi` expose the generated HIP C ABI without introducing a project-owned C++ bridge.
+- **Explicit native runtime:** the managed package does not contain an AMD driver, ROCm installation, or native HIP libraries. Native loading and diagnostics remain visible to the caller.
 
-## Packages
+The public API includes bilingual Chinese/English XML documentation and is kept identical across all declared target frameworks.
 
-The core package is `JYPPX.HIP.CSharp.API`. It contains managed code and documentation only; it does not contain ROCm, a driver, or AMD native binaries. Runtime package IDs are stable: `JYPPX.HipSharp.Runtime.linux-x64` and `JYPPX.HipSharp.Runtime.win-x64`, with versions `7.2.1` and `7.2.0`. Linux provenance, closure, licenses, hashes, SBOM, package content, and one isolated `gfx1100` GPU environment are audited. Windows remains a disabled, inventory-empty M6 static skeleton; it is not a redistribution or support claim.
+## ✨ Key Features
 
-## Local verification
+- Managed APIs for device discovery, allocation, copies, synchronization, streams, events, modules, kernels, and HIPRTC compilation.
+- Advanced owners for stream-ordered allocation, managed-memory advice and prefetch, peer access, and HIP graph capture/replay.
+- A complete generated low-level surface based on pinned HIP 7.2.1 headers: 459 HIP Runtime declarations and 18 HIPRTC declarations.
+- Source-generated `LibraryImport` on .NET 7 and later, with `DllImport` compatibility on older targets.
+- Deterministic interop generation, a frozen public API snapshot, package audits, and managed tests that do not require a GPU.
+- Runnable correctness samples for memory copies, HIPRTC VectorAdd, stream/event ordering, graphs, managed memory, and P2P copy-or-skip behavior.
 
-On Windows PowerShell, with the .NET 10 SDK installed:
+## 📢 Current Status: Initial Development
+
+No public version of HIP CSharp API has been released yet. The repository is under active initial development, and its API, package contents, and deployment model may change before the first release.
+
+Current artifacts are local development and validation outputs only. They are not published packages, stable releases, or a compatibility commitment. Until the first release is available, build the project from source and validate it in the intended deployment environment.
+
+Historical GPU validation used separately authorized Radeon Cloud sessions with Ubuntu 24.04.4, ROCm 7.2.1, HIP 7.2.53211, and a `gfx1100` GPU. These results are development evidence only and do not constitute broad platform or production support.
+
+## 🚀 Get Started In 30 Seconds
+
+Until the first package is published, run the source checkout directly. You need the .NET 10 SDK selected by `global.json` and a machine with a working AMD driver and compatible HIP/ROCm user-mode runtime.
 
 ```powershell
-dotnet restore HipSharp.sln
-./eng/generate-interop.ps1 generate -Check
-./eng/build.ps1 -Configuration Release
-./eng/test.ps1 -Configuration Release -NoBuild
-./eng/verify-public-api.ps1 -Configuration Release
-./eng/verify-package.ps1 -PackagePath artifacts/packages/JYPPX.HIP.CSharp.API.0.9.0.nupkg -ExpectedVersion 0.9.0
-./eng/generate-runtime-metadata.ps1 -Check
-./eng/test-runtime-supply-chain.ps1
-./eng/test-windows-runtime-skeleton.ps1
-./eng/prepare-runtime.ps1 -Manifest ./nuget/runtime-manifests/linux-x64.json -Offline
+git clone https://github.com/guojin-yan/HIP-CSharp-API.git
+cd HIP-CSharp-API
+dotnet run --project .\samples\DeviceInfo\DeviceInfo.csproj -c Release
 ```
 
-The equivalent cross-platform core gate is `bash ./eng/build.sh Release`. Package output and audit results are written below ignored `artifacts/` directories.
+The essential managed API is intentionally small:
 
-`prepare-runtime.ps1` requires `gpg`, `gpgv`, and `tar`; on Windows it also discovers the standard Git for Windows `usr/bin` copies when they are not on `PATH`. It fails closed on a missing tool, unsigned metadata, an offline cache miss, or any package/file/ELF/license/SBOM mismatch. `pack-runtime.ps1` is the guarded entry point for the verified Linux package; the Windows runtime and incomplete manifests remain blocked.
+```csharp
+using System;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Types;
 
-For an Owner-authorized isolated GPU test, `pack-runtime.ps1 -Candidate` creates a non-publishable local-feed package from a clean SHA and a tool-generated attestation bound to the exact manifest, SBOM, and staging digest. Direct `dotnet pack` without an accepted manifest remains fail-closed. Historical package validation cannot promote a newly built candidate; the exact package must pass both isolated gates before any release decision.
+var runtime = new HipRuntime();
+runtime.Initialize();
 
-## Architecture boundary
+HipRuntimeVersionInfo versions = runtime.GetVersionInfo();
+Console.WriteLine($"HIP Runtime: {versions.RuntimeVersion}");
+Console.WriteLine($"HIP Driver:  {versions.DriverVersion}");
 
-The implementation calls `amdhip64` and `hiprtc` directly. `eng/interop/interop-manifest.json` remains the declaration source for the 55 lifecycle-oriented owner calls; `eng/interop/complete-api-model.json` is the reproducible source for all 477 low-level C ABI declarations. The binding generator deterministically emits `LibraryImport` for .NET 7+ and `DllImport` for older targets. `HipRuntimeNativeApi` and `HipRtcNativeApi` load the verified logical library through the same resolver and preserve raw pointer ownership as `IntPtr`; callers that need ergonomic lifetime and error handling should use `HipRuntime` and `HipRtc`. Runtime errors in those owner APIs become `HipException`; HIPRTC results become `HipRtcException`, including the compiler log when compilation fails. Device allocations, stream-ordered allocations, managed memory, graphs, graph executables, HIPRTC programs, and modules use explicit `IDisposable` ownership plus non-throwing `SafeHandle` final-release fallbacks.
+foreach (HipDevice device in runtime.GetDevices())
+{
+    Console.WriteLine(device);
+}
+```
 
-`samples/HipRtcVectorAdd` retains the M2 path. `samples/HipStreamEventVectorAdd` retains the M4 stream/event path. `samples/HipAdvancedFeatures` adds stream-ordered allocations, graph replay, managed-memory hints, CPU/GPU comparison for five lengths, 100 owner lifecycles, and a verified P2P copy-or-skip path. Its optional stress mode submits large vector operations to multiple streams before synchronization, validates every lane against the CPU, and repeats allocation/release without reporting performance figures. These GPU paths require an explicit architecture and never write the code object to disk. Managed-only tests use replaceable native boundaries and make no GPU calls.
+Applications using the managed package must still provide compatible native `amdhip64` and, when using runtime compilation, `hiprtc` libraries. See [platform compatibility](docs/compatibility/platforms.md) before choosing a deployment configuration.
 
-All public API XML comments use Chinese/English pairs. Run `./eng/docs.ps1` to generate the API reference and DocFX site under `_site`.
+## 📦 Package Layout
 
-## License
+| Package | Native baseline | Contents | State |
+| --- | --- | --- | --- |
+| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HipSharp` assembly, XML docs, package README, logo, and license | Under development; no version published |
+| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, and SBOM | Internal validation only; unpublished and non-publishable |
+| `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
-Source code is prepared under Apache-2.0, the default proposed by the project plan. Packaged ROCm components retain their own component licenses and notices.
+The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
 
-See [README.zh-CN.md](README.zh-CN.md), [framework compatibility](docs/compatibility/frameworks.md), [platform compatibility](docs/compatibility/platforms.md), [contributing](CONTRIBUTING.md), and [security policy](SECURITY.md).
+## 🧩 API Surface
+
+| Area | Main managed types |
+| --- | --- |
+| Runtime and devices | `HipRuntime`, `HipDevice`, `HipRuntimeVersionInfo` |
+| Memory | `HipDeviceMemory`, `HipTypedMemory<T>`, `HipPinnedMemory`, `HipManagedMemory`, `HipAsyncDeviceMemory` |
+| Streams and events | `HipStream`, `HipEvent`, `HipAsyncLease` |
+| Runtime compilation | `HipRtc`, `HipRtcProgram`, `HipRtcCompilation`, `HipRtcException` |
+| Modules and kernels | `HipModule`, `HipKernel`, `HipLaunchDimensions`, `HipKernelArgument` |
+| Graphs and peer access | `HipGraph`, `HipGraphExec`, `HipPeerAccess` |
+| Loading and diagnostics | `HipLibraryLocator`, `HipNativeLibraryLoader`, `HipLibraryLoadDiagnostics` |
+| Complete native ABI | `HipRuntimeNativeApi`, `HipRtcNativeApi` |
+
+Use managed owners for normal application code. Use the low-level API when exact native signatures and native ownership semantics are required.
+
+## 🖥️ Platforms And Frameworks
+
+The Core project directly targets 15 frameworks:
+
+`net46`, `net461`, `net462`, `net47`, `net471`, `net472`, `net48`, `net481`, `netcoreapp3.1`, `net5.0`, `net6.0`, `net7.0`, `net8.0`, `net9.0`, and `net10.0`.
+
+| Platform | Core build/package | GPU validation | Runtime package |
+| --- | --- | --- | --- |
+| Linux x64 | Yes | Historical Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` evidence | Guarded 7.2.1 candidate |
+| Windows x64 | Yes; loader and PE paths are statically audited | Not yet validated on an AMD GPU | Disabled 7.2.0 skeleton |
+
+Several older .NET targets are end-of-support upstream and exist only for package compatibility. The full distinctions between build compatibility, historical validation, and supported deployment are documented in [framework compatibility](docs/compatibility/frameworks.md) and [platform compatibility](docs/compatibility/platforms.md).
+
+## 🧪 Examples
+
+| Sample | What it demonstrates |
+| --- | --- |
+| [`DeviceInfo`](samples/DeviceInfo) | Runtime/driver versions and device enumeration |
+| [`MemoryCopy`](samples/MemoryCopy) | H2D, D2D, and D2H memory round trip |
+| [`HipRtcVectorAdd`](samples/HipRtcVectorAdd) | In-memory HIPRTC compilation, module loading, kernel launch, and CPU verification |
+| [`HipStreamEventVectorAdd`](samples/HipStreamEventVectorAdd) | Asynchronous copies, non-blocking streams, events, and ordering |
+| [`HipAdvancedFeatures`](samples/HipAdvancedFeatures) | Stream-ordered allocation, graph replay, managed memory, lifecycle stress, and P2P copy-or-skip |
+
+GPU samples require the actual target architecture. For example:
+
+```powershell
+dotnet run --project .\samples\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
+```
+
+These samples validate correctness and ownership behavior; they are not benchmarks and make no performance claim.
+
+## 📚 Documentation
+
+| Resource | Description |
+| --- | --- |
+| [Documentation index](docs/index.md) | DocFX entry point and bilingual guide index |
+| [Complete native API](docs/guides/complete-native-api.md) | Generated low-level Runtime and HIPRTC surface |
+| [HIPRTC VectorAdd](docs/guides/hiprtc-vectoradd.md) | Compile, load, launch, and verify a kernel |
+| [Streams and events](docs/guides/hip-stream-event-vectoradd.md) | Asynchronous ordering and lifecycle guide |
+| [Advanced APIs](docs/guides/advanced-apis.md) | Graphs, managed memory, stream-ordered allocation, and P2P |
+| [Linux runtime package](docs/guides/linux-runtime-package.md) | Provenance, dependency closure, and packaging boundary |
+| [Windows runtime audit](docs/guides/windows-runtime-static-audit.md) | Current static-only Windows state |
+| [API reference](docs/api/toc.yml) | Generated public API reference |
+
+Run `./eng/docs.ps1` to build the DocFX site under `_site`.
+
+## 🔨 Build From Source
+
+The repository pins the .NET `10.0.300` SDK through `global.json`.
+
+```powershell
+git clone https://github.com/guojin-yan/HIP-CSharp-API.git
+cd HIP-CSharp-API
+dotnet restore .\HipSharp.sln --locked-mode
+.\eng\build.ps1 -Configuration Release -NoRestore
+.\eng\test.ps1 -Configuration Release -NoBuild
+.\eng\verify-public-api.ps1 -Configuration Release
+```
+
+On Linux, the equivalent Core gate is:
+
+```bash
+bash ./eng/build.sh Release
+```
+
+The build verifies deterministic interop output, all 15 target frameworks, tests, package contents, and public API consistency. Managed-only tests do not require an AMD GPU.
+
+## 🗂️ Project Structure
+
+```text
+HIP-CSharp-API/
+|-- src/JYPPX.ROCm.HipSharp/                 Managed owners and generated native APIs
+|-- samples/                            Runnable device, memory, HIPRTC, and advanced samples
+|-- tests/                              Unit, package, API-baseline, and repository-quality tests
+|-- docs/                               DocFX reference, compatibility notes, guides, and releases
+|-- eng/                                Build, generation, audit, packaging, and release gates
+|-- nuget/                              Core/runtime package content and runtime manifests
+|-- pack/                               Optional runtime package projects
+|-- native/abi-probe/                   Native ABI verification probe
+`-- .github/workflows/                  Continuous integration
+```
+
+## 🤝 Contributing
+
+Issues and pull requests are welcome. Before changing the public API, native declarations, ownership behavior, package identity, or runtime payload, read [CONTRIBUTING.md](CONTRIBUTING.md) and the [API-freeze guide](docs/guides/api-freeze.md). Security reports should follow [SECURITY.md](SECURITY.md) rather than a public issue.
+
+## 🙏 Acknowledgments
+
+This project builds on [AMD HIP](https://github.com/ROCm/HIP) and the wider ROCm ecosystem. AMD remains the authoritative source for HIP behavior, platform requirements, and third-party runtime licensing.
+
+## 📄 License
+
+The project source is licensed under the [Apache License 2.0](LICENSE). Any packaged ROCm components retain their own licenses and notices; the project license does not replace those terms.
+
+## 📮 Support And Contact
+
+- [GitHub Issues](https://github.com/guojin-yan/HIP-CSharp-API/issues) for bugs and feature requests.
+- [GitHub Discussions](https://github.com/guojin-yan/HIP-CSharp-API/discussions) for usage questions.
+- QQ group `945057948` for community discussion.
+
+## 📢 Software Notice
+
+- **AI-assisted development:** AI tools were used to help generate, review, and optimize parts of the code and documentation.
+- **Security intent:** the author states that the project contains no intentionally embedded backdoors, viruses, credential theft, or other malicious behavior.
+- **Testing limits:** the project has not been validated on every operating system, driver, ROCm version, GPU architecture, or workload. A passing historical gate is not a universal support guarantee.
+- **User responsibility:** perform independent review and representative testing before production, commercial, industrial, safety-critical, or mission-critical use. Users are responsible for evaluating fitness, reliability, licensing, and deployment risk.
+
+Third-party binaries, source, and resources remain governed by their respective owners and licenses.
+
+Copyright (c) 2026 Guojin Yan.

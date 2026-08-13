@@ -1,7 +1,7 @@
 using System;
 using System.Linq;
-using JYPPX.HipSharp;
-using JYPPX.HipSharp.Memory;
+using JYPPX.ROCm.HipSharp;
+using JYPPX.ROCm.HipSharp.Memory;
 
 try
 {
