@@ -7,6 +7,21 @@ using System.Xml.Linq;
 
 Dictionary<string, string> options = ParseOptions(args);
 string assemblyPath = RequirePath(options, "assembly");
+if (options.TryGetValue("semantic", out string? semanticPath))
+{
+    Assembly semanticAssembly = Assembly.LoadFrom(assemblyPath);
+    List<string> semantic = GenerateSemanticSurface(semanticAssembly);
+    string semanticOutput = string.Join("\n", new[]
+    {
+        "# HipSharp assembly semantic snapshot schema 1",
+        "# Signatures, constants, locals, exception clauses, and IL; assembly/package provenance metadata excluded.",
+    }.Concat(semantic)) + "\n";
+    string fullSemanticPath = Path.GetFullPath(semanticPath);
+    Directory.CreateDirectory(Path.GetDirectoryName(fullSemanticPath)!);
+    File.WriteAllText(fullSemanticPath, semanticOutput, new UTF8Encoding(false));
+    Console.WriteLine($"Assembly semantic snapshot written: {semanticAssembly.GetTypes().Length} types, {semantic.Count} records.");
+    return 0;
+}
 string snapshotPath = RequireOption(options, "snapshot");
 string categoriesPath = RequirePath(options, "categories");
 string mode = options.ContainsKey("write") ? "write" : options.ContainsKey("check") ? "check" : string.Empty;
@@ -50,6 +65,42 @@ else
 
 Console.WriteLine($"Public API {mode} passed: {assembly.GetExportedTypes().Length} types, {surface.Count(line => !line.StartsWith("T|", StringComparison.Ordinal))} members.");
 return 0;
+
+static List<string> GenerateSemanticSurface(Assembly assembly)
+{
+    var lines = new List<string>();
+    const BindingFlags declared = BindingFlags.DeclaredOnly | BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic;
+    foreach (Type type in assembly.GetTypes().OrderBy(item => item.FullName, StringComparer.Ordinal))
+    {
+        string typeName = FormatType(type);
+        lines.Add($"T|{(int)type.Attributes}|{typeName}|base={FormatOptionalType(type.BaseType)}|interfaces={string.Join(',', type.GetInterfaces().Select(FormatType).OrderBy(value => value, StringComparer.Ordinal))}{FormatGenericConstraints(type.GetGenericArguments())}");
+        foreach (FieldInfo field in type.GetFields(declared).OrderBy(FieldIdentity, StringComparer.Ordinal))
+        {
+            string constant = field.IsLiteral ? "|constant=" + FormatConstant(field.GetRawConstantValue()) : string.Empty;
+            lines.Add($"F|{typeName}|{(int)field.Attributes}|{FormatType(field.FieldType)}|{field.Name}{constant}");
+        }
+        foreach (MethodBase method in type.GetMethods(declared).Cast<MethodBase>().Concat(type.GetConstructors(declared)).OrderBy(MethodIdentity, StringComparer.Ordinal))
+        {
+            string returnType = method is MethodInfo methodInfo ? FormatType(methodInfo.ReturnType) : "System.Void";
+            string parameters = string.Join(',', method.GetParameters().Select(parameter => FormatType(parameter.ParameterType)));
+            MethodBody? body = method.GetMethodBody();
+            string bodyValue = body is null
+                ? "none"
+                : $"max={body.MaxStackSize};init={body.InitLocals};locals={string.Join(',', body.LocalVariables.Select(local => FormatType(local.LocalType) + (local.IsPinned ? " pinned" : string.Empty)))};exceptions={string.Join(',', body.ExceptionHandlingClauses.Select(FormatExceptionClause))};il={Convert.ToHexString(body.GetILAsByteArray() ?? Array.Empty<byte>())}";
+            lines.Add($"M|{typeName}|{(int)method.Attributes}|{(int)method.MethodImplementationFlags}|{returnType}|{method.Name}|generic={method.GetGenericArguments().Length}|params={parameters}|{bodyValue}");
+        }
+    }
+    return lines.OrderBy(line => line, StringComparer.Ordinal).ToList();
+}
+
+static string FormatOptionalType(Type? type) => type is null ? string.Empty : FormatType(type);
+
+static string FieldIdentity(FieldInfo field) => field.Name + "|" + FormatType(field.FieldType);
+
+static string MethodIdentity(MethodBase method) => method.Name + "|" + string.Join(',', method.GetParameters().Select(parameter => FormatType(parameter.ParameterType)));
+
+static string FormatExceptionClause(ExceptionHandlingClause clause) =>
+    $"{clause.Flags}:{clause.TryOffset}:{clause.TryLength}:{clause.HandlerOffset}:{clause.HandlerLength}:{clause.FilterOffset}:{FormatOptionalType(clause.CatchType)}";
 
 static List<string> GenerateSurface(Assembly assembly, CategoryConfiguration categories)
 {

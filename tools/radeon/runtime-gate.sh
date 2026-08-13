@@ -85,6 +85,20 @@ runtime_audit_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-pack
 [[ "${package_mode}" == "candidate" ]] && runtime_audit_args+=(-Candidate)
 [[ "${package_mode}" == "regression" ]] && runtime_audit_args+=(-ExpectedRepositoryCommit "${runtime_package_commit}")
 pwsh "${runtime_audit_args[@]}" | tee "${evidence_dir}/runtime-package-audit.txt"
+if [[ "${package_mode}" == "final" ]]; then
+  python3 - "${repository_root}/artifacts/runtime-package-audit/runtime-package-audit.json" "${expected_commit}" <<'PY'
+import json
+import sys
+
+audit = json.load(open(sys.argv[1], encoding="utf-8-sig"))
+if audit.get("mode") != "verified-final" or audit.get("technicalState") != "verified-final":
+    raise SystemExit("Final runtime package audit is not verified-final")
+if audit.get("packageRepositoryCommit") != sys.argv[2]:
+    raise SystemExit("Final runtime package audit commit is stale")
+if audit.get("publishable") is not False or audit.get("releaseAuthorized") is not False:
+    raise SystemExit("Final runtime package audit crossed the release-authorization boundary")
+PY
+fi
 
 runtime_root="${evidence_dir}/consumer"
 case "${runtime_root}" in
@@ -176,7 +190,7 @@ done
 (cd "${runtime_root}/managed-expansion" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --expected-commit "${expected_commit}" --environment package-only --graph-launch-repeats 3 2>&1) | tee "${evidence_dir}/managed-expansion-run.json"
 (cd "${runtime_root}/advanced-features" && dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 250 --stress-rounds 10 --stress-streams 4 --stress-length 4194304 2>&1) | tee "${evidence_dir}/advanced-features-stress-run.txt"
 
-python3 - "${evidence_dir}/managed-expansion-run.json" "${expected_commit}" <<'PY'
+python3 - "${evidence_dir}/managed-expansion-run.json" "${expected_commit}" "${package_mode}" <<'PY'
 import json
 import sys
 
@@ -234,6 +248,8 @@ if result.get("skippedStages") != expected_skips:
     raise SystemExit("Package-only managed expansion skipped-stage aggregation is invalid")
 if result.get("performanceClaim") is not False or result.get("failureIndex") != -1 or result.get("failureStage") != "":
     raise SystemExit("Package-only managed expansion result contract is invalid")
+if sys.argv[3] == "final" and (result.get("comparisons") != 1127 or result.get("skippedStages") != [] or any(stage.get("status") != "passed" for stage in result["stages"])):
+    raise SystemExit("Final exact package did not reproduce the M8.7 1127-comparison, no-skip managed expansion scope")
 print("Package-only M8.2-M8.6 managed expansion workload passed")
 PY
 
@@ -347,4 +363,9 @@ dotnet restore "${mix_directory}/ClosureMix.csproj" --configfile "${runtime_root
 dotnet build "${mix_directory}/ClosureMix.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" >/dev/null
 (cd "${mix_directory}" && dotnet run --configuration Release --no-build --no-restore -- "${native_directory}/libamdhip64.so" "${mix_directory}/alternate/libhiprtc.so") | tee "${evidence_dir}/closure-mix-negative.txt"
 
-echo "M8.1 isolated runtime ${package_mode} gate passed for ${expected_commit}."
+grep -q 'stress=passed(rounds=10,streams=4,length=4194304,maxInFlightDeviceBytes=201326592' "${evidence_dir}/advanced-features-stress-run.txt" || {
+  echo 'Reliability stress did not reproduce the required bounded CPU/GPU comparison.' >&2
+  exit 1
+}
+
+echo "M8.8 isolated runtime ${package_mode} gate passed for ${expected_commit}."

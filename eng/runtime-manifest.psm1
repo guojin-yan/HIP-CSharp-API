@@ -209,6 +209,21 @@ function Assert-HipSharpRuntimeManifest {
             throw "HIPSHARP1001: Runtime validation evidence must include a non-empty validationSha256."
         }
         Assert-HipSharpHash ([string]$Manifest.verification.validationSha256) "verification.validationSha256"
+        if (-not $Manifest.verification.ContainsKey("promotionReceipt") -or $null -eq $Manifest.verification.promotionReceipt) {
+            throw "HIPSHARP1001: Runtime validation evidence must include a promotion receipt."
+        }
+        foreach ($name in @("path", "sha256", "lockPath")) {
+            if (-not $Manifest.verification.promotionReceipt.ContainsKey($name) -or
+                [string]::IsNullOrWhiteSpace([string]$Manifest.verification.promotionReceipt[$name])) {
+                throw "HIPSHARP1001: verification.promotionReceipt.$name is required for runtime packaging."
+            }
+        }
+        ConvertTo-HipSharpRelativePath ([string]$Manifest.verification.promotionReceipt.path) | Out-Null
+        ConvertTo-HipSharpRelativePath ([string]$Manifest.verification.promotionReceipt.lockPath) | Out-Null
+        Assert-HipSharpHash ([string]$Manifest.verification.promotionReceipt.sha256) "verification.promotionReceipt.sha256"
+        if ($Manifest.verification.promotionReceipt.sha256 -ne $Manifest.verification.validationSha256) {
+            throw "HIPSHARP1001: validationSha256 must identify the promotion receipt."
+        }
         if (-not $Manifest.verification.ContainsKey("environment") -or $null -eq $Manifest.verification.environment) {
             throw "HIPSHARP1001: Runtime validation evidence must include an isolated consumer environment."
         }

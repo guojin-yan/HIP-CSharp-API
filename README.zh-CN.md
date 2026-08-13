@@ -43,7 +43,7 @@ HIP CSharp API 尚未公开发布任何版本。项目当前处于初始开发�
 
 当前生成的产物仅用于本地开发与验证，不属于已发布包、稳定版本或兼容性承诺。首个版本发布前，请从源码构建，并在实际目标环境中自行完成验证。
 
-历史 GPU 验证使用获得单独授权的 Radeon Cloud 会话，环境为 Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 与 `gfx1100` GPU。这些结果仅作为开发验证证据，不代表广泛平台支持或生产可用性承诺。
+M8.7 的精确 `JYPPX.ROCm.*` 候选已在单独授权的 official-host 与 package-only Radeon Cloud 门禁通过，环境为 Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 与单张 `gfx1100` GPU。M8.8 使用 receipt 锁定该证据，但发布交接前仍须对新的 final 精确包字节复核。这些结果仅作为开发验证证据，不代表广泛平台支持或生产可用性承诺。
 
 ## 🚀 30 秒开始
 
@@ -82,7 +82,7 @@ foreach (HipDevice device in runtime.GetDevices())
 | 包 | 原生基线 | 内容 | 状态 |
 | --- | --- | --- | --- |
 | `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HipSharp` 程序集、XML 文档、包 README、logo 与许可证 | 开发中，尚无已发布版本 |
-| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录与 SBOM | 仅供内部验证，尚未发布且不可发布 |
+| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | receipt 已验证的本地 final 候选；final 精确包门禁待执行；尚未发布且不可发布 |
 | `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。
@@ -110,7 +110,7 @@ Core 项目直接面向 15 个目标框架：
 
 | 平台 | Core 构建/打包 | GPU 验证 | Runtime 包 |
 | --- | --- | --- | --- |
-| Linux x64 | 是 | 已保留 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 历史证据 | 受控的 7.2.1 候选 |
+| Linux x64 | 是 | M8.7 精确候选已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过；M8.8 final 字节待复核 | receipt 验证且受控的 7.2.1 本地 final 候选 |
 | Windows x64 | 是；loader 与 PE 路径已静态审计 | 尚未在 AMD GPU 上验证 | 已禁用的 7.2.0 骨架 |
 
 部分旧 .NET 目标已结束上游支持，本项目仅将其作为包兼容目标保留。构建兼容、历史验证与正式支持之间的完整区别见[框架兼容性](docs/compatibility/frameworks.md)和[平台兼容性](docs/compatibility/platforms.md)。

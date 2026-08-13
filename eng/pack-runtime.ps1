@@ -39,6 +39,7 @@ if ($Candidate) {
     $candidateManifest.verification.gpuValidated = $false
     $candidateManifest.verification.validationSha256 = $null
     $candidateManifest.verification.environment = $null
+    $candidateManifest.verification.Remove("promotionReceipt")
     $candidateManifest.verification.reason = "M8.1 internal candidate: local source, closure, license, SBOM, content, and size gates must pass again; Owner-authorized exact-package GPU validation is pending."
     $candidateManifest.candidate = [ordered]@{
         schemaVersion = 1
@@ -95,6 +96,31 @@ if ($Candidate) {
     $attestation | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $attestationPath -Encoding utf8NoBOM
     $attestationSha256 = Get-HipSharpSha256 $attestationPath
     $arguments += "-p:RuntimeCandidateAttestationPath=$attestationPath", "-p:RuntimeCandidateAttestationSha256=$attestationSha256"
+} else {
+    $receiptPath = Join-Path $repositoryRoot $runtimeManifest.verification.promotionReceipt.path
+    $receiptSha256 = Get-HipSharpSha256 $receiptPath
+    $finalDirectory = Join-Path $repositoryRoot "artifacts/runtime-final"
+    New-Item -ItemType Directory -Force -Path $finalDirectory | Out-Null
+    $finalAttestationPath = Join-Path $finalDirectory "final-pack-attestation.json"
+    $finalAttestation = [ordered]@{
+        schemaVersion = 1
+        mode = "verified-final-local"
+        publishable = $false
+        releaseAuthorized = $false
+        gitSha = $gitSha
+        packageId = $runtimeManifest.packageId
+        packageVersion = $runtimeManifest.packageVersion
+        rid = $runtimeManifest.rid
+        manifestSha256 = Get-HipSharpSha256 $manifestPath
+        promotionReceiptSha256 = $receiptSha256
+        sbomSha256 = $runtimeManifest.sbom.sha256
+        stagingDigestSha256 = Get-HipSharpStagingDigest $staging
+    }
+    $finalAttestation | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath $finalAttestationPath -Encoding utf8NoBOM
+    $finalAttestationSha256 = Get-HipSharpSha256 $finalAttestationPath
+    $arguments += `
+        "-p:RuntimePromotionReceiptPath=$receiptPath", "-p:RuntimePromotionReceiptSha256=$receiptSha256", `
+        "-p:RuntimeFinalAttestationPath=$finalAttestationPath", "-p:RuntimeFinalAttestationSha256=$finalAttestationSha256"
 }
 
 & dotnet @arguments

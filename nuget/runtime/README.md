@@ -6,4 +6,4 @@ The host must be Ubuntu 24.04 x64 with the AMD `amdgpu`/`amdkfd` kernel driver, 
 
 The package includes its deterministic CycloneDX SBOM, per-component license texts, and the exact signed-source/file manifest. ROCm and HIP versions are fixed to 7.2.1/7.2.53211 for this package version.
 
-This candidate is not published and is not enabled until an isolated clean consumer with no system ROCm user-mode installation passes the real GPU gate. An internal package marked `packEnabled=false` and `verified=false` may be produced only by the hash-bound `pack-runtime.ps1 -Candidate` workflow for an isolated local-feed test. Such a candidate is not a release artifact and must never be published.
+The M8.7 exact candidate passed official-host and package-only validation. This final-candidate package can be generated only through the tracked M8.7 promotion receipt and embeds that receipt for audit. Its new exact bytes still require a newly authorized final-mode package-only gate. It is unpublished, `publishable=false`, and `releaseAuthorized=false`; technical verification is not publication permission.

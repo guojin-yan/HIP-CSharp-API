@@ -186,8 +186,9 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "pending-owner-authorized-m8.7-official-host-and-package-only-managed-expansion-validation"
+    runtimeAndGpuValidation = "m8.7-exact-candidate-passed; m8.8-final-exact-package-gate-pending-owner-authorization"
     publishable = $false
+    releaseAuthorized = $false
 }
 $reportPath = Join-Path $auditDirectory "package-audit.json"
 $report | ConvertTo-Json -Depth 5 | Set-Content -LiteralPath $reportPath -Encoding UTF8

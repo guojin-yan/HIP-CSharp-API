@@ -26,13 +26,6 @@ function Assert-Rejected([string]$name, [scriptblock]$mutation) {
 
 function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
     $candidate = New-ManifestCopy
-    $candidate.packEnabled = $true
-    $candidate.verified = $true
-    foreach ($verificationName in @("provenanceVerified", "closureVerified", "licensesVerified", "sbomVerified", "packageAuditVerified", "gpuValidated")) {
-        $candidate.verification[$verificationName] = $true
-    }
-    $candidate.verification.validationSha256 = ("00" * 32)
-    $candidate.verification.environment = @{ os = "Ubuntu 24.04"; architecture = "amd64"; gpu = "gfx1100"; isolation = "clean-consumer" }
     & $mutation $candidate
     try {
         Assert-HipSharpRuntimeManifest $candidate -RequirePackable
@@ -45,6 +38,7 @@ function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
 
 $baseline = New-ManifestCopy
 Assert-HipSharpRuntimeManifest $baseline
+Assert-HipSharpRuntimeManifest $baseline -RequirePackable
 & (Join-Path $PSScriptRoot "generate-runtime-metadata.ps1") -Manifest $manifestPath -Check
 
 Assert-Rejected "wrong architecture" { param($m) $m.packages[0].architecture = "arm64" }
@@ -58,6 +52,8 @@ Assert-Rejected "missing driver boundary" { param($m) $m.driverBoundary.deviceNo
 Assert-Rejected "invalid SBOM hash" { param($m) $m.sbom.sha256 = "not-a-hash" }
 Assert-Rejected "ROCm package dependency cycle" { param($m) (@($m.packages | Where-Object name -eq "rocm-core-rpath7.2.1"))[0].depends += "hip-runtime-amd-rpath7.2.1" }
 Assert-RejectedPackable "unverified runtime flags" { param($m) $m.verification.validationSha256 = $null }
+Assert-RejectedPackable "missing promotion receipt" { param($m) $m.verification.Remove("promotionReceipt") }
+Assert-RejectedPackable "promotion receipt hash mismatch" { param($m) $m.verification.promotionReceipt.sha256 = ("00" * 32) }
 Assert-RejectedPackable "oversized runtime package" { param($m) $m.size.packageBytes = $m.size.nugetLimitBytes }
 
 $windowsManifest = Get-HipSharpRuntimeManifest (Join-Path $repositoryRoot "nuget/runtime-manifests/win-x64.json")

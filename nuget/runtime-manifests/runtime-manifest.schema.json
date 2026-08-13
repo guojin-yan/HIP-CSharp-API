@@ -19,7 +19,21 @@
     "systemDependencies": { "type": "array" },
     "driverBoundary": { "type": "object" },
     "sbom": { "type": "object" },
-    "verification": { "type": "object" }
+    "verification": {
+      "type": "object",
+      "properties": {
+        "promotionReceipt": {
+          "type": "object",
+          "required": ["path", "sha256", "lockPath"],
+          "properties": {
+            "path": { "const": "nuget/runtime-manifests/linux-x64.promotion-receipt.json" },
+            "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
+            "lockPath": { "const": "eng/promotion/m8.7-promotion-lock.json" }
+          },
+          "additionalProperties": false
+        }
+      }
+    }
   },
   "additionalProperties": true
 }

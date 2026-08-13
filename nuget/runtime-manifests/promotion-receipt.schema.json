@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "HIP CSharp Linux runtime promotion receipt",
+  "type": "object",
+  "required": ["schemaVersion", "promotionId", "validatedGitCommit", "generatorVersion", "inputs", "candidatePackages", "payload", "allowedMetadataPaths", "validationScope", "boundaries"],
+  "properties": {
+    "schemaVersion": { "const": 1 },
+    "promotionId": { "const": "m8.7-to-m8.8-linux-0.9.0" },
+    "validatedGitCommit": { "pattern": "^[0-9a-f]{40}$" },
+    "generatorVersion": { "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+$" },
+    "inputs": { "type": "object" },
+    "candidatePackages": { "type": "object" },
+    "payload": { "type": "object" },
+    "allowedMetadataPaths": { "type": "object" },
+    "validationScope": { "type": "object" },
+    "boundaries": { "type": "object" }
+  },
+  "additionalProperties": false
+}

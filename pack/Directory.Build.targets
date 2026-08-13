@@ -2,18 +2,29 @@
   <PropertyGroup>
     <RuntimeManifestFullPath>$([System.IO.Path]::GetFullPath('$(RuntimeManifestPath)', '$(MSBuildProjectDirectory)'))</RuntimeManifestFullPath>
     <RuntimeStagingFullPath>$([System.IO.Path]::GetFullPath('$(RuntimeStagingPath)', '$(MSBuildProjectDirectory)'))</RuntimeStagingFullPath>
+    <RuntimePromotionReceiptFullPath Condition="'$(RuntimePromotionReceiptPath)' != ''">$([System.IO.Path]::GetFullPath('$(RuntimePromotionReceiptPath)', '$(MSBuildProjectDirectory)'))</RuntimePromotionReceiptFullPath>
   </PropertyGroup>
   <ItemGroup>
     <None Include="$(RuntimeManifestFullPath)" Pack="true" PackagePath="runtime-manifest.json" />
     <None Include="$(RuntimeStagingFullPath)\runtimes\$(RuntimeAssetRid)\native\*" Pack="true" PackagePath="runtimes\$(RuntimeAssetRid)\native\" Condition="Exists('$(RuntimeStagingFullPath)\runtimes\$(RuntimeAssetRid)\native')" />
     <None Include="$(RuntimeStagingFullPath)\licenses\**\*" Pack="true" PackagePath="licenses\%(RecursiveDir)%(Filename)%(Extension)" Condition="Exists('$(RuntimeStagingFullPath)\licenses')" />
     <None Include="$(RuntimeStagingFullPath)\linux-x64.cdx.json" Pack="true" PackagePath="linux-x64.cdx.json" Condition="Exists('$(RuntimeStagingFullPath)\linux-x64.cdx.json')" />
+    <None Include="$(RuntimePromotionReceiptFullPath)" Pack="true" PackagePath="promotion-receipt.json" Condition="'$(RuntimePromotionReceiptFullPath)' != '' and Exists('$(RuntimePromotionReceiptFullPath)')" />
   </ItemGroup>
   <Target Name="BlockUnverifiedRuntimePackage" BeforeTargets="GenerateNuspec">
     <Error Code="HIPSHARP1001"
            Condition="('$(RuntimeCandidateAttestationPath)' == '') != ('$(RuntimeCandidateAttestationSha256)' == '')"
            Text="Runtime candidate attestation path and SHA-256 must be supplied together." />
-    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)..\eng\validate-runtime-manifest.ps1&quot; -Manifest &quot;$(RuntimeManifestFullPath)&quot; -StagingDirectory &quot;$(RuntimeStagingFullPath)&quot; -RequirePackable"
+    <Error Code="HIPSHARP1001"
+           Condition="('$(RuntimePromotionReceiptPath)' == '') != ('$(RuntimePromotionReceiptSha256)' == '')"
+           Text="Runtime promotion receipt path and SHA-256 must be supplied together." />
+    <Error Code="HIPSHARP1001"
+           Condition="('$(RuntimeFinalAttestationPath)' == '') != ('$(RuntimeFinalAttestationSha256)' == '')"
+           Text="Runtime final-pack attestation path and SHA-256 must be supplied together." />
+    <Error Code="HIPSHARP1001"
+           Condition="'$(RuntimeCandidateAttestationPath)' != '' and '$(RuntimePromotionReceiptPath)' != ''"
+           Text="Runtime candidate and final-package authorization modes are mutually exclusive." />
+    <Exec Command="pwsh -NoProfile -File &quot;$(MSBuildThisFileDirectory)..\eng\validate-runtime-manifest.ps1&quot; -Manifest &quot;$(RuntimeManifestFullPath)&quot; -StagingDirectory &quot;$(RuntimeStagingFullPath)&quot; -RequirePackable -PromotionReceipt &quot;$(RuntimePromotionReceiptFullPath)&quot; -PromotionReceiptSha256 &quot;$(RuntimePromotionReceiptSha256)&quot; -FinalAttestation &quot;$(RuntimeFinalAttestationPath)&quot; -FinalAttestationSha256 &quot;$(RuntimeFinalAttestationSha256)&quot;"
           Condition="'$(RuntimeCandidateAttestationPath)' == ''"
           IgnoreExitCode="true"
           ConsoleToMSBuild="true">

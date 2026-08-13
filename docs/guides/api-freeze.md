@@ -17,6 +17,8 @@ The 0.9.0 candidate freezes the exported surface recorded in `eng/public-api/JYP
 | Sample-only | Types compiled only from the six projects under `samples/`; they are not core package API. The M8.7 validation result model is sample-only and does not change the frozen Core surface. |
 | Internal | All non-exported implementation types, including generated interop, native handles, leases, and native boundaries |
 
+The frozen `0.9.0` surface remains 68 exported types and 1,002 members across all 15 TFMs. M8.7 exercised the 100 managed native entries and the five M8.2-M8.6 feature families through 1,127 CPU/GPU comparisons on the exact candidate. M8.8 promotion compares every final Core assembly against that candidate using both this public surface and a deterministic signature/constant/local/exception/IL snapshot. Any semantic drift invalidates the promotion and requires a new candidate validation.
+
 ## Ownership and disposal / 所有权与释放
 
 | Area | Frozen contract |

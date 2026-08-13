@@ -4,8 +4,8 @@
   "packageId": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
   "packageVersion": "7.2.1",
   "rid": "linux-x64",
-  "packEnabled": false,
-  "verified": false,
+  "packEnabled": true,
+  "verified": true,
   "nativeAssetPath": "runtimes/linux-x64/native",
   "rocm": "7.2.1",
   "hip": "7.2.53211",
@@ -27,7 +27,15 @@
       "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/c/comgr-rpath7.2.1/comgr-rpath7.2.1_3.0.0.70201-81~24.04_amd64.deb",
       "sha256": "237aa75c2bd9f1c23532b5c0681e0ef01c45bff607fdf314b05bc0cca44e5087",
       "size": 40334664,
-      "depends": ["libtinfo-dev", "rocm-core-rpath7.2.1", "libzstd1", "zlib1g", "libc6", "libstdc++6", "libgcc-s1 | libgcc1"]
+      "depends": [
+        "libtinfo-dev",
+        "rocm-core-rpath7.2.1",
+        "libzstd1",
+        "zlib1g",
+        "libc6",
+        "libstdc++6",
+        "libgcc-s1 | libgcc1"
+      ]
     },
     {
       "name": "hip-runtime-amd-rpath7.2.1",
@@ -36,7 +44,17 @@
       "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hip-runtime-amd-rpath7.2.1/hip-runtime-amd-rpath7.2.1_7.2.53211.70201-81~24.04_amd64.deb",
       "sha256": "e94b1466208e91ddee85db475658113c71db565fee6f3f39e973ab2b6c1552d8",
       "size": 9959856,
-      "depends": ["hsa-rocr-rpath7.2.1", "rocminfo-rpath7.2.1", "comgr-rpath7.2.1", "rocm-core-rpath7.2.1", "rocprofiler-register-rpath7.2.1", "libnuma1", "libstdc++6", "libc6", "libgcc-s1"]
+      "depends": [
+        "hsa-rocr-rpath7.2.1",
+        "rocminfo-rpath7.2.1",
+        "comgr-rpath7.2.1",
+        "rocm-core-rpath7.2.1",
+        "rocprofiler-register-rpath7.2.1",
+        "libnuma1",
+        "libstdc++6",
+        "libc6",
+        "libgcc-s1"
+      ]
     },
     {
       "name": "hsa-rocr-rpath7.2.1",
@@ -45,7 +63,13 @@
       "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/h/hsa-rocr-rpath7.2.1/hsa-rocr-rpath7.2.1_1.18.0.70201-81~24.04_amd64.deb",
       "sha256": "3485899502a1ca8b058a4ae35890f8c7713625aebe0fb6938ff7fe3921d64b30",
       "size": 912124,
-      "depends": ["libdrm-amdgpu-amdgpu1 | libdrm-amdgpu1", "libnuma1", "libelf1", "rocm-core-rpath7.2.1", "rocprofiler-register-rpath7.2.1"]
+      "depends": [
+        "libdrm-amdgpu-amdgpu1 | libdrm-amdgpu1",
+        "libnuma1",
+        "libelf1",
+        "rocm-core-rpath7.2.1",
+        "rocprofiler-register-rpath7.2.1"
+      ]
     },
     {
       "name": "rocm-core-rpath7.2.1",
@@ -54,7 +78,10 @@
       "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocm-core-rpath7.2.1/rocm-core-rpath7.2.1_7.2.1.70201-81~24.04_amd64.deb",
       "sha256": "d25ef0c49da9af08fb5b3d9c05ea16369a62ddb54428cdc3518c078474d45d1a",
       "size": 29140,
-      "depends": ["python3", "libc6"]
+      "depends": [
+        "python3",
+        "libc6"
+      ]
     },
     {
       "name": "rocminfo-rpath7.2.1",
@@ -63,7 +90,16 @@
       "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocminfo-rpath7.2.1/rocminfo-rpath7.2.1_1.0.0.70201-81~24.04_amd64.deb",
       "sha256": "fecfd9b9f113c85b8bbf9c71fa7169fac1819a5004f03ccd883f4c969a540346",
       "size": 22708,
-      "depends": ["hsa-rocr-rpath7.2.1", "rocm-core-rpath7.2.1", "libdrm-amdgpu-amdgpu1 | libdrm-amdgpu1", "libelf1", "libnuma1", "libstdc++6", "libc6", "libgcc-s1"]
+      "depends": [
+        "hsa-rocr-rpath7.2.1",
+        "rocm-core-rpath7.2.1",
+        "libdrm-amdgpu-amdgpu1 | libdrm-amdgpu1",
+        "libelf1",
+        "libnuma1",
+        "libstdc++6",
+        "libc6",
+        "libgcc-s1"
+      ]
     },
     {
       "name": "rocprofiler-register-rpath7.2.1",
@@ -72,58 +108,346 @@
       "url": "https://repo.radeon.com/rocm/apt/7.2.1/pool/main/r/rocprofiler-register-rpath7.2.1/rocprofiler-register-rpath7.2.1_0.6.0.70201-81~24.04_amd64.deb",
       "sha256": "4c1d580f4dbe456b98c1965fc0c575a113f463a10055186d2bb5c5a92e6eaefd",
       "size": 194264,
-      "depends": ["rocm-core-rpath7.2.1", "libc6 (>= 2.38)", "libgcc-s1 (>= 3.0)", "libstdc++6 (>= 11)"]
+      "depends": [
+        "rocm-core-rpath7.2.1",
+        "libc6 (>= 2.38)",
+        "libgcc-s1 (>= 3.0)",
+        "libstdc++6 (>= 11)"
+      ]
     }
   ],
   "files": [
-    { "path": "runtimes/linux-x64/native/libamd_comgr.so.3", "sourcePath": "opt/rocm-7.2.1/lib/libamd_comgr.so.3.0.0", "sourcePackage": "comgr-rpath7.2.1", "sha256": "2b9dd9236a5e80ef2a7635caa875befbe300ec0aa03a272b719e9d3ff31a8c81", "size": 160076064, "soname": "libamd_comgr.so.3", "needed": ["ld-linux-x86-64.so.2", "libc.so.6", "libgcc_s.so.1", "libm.so.6", "libstdc++.so.6", "libz.so.1", "libzstd.so.1"], "rpath": "$ORIGIN", "purpose": "HIPRTC dynamically loads COMGR for code-object compilation." },
-    { "path": "runtimes/linux-x64/native/libamd_comgr.so.3.0.0", "sourcePath": "opt/rocm-7.2.1/lib/libamd_comgr.so.3.0.0", "sourcePackage": "comgr-rpath7.2.1", "sha256": "2b9dd9236a5e80ef2a7635caa875befbe300ec0aa03a272b719e9d3ff31a8c81", "size": 160076064, "aliasFor": "runtimes/linux-x64/native/libamd_comgr.so.3", "purpose": "Versioned COMGR payload retained because NuGet extraction does not preserve Debian symlinks." },
-    { "path": "runtimes/linux-x64/native/libamdhip64.so", "sourcePath": "opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "942522f3019a10d6eee3174f0df3478401d264b60bba4e82547b5be4abffec2a", "size": 27152336, "soname": "libamdhip64.so.7", "needed": ["ld-linux-x86-64.so.2", "libc.so.6", "libgcc_s.so.1", "libhsa-runtime64.so.1", "libm.so.6", "librocprofiler-register.so.0", "libstdc++.so.6"], "rpath": "$ORIGIN:$ORIGIN", "purpose": "HIP Runtime import library selected by the managed loader." },
-    { "path": "runtimes/linux-x64/native/libamdhip64.so.7", "sourcePath": "opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "942522f3019a10d6eee3174f0df3478401d264b60bba4e82547b5be4abffec2a", "size": 27152336, "aliasFor": "runtimes/linux-x64/native/libamdhip64.so", "purpose": "Runtime SONAME alias." },
-    { "path": "runtimes/linux-x64/native/libamdhip64.so.7.2.70201", "sourcePath": "opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "942522f3019a10d6eee3174f0df3478401d264b60bba4e82547b5be4abffec2a", "size": 27152336, "aliasFor": "runtimes/linux-x64/native/libamdhip64.so", "purpose": "Versioned HIP Runtime payload retained because NuGet extraction does not preserve Debian symlinks." },
-    { "path": "runtimes/linux-x64/native/libhiprtc-builtins.so.7", "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc-builtins.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "afbba574b1b65533d56988a7c178b22fa54ac926df8972a3e232fb4c4bdd3666", "size": 603888, "soname": "libhiprtc-builtins.so.7", "needed": [], "rpath": "$ORIGIN", "purpose": "HIPRTC builtins code required by the runtime compiler." },
-    { "path": "runtimes/linux-x64/native/libhiprtc-builtins.so.7.2.70201", "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc-builtins.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "afbba574b1b65533d56988a7c178b22fa54ac926df8972a3e232fb4c4bdd3666", "size": 603888, "aliasFor": "runtimes/linux-x64/native/libhiprtc-builtins.so.7", "purpose": "Versioned HIPRTC builtins payload." },
-    { "path": "runtimes/linux-x64/native/libhiprtc.so", "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "4c18d8aa4e8fae8d181cf28ab9b9250ad5ca2f594bc87ffdd2c3d5d1516ed2ee", "size": 858952, "soname": "libhiprtc.so.7", "needed": ["ld-linux-x86-64.so.2", "libc.so.6", "libgcc_s.so.1", "libstdc++.so.6"], "rpath": "$ORIGIN", "purpose": "HIPRTC import library selected by the managed loader." },
-    { "path": "runtimes/linux-x64/native/libhiprtc.so.7", "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "4c18d8aa4e8fae8d181cf28ab9b9250ad5ca2f594bc87ffdd2c3d5d1516ed2ee", "size": 858952, "aliasFor": "runtimes/linux-x64/native/libhiprtc.so", "purpose": "HIPRTC SONAME alias." },
-    { "path": "runtimes/linux-x64/native/libhiprtc.so.7.2.70201", "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc.so.7.2.70201", "sourcePackage": "hip-runtime-amd-rpath7.2.1", "sha256": "4c18d8aa4e8fae8d181cf28ab9b9250ad5ca2f594bc87ffdd2c3d5d1516ed2ee", "size": 858952, "aliasFor": "runtimes/linux-x64/native/libhiprtc.so", "purpose": "Versioned HIPRTC payload retained because NuGet extraction does not preserve Debian symlinks." },
-    { "path": "runtimes/linux-x64/native/libhsa-runtime64.so.1", "sourcePath": "opt/rocm-7.2.1/lib/libhsa-runtime64.so.1.18.70201", "sourcePackage": "hsa-rocr-rpath7.2.1", "sha256": "74688682bf5f07998e38e3684d6f092473c9d96f5b1b8b4c5b32f204a29eceeb", "size": 4248144, "soname": "libhsa-runtime64.so.1", "needed": ["ld-linux-x86-64.so.2", "libc.so.6", "libdrm.so.2", "libdrm_amdgpu.so.1", "libelf.so.1", "libgcc_s.so.1", "libm.so.6", "libnuma.so.1", "librocprofiler-register.so.0", "libstdc++.so.6"], "rpath": "$ORIGIN", "purpose": "HSA user-mode runtime used by HIP to submit work to the AMD kernel driver." },
-    { "path": "runtimes/linux-x64/native/libhsa-runtime64.so.1.18.70201", "sourcePath": "opt/rocm-7.2.1/lib/libhsa-runtime64.so.1.18.70201", "sourcePackage": "hsa-rocr-rpath7.2.1", "sha256": "74688682bf5f07998e38e3684d6f092473c9d96f5b1b8b4c5b32f204a29eceeb", "size": 4248144, "aliasFor": "runtimes/linux-x64/native/libhsa-runtime64.so.1", "purpose": "Versioned HSA payload retained because NuGet extraction does not preserve Debian symlinks." },
-    { "path": "runtimes/linux-x64/native/librocprofiler-register.so.0", "sourcePath": "opt/rocm-7.2.1/lib/librocprofiler-register.so.0.6.0", "sourcePackage": "rocprofiler-register-rpath7.2.1", "sha256": "2d1ad920a856f5842f9875792c61c979102be5aeca948d7126fc39403eb3e65b", "size": 590232, "soname": "librocprofiler-register.so.0", "needed": ["ld-linux-x86-64.so.2", "libc.so.6", "libgcc_s.so.1", "libstdc++.so.6"], "rpath": "$ORIGIN", "purpose": "HIP and HSA registration component required by their declared ELF dependencies." },
-    { "path": "runtimes/linux-x64/native/librocprofiler-register.so.0.6.0", "sourcePath": "opt/rocm-7.2.1/lib/librocprofiler-register.so.0.6.0", "sourcePackage": "rocprofiler-register-rpath7.2.1", "sha256": "2d1ad920a856f5842f9875792c61c979102be5aeca948d7126fc39403eb3e65b", "size": 590232, "aliasFor": "runtimes/linux-x64/native/librocprofiler-register.so.0", "purpose": "Versioned rocprofiler-register payload retained because NuGet extraction does not preserve Debian symlinks." }
+    {
+      "path": "runtimes/linux-x64/native/libamd_comgr.so.3",
+      "sourcePath": "opt/rocm-7.2.1/lib/libamd_comgr.so.3.0.0",
+      "sourcePackage": "comgr-rpath7.2.1",
+      "sha256": "2b9dd9236a5e80ef2a7635caa875befbe300ec0aa03a272b719e9d3ff31a8c81",
+      "size": 160076064,
+      "soname": "libamd_comgr.so.3",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libstdc++.so.6",
+        "libz.so.1",
+        "libzstd.so.1"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HIPRTC dynamically loads COMGR for code-object compilation."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libamd_comgr.so.3.0.0",
+      "sourcePath": "opt/rocm-7.2.1/lib/libamd_comgr.so.3.0.0",
+      "sourcePackage": "comgr-rpath7.2.1",
+      "sha256": "2b9dd9236a5e80ef2a7635caa875befbe300ec0aa03a272b719e9d3ff31a8c81",
+      "size": 160076064,
+      "aliasFor": "runtimes/linux-x64/native/libamd_comgr.so.3",
+      "purpose": "Versioned COMGR payload retained because NuGet extraction does not preserve Debian symlinks."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libamdhip64.so",
+      "sourcePath": "opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "942522f3019a10d6eee3174f0df3478401d264b60bba4e82547b5be4abffec2a",
+      "size": 27152336,
+      "soname": "libamdhip64.so.7",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libhsa-runtime64.so.1",
+        "libm.so.6",
+        "librocprofiler-register.so.0",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN:$ORIGIN",
+      "purpose": "HIP Runtime import library selected by the managed loader."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libamdhip64.so.7",
+      "sourcePath": "opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "942522f3019a10d6eee3174f0df3478401d264b60bba4e82547b5be4abffec2a",
+      "size": 27152336,
+      "aliasFor": "runtimes/linux-x64/native/libamdhip64.so",
+      "purpose": "Runtime SONAME alias."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libamdhip64.so.7.2.70201",
+      "sourcePath": "opt/rocm-7.2.1/lib/libamdhip64.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "942522f3019a10d6eee3174f0df3478401d264b60bba4e82547b5be4abffec2a",
+      "size": 27152336,
+      "aliasFor": "runtimes/linux-x64/native/libamdhip64.so",
+      "purpose": "Versioned HIP Runtime payload retained because NuGet extraction does not preserve Debian symlinks."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc-builtins.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "afbba574b1b65533d56988a7c178b22fa54ac926df8972a3e232fb4c4bdd3666",
+      "size": 603888,
+      "soname": "libhiprtc-builtins.so.7",
+      "needed": [],
+      "rpath": "$ORIGIN",
+      "purpose": "HIPRTC builtins code required by the runtime compiler."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc-builtins.so.7.2.70201",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc-builtins.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "afbba574b1b65533d56988a7c178b22fa54ac926df8972a3e232fb4c4bdd3666",
+      "size": 603888,
+      "aliasFor": "runtimes/linux-x64/native/libhiprtc-builtins.so.7",
+      "purpose": "Versioned HIPRTC builtins payload."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc.so",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "4c18d8aa4e8fae8d181cf28ab9b9250ad5ca2f594bc87ffdd2c3d5d1516ed2ee",
+      "size": 858952,
+      "soname": "libhiprtc.so.7",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HIPRTC import library selected by the managed loader."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc.so.7",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "4c18d8aa4e8fae8d181cf28ab9b9250ad5ca2f594bc87ffdd2c3d5d1516ed2ee",
+      "size": 858952,
+      "aliasFor": "runtimes/linux-x64/native/libhiprtc.so",
+      "purpose": "HIPRTC SONAME alias."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhiprtc.so.7.2.70201",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhiprtc.so.7.2.70201",
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "sha256": "4c18d8aa4e8fae8d181cf28ab9b9250ad5ca2f594bc87ffdd2c3d5d1516ed2ee",
+      "size": 858952,
+      "aliasFor": "runtimes/linux-x64/native/libhiprtc.so",
+      "purpose": "Versioned HIPRTC payload retained because NuGet extraction does not preserve Debian symlinks."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhsa-runtime64.so.1",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhsa-runtime64.so.1.18.70201",
+      "sourcePackage": "hsa-rocr-rpath7.2.1",
+      "sha256": "74688682bf5f07998e38e3684d6f092473c9d96f5b1b8b4c5b32f204a29eceeb",
+      "size": 4248144,
+      "soname": "libhsa-runtime64.so.1",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libdrm.so.2",
+        "libdrm_amdgpu.so.1",
+        "libelf.so.1",
+        "libgcc_s.so.1",
+        "libm.so.6",
+        "libnuma.so.1",
+        "librocprofiler-register.so.0",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HSA user-mode runtime used by HIP to submit work to the AMD kernel driver."
+    },
+    {
+      "path": "runtimes/linux-x64/native/libhsa-runtime64.so.1.18.70201",
+      "sourcePath": "opt/rocm-7.2.1/lib/libhsa-runtime64.so.1.18.70201",
+      "sourcePackage": "hsa-rocr-rpath7.2.1",
+      "sha256": "74688682bf5f07998e38e3684d6f092473c9d96f5b1b8b4c5b32f204a29eceeb",
+      "size": 4248144,
+      "aliasFor": "runtimes/linux-x64/native/libhsa-runtime64.so.1",
+      "purpose": "Versioned HSA payload retained because NuGet extraction does not preserve Debian symlinks."
+    },
+    {
+      "path": "runtimes/linux-x64/native/librocprofiler-register.so.0",
+      "sourcePath": "opt/rocm-7.2.1/lib/librocprofiler-register.so.0.6.0",
+      "sourcePackage": "rocprofiler-register-rpath7.2.1",
+      "sha256": "2d1ad920a856f5842f9875792c61c979102be5aeca948d7126fc39403eb3e65b",
+      "size": 590232,
+      "soname": "librocprofiler-register.so.0",
+      "needed": [
+        "ld-linux-x86-64.so.2",
+        "libc.so.6",
+        "libgcc_s.so.1",
+        "libstdc++.so.6"
+      ],
+      "rpath": "$ORIGIN",
+      "purpose": "HIP and HSA registration component required by their declared ELF dependencies."
+    },
+    {
+      "path": "runtimes/linux-x64/native/librocprofiler-register.so.0.6.0",
+      "sourcePath": "opt/rocm-7.2.1/lib/librocprofiler-register.so.0.6.0",
+      "sourcePackage": "rocprofiler-register-rpath7.2.1",
+      "sha256": "2d1ad920a856f5842f9875792c61c979102be5aeca948d7126fc39403eb3e65b",
+      "size": 590232,
+      "aliasFor": "runtimes/linux-x64/native/librocprofiler-register.so.0",
+      "purpose": "Versioned rocprofiler-register payload retained because NuGet extraction does not preserve Debian symlinks."
+    }
   ],
   "licenses": [
-    { "sourcePackage": "comgr-rpath7.2.1", "expression": "Apache-2.0 WITH LLVM-exception", "sourcePath": "opt/rocm-7.2.1/share/doc/amd_comgr/LICENSE.txt", "packagePath": "licenses/comgr-rpath7.2.1/LICENSE.txt", "sha256": "6ad4983498652cb8c73c70a705a0d9175c5e3ff5db93c799d8e09557a04af140" },
-    { "sourcePackage": "hip-runtime-amd-rpath7.2.1", "expression": "MIT", "sourcePath": "opt/rocm-7.2.1/share/doc/hip/LICENSE.md", "packagePath": "licenses/hip-runtime-amd-rpath7.2.1/LICENSE.md", "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223" },
-    { "sourcePackage": "hsa-rocr-rpath7.2.1", "expression": "NCSA", "sourcePath": "opt/rocm-7.2.1/share/doc/hsa-rocr/LICENSE.md", "packagePath": "licenses/hsa-rocr-rpath7.2.1/LICENSE.md", "sha256": "dac0a5360f50972cceaed16767bc9e94642aa497d558a74471e842f7192c7403" },
-    { "sourcePackage": "rocm-core-rpath7.2.1", "expression": "MIT", "sourcePath": "opt/rocm-7.2.1/share/doc/rocm-core/copyright", "packagePath": "licenses/rocm-core-rpath7.2.1/copyright.txt", "sha256": "aa84e508c15e6ef02bfd7473e47b1c2e3d45b83581eab50af1a463e2acb6c266" },
-    { "sourcePackage": "rocminfo-rpath7.2.1", "expression": "NCSA", "sourcePath": "opt/rocm-7.2.1/share/doc/rocminfo/License.txt", "packagePath": "licenses/rocminfo-rpath7.2.1/License.txt", "sha256": "f44dbfed7445300c478d5ed9f5e5e355a37348a06451f088698a3d441114d4d2" },
-    { "sourcePackage": "rocprofiler-register-rpath7.2.1", "expression": "MIT", "sourcePath": "opt/rocm-7.2.1/share/doc/rocprofiler-register/LICENSE.md", "packagePath": "licenses/rocprofiler-register-rpath7.2.1/LICENSE.md", "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223" }
+    {
+      "sourcePackage": "comgr-rpath7.2.1",
+      "expression": "Apache-2.0 WITH LLVM-exception",
+      "sourcePath": "opt/rocm-7.2.1/share/doc/amd_comgr/LICENSE.txt",
+      "packagePath": "licenses/comgr-rpath7.2.1/LICENSE.txt",
+      "sha256": "6ad4983498652cb8c73c70a705a0d9175c5e3ff5db93c799d8e09557a04af140"
+    },
+    {
+      "sourcePackage": "hip-runtime-amd-rpath7.2.1",
+      "expression": "MIT",
+      "sourcePath": "opt/rocm-7.2.1/share/doc/hip/LICENSE.md",
+      "packagePath": "licenses/hip-runtime-amd-rpath7.2.1/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "sourcePackage": "hsa-rocr-rpath7.2.1",
+      "expression": "NCSA",
+      "sourcePath": "opt/rocm-7.2.1/share/doc/hsa-rocr/LICENSE.md",
+      "packagePath": "licenses/hsa-rocr-rpath7.2.1/LICENSE.md",
+      "sha256": "dac0a5360f50972cceaed16767bc9e94642aa497d558a74471e842f7192c7403"
+    },
+    {
+      "sourcePackage": "rocm-core-rpath7.2.1",
+      "expression": "MIT",
+      "sourcePath": "opt/rocm-7.2.1/share/doc/rocm-core/copyright",
+      "packagePath": "licenses/rocm-core-rpath7.2.1/copyright.txt",
+      "sha256": "aa84e508c15e6ef02bfd7473e47b1c2e3d45b83581eab50af1a463e2acb6c266"
+    },
+    {
+      "sourcePackage": "rocminfo-rpath7.2.1",
+      "expression": "NCSA",
+      "sourcePath": "opt/rocm-7.2.1/share/doc/rocminfo/License.txt",
+      "packagePath": "licenses/rocminfo-rpath7.2.1/License.txt",
+      "sha256": "f44dbfed7445300c478d5ed9f5e5e355a37348a06451f088698a3d441114d4d2"
+    },
+    {
+      "sourcePackage": "rocprofiler-register-rpath7.2.1",
+      "expression": "MIT",
+      "sourcePath": "opt/rocm-7.2.1/share/doc/rocprofiler-register/LICENSE.md",
+      "packagePath": "licenses/rocprofiler-register-rpath7.2.1/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    }
   ],
   "dependencyClosure": {
-    "rootPackages": ["hip-runtime-amd-rpath7.2.1"],
-    "rocmPayloadPackages": ["comgr-rpath7.2.1", "hip-runtime-amd-rpath7.2.1", "hsa-rocr-rpath7.2.1", "rocprofiler-register-rpath7.2.1"],
-    "metadataOnlyPackages": ["rocm-core-rpath7.2.1", "rocminfo-rpath7.2.1"],
+    "rootPackages": [
+      "hip-runtime-amd-rpath7.2.1"
+    ],
+    "rocmPayloadPackages": [
+      "comgr-rpath7.2.1",
+      "hip-runtime-amd-rpath7.2.1",
+      "hsa-rocr-rpath7.2.1",
+      "rocprofiler-register-rpath7.2.1"
+    ],
+    "metadataOnlyPackages": [
+      "rocm-core-rpath7.2.1",
+      "rocminfo-rpath7.2.1"
+    ],
     "decision": "The signed Debian dependency graph is recorded in full. rocminfo and rocm-core contribute no ELF edge or runtime file to the minimal HIP/HIPRTC closure, so their binaries, headers, scripts, and development metadata are excluded."
   },
   "systemDependencies": [
-    { "soname": "ld-linux-x86-64.so.2", "ubuntuPackage": "libc6", "minimumVersion": "2.38", "usage": "ELF interpreter" },
-    { "soname": "libc.so.6", "ubuntuPackage": "libc6", "minimumVersion": "2.38", "usage": "C runtime" },
-    { "soname": "libgcc_s.so.1", "ubuntuPackage": "libgcc-s1", "minimumVersion": "3.0", "usage": "GCC runtime" },
-    { "soname": "libstdc++.so.6", "ubuntuPackage": "libstdc++6", "minimumVersion": "11", "usage": "C++ runtime" },
-    { "soname": "libm.so.6", "ubuntuPackage": "libc6", "minimumVersion": "2.38", "usage": "math runtime" },
-    { "soname": "libz.so.1", "ubuntuPackage": "zlib1g", "minimumVersion": "1.3", "usage": "COMGR compression" },
-    { "soname": "libzstd.so.1", "ubuntuPackage": "libzstd1", "minimumVersion": "1.5", "usage": "COMGR compression" },
-    { "soname": "libelf.so.1", "ubuntuPackage": "libelf1t64 | libelf1", "minimumVersion": "0.190", "usage": "HSA ELF parsing" },
-    { "soname": "libdrm.so.2", "ubuntuPackage": "libdrm2", "minimumVersion": "2.4", "usage": "HSA DRM interface" },
-    { "soname": "libdrm_amdgpu.so.1", "ubuntuPackage": "libdrm-amdgpu1", "minimumVersion": "2.4", "usage": "HSA AMDGPU DRM interface" },
-    { "soname": "libnuma.so.1", "ubuntuPackage": "libnuma1", "minimumVersion": "2.0", "usage": "HSA NUMA interface" },
-    { "soname": "libGL.so.1", "ubuntuPackage": "libgl1", "minimumVersion": "1.7", "usage": "Declared optional HIP graphics lookup; not exercised by M5" },
-    { "soname": "libX11.so.6", "ubuntuPackage": "libx11-6", "minimumVersion": "1.8", "usage": "Declared optional HIP graphics lookup; not exercised by M5" }
+    {
+      "soname": "ld-linux-x86-64.so.2",
+      "ubuntuPackage": "libc6",
+      "minimumVersion": "2.38",
+      "usage": "ELF interpreter"
+    },
+    {
+      "soname": "libc.so.6",
+      "ubuntuPackage": "libc6",
+      "minimumVersion": "2.38",
+      "usage": "C runtime"
+    },
+    {
+      "soname": "libgcc_s.so.1",
+      "ubuntuPackage": "libgcc-s1",
+      "minimumVersion": "3.0",
+      "usage": "GCC runtime"
+    },
+    {
+      "soname": "libstdc++.so.6",
+      "ubuntuPackage": "libstdc++6",
+      "minimumVersion": "11",
+      "usage": "C++ runtime"
+    },
+    {
+      "soname": "libm.so.6",
+      "ubuntuPackage": "libc6",
+      "minimumVersion": "2.38",
+      "usage": "math runtime"
+    },
+    {
+      "soname": "libz.so.1",
+      "ubuntuPackage": "zlib1g",
+      "minimumVersion": "1.3",
+      "usage": "COMGR compression"
+    },
+    {
+      "soname": "libzstd.so.1",
+      "ubuntuPackage": "libzstd1",
+      "minimumVersion": "1.5",
+      "usage": "COMGR compression"
+    },
+    {
+      "soname": "libelf.so.1",
+      "ubuntuPackage": "libelf1t64 | libelf1",
+      "minimumVersion": "0.190",
+      "usage": "HSA ELF parsing"
+    },
+    {
+      "soname": "libdrm.so.2",
+      "ubuntuPackage": "libdrm2",
+      "minimumVersion": "2.4",
+      "usage": "HSA DRM interface"
+    },
+    {
+      "soname": "libdrm_amdgpu.so.1",
+      "ubuntuPackage": "libdrm-amdgpu1",
+      "minimumVersion": "2.4",
+      "usage": "HSA AMDGPU DRM interface"
+    },
+    {
+      "soname": "libnuma.so.1",
+      "ubuntuPackage": "libnuma1",
+      "minimumVersion": "2.0",
+      "usage": "HSA NUMA interface"
+    },
+    {
+      "soname": "libGL.so.1",
+      "ubuntuPackage": "libgl1",
+      "minimumVersion": "1.7",
+      "usage": "Declared optional HIP graphics lookup; not exercised by M5"
+    },
+    {
+      "soname": "libX11.so.6",
+      "ubuntuPackage": "libx11-6",
+      "minimumVersion": "1.8",
+      "usage": "Declared optional HIP graphics lookup; not exercised by M5"
+    }
   ],
   "driverBoundary": {
-    "deviceNodes": ["/dev/kfd", "/dev/dri"],
-    "kernelDriver": ["amdgpu", "amdkfd"],
-    "excludedFromPackage": ["kernel driver", "firmware", "DRM kernel modules", "GPU device nodes"],
+    "deviceNodes": [
+      "/dev/kfd",
+      "/dev/dri"
+    ],
+    "kernelDriver": [
+      "amdgpu",
+      "amdkfd"
+    ],
+    "excludedFromPackage": [
+      "kernel driver",
+      "firmware",
+      "DRM kernel modules",
+      "GPU device nodes"
+    ],
     "rule": "The package carries only ROCm user-mode files. The host must provide the listed Ubuntu system libraries, device nodes, and AMD kernel driver."
   },
   "sbom": {
@@ -135,18 +459,28 @@
     "unpackedBytes": 415070520,
     "packageBytes": 162891900,
     "nugetLimitBytes": 262144000,
-    "topology": "single-package-pending-identity-revalidation",
-    "decision": "The unchanged allowlisted payload historically compressed below the 262144000-byte gate. The renamed package requires a new exact-package audit and isolated GPU validation before its final nupkg size can be promoted. Component splitting remains rejected because HIP/HSA/COMGR share one lockstep ROCm release and one loader closure."
+    "topology": "single-package",
+    "decision": "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
   },
   "verification": {
     "provenanceVerified": true,
     "closureVerified": true,
     "licensesVerified": true,
     "sbomVerified": true,
-    "packageAuditVerified": false,
-    "gpuValidated": false,
-    "validationSha256": null,
-    "environment": null,
-    "reason": "The JYPPX.ROCm package rename creates a new package identity. Signed-source, dependency-closure, license, and SBOM checks remain locked to the unchanged native payload, but package audit and isolated GPU evidence from the former package ID are historical only. Direct final packaging stays disabled until the renamed exact package completes a newly Owner-authorized validation."
+    "packageAuditVerified": true,
+    "gpuValidated": true,
+    "validationSha256": "31d40bb4828a27978b02dfdcf0d4de0473e0522dd7c2b7921e90bfd706c15ec3",
+    "environment": {
+      "os": "Ubuntu 24.04.4",
+      "architecture": "x86_64",
+      "gpu": "gfx1100",
+      "isolation": "official-host + PRoot package-only"
+    },
+    "reason": "M8.7 validated the exact JYPPX.ROCm 0.9.0/7.2.1 candidate through official-host and PRoot package-only paths. The deterministic promotion receipt binds the package audits, symbol and ABI completeness, 1,127 managed comparisons, reliability run, four fail-closed negatives, and the unchanged native payload. Publication remains unauthorized.",
+    "promotionReceipt": {
+      "path": "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
+      "sha256": "31d40bb4828a27978b02dfdcf0d4de0473e0522dd7c2b7921e90bfd706c15ec3",
+      "lockPath": "eng/promotion/m8.7-promotion-lock.json"
+    }
   }
 }

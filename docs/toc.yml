@@ -44,6 +44,8 @@
   items:
     - name: 0.9.0 Linux Release Candidate / Linux 发布候选
       href: releases/0.9.0-rc.md
+    - name: Manual Publishing Checklist / 人工发布清单
+      href: releases/publishing-checklist.md
     - name: 0.0.0 M4 Local Release Candidate / M4 本地发布候选
       href: releases/0.0.0.md
     - name: Linux Runtime 7.2.1 Candidate / Linux Runtime 7.2.1 候选

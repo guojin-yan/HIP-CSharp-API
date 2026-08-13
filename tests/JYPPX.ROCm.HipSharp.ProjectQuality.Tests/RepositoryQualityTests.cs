@@ -255,7 +255,7 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
-    public void RuntimeManifestsUseAuditedLinuxSchemaAndDisableRenamedRuntimePackagingUntilRevalidation()
+    public void RuntimeManifestsUseReceiptLockedLinuxPromotionAndGuardDirectPackaging()
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
         XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
@@ -265,8 +265,8 @@ public sealed class RepositoryQualityTests
             Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
             Assert.AreEqual("JYPPX.ROCm.HipSharp.Runtime.linux-x64", root.GetProperty("packageId").GetString());
             Assert.AreEqual(versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value, root.GetProperty("packageVersion").GetString());
-            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
@@ -275,11 +275,15 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(root.GetProperty("verification").GetProperty("closureVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
-            Assert.AreEqual(JsonValueKind.Null, root.GetProperty("verification").GetProperty("validationSha256").ValueKind);
-            Assert.AreEqual(JsonValueKind.Null, root.GetProperty("verification").GetProperty("environment").ValueKind);
-            StringAssert.Contains(root.GetProperty("verification").GetProperty("reason").GetString()!, "new package identity");
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
+            string receiptHash = root.GetProperty("verification").GetProperty("validationSha256").GetString()!;
+            Assert.AreEqual(64, receiptHash.Length);
+            JsonElement promotionReceipt = root.GetProperty("verification").GetProperty("promotionReceipt");
+            Assert.AreEqual(receiptHash, promotionReceipt.GetProperty("sha256").GetString());
+            Assert.AreEqual("nuget/runtime-manifests/linux-x64.promotion-receipt.json", promotionReceipt.GetProperty("path").GetString());
+            Assert.AreEqual("official-host + PRoot package-only", root.GetProperty("verification").GetProperty("environment").GetProperty("isolation").GetString());
+            StringAssert.Contains(root.GetProperty("verification").GetProperty("reason").GetString()!, "M8.7 validated");
         }
 
         using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
@@ -294,6 +298,8 @@ public sealed class RepositoryQualityTests
         }
 
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "runtime-manifest.schema.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "promotion-receipt.schema.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.promotion-receipt.json")));
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.cdx.json")));
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.provenance.json")));
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.dependency-closure.json")));
@@ -303,6 +309,9 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-supply-chain.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-promotion.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "compare-promoted-packages.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "create-release-envelope.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-source.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-windows-runtime.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-windows-runtime-skeleton.ps1")));
@@ -313,6 +322,10 @@ public sealed class RepositoryQualityTests
         string runtimeTargets = File.ReadAllText(Path.Combine(RepositoryRoot, "pack", "Directory.Build.targets"));
         StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationPath");
         StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationSha256");
+        StringAssert.Contains(runtimeTargets, "RuntimePromotionReceiptPath");
+        StringAssert.Contains(runtimeTargets, "RuntimePromotionReceiptSha256");
+        StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationPath");
+        StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationSha256");
 
         XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj"));
         Assert.AreEqual("JYPPX.ROCm.HipSharp.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
@@ -335,7 +348,7 @@ public sealed class RepositoryQualityTests
         using Process process = Process.Start(startInfo)!;
         string output = process.StandardOutput.ReadToEnd() + process.StandardError.ReadToEnd();
         process.WaitForExit();
-        Assert.AreNotEqual(0, process.ExitCode, "The renamed runtime identity must reject direct final packaging until new package-only GPU evidence exists.\n" + output);
+        Assert.AreNotEqual(0, process.ExitCode, "Direct final packaging must reject calls that do not carry the tracked promotion receipt.\n" + output);
         StringAssert.Contains(output, "HIPSHARP1001");
 
         startInfo.ArgumentList.Add("-p:RuntimeCandidateAttestationPath=artifacts/fake-attestation.json");
@@ -369,7 +382,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(gate, "advanced-features-run.txt");
         StringAssert.Contains(gate, "advanced-features-stress-run.txt");
         StringAssert.Contains(gate, "--stress-rounds 10 --stress-streams 4 --stress-length 4194304");
-        StringAssert.Contains(gate, "M8.1 isolated runtime ${package_mode} gate passed");
+        StringAssert.Contains(gate, "M8.8 isolated runtime ${package_mode} gate passed");
+        StringAssert.Contains(gate, "Final exact package did not reproduce the M8.7 1127-comparison");
         StringAssert.Contains(gate, "${package_mode}\" == \"regression");
         StringAssert.Contains(gate, "-ExpectedRepositoryCommit \"${runtime_package_commit}\"");
         StringAssert.Contains(gate, "DOTNET_CLI_USE_MSBUILD_SERVER=0");
@@ -378,7 +392,7 @@ public sealed class RepositoryQualityTests
         string verifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1"));
         StringAssert.Contains(verifier, "merge-base --is-ancestor");
         StringAssert.Contains(verifier, "historical-regression");
-        StringAssert.Contains(verifier, "publishable = (-not $Candidate) -and (-not $isRegression)");
+        StringAssert.Contains(verifier, "releaseAuthorized = $false");
 
         string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
         StringAssert.Contains(sample, "peer=passed(1->0");
@@ -528,9 +542,9 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("DiagnosticId")?.Value == "CP0008"));
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HipSharp.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HipSharp.dll"));
-        StringAssert.Contains(
-            File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1")),
-            "pending-owner-authorized-m8.7-official-host-and-package-only-managed-expansion-validation");
+        string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
+        StringAssert.Contains(packageVerifier, "m8.7-exact-candidate-passed; m8.8-final-exact-package-gate-pending-owner-authorization");
+        StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
     }
 
     [TestMethod]

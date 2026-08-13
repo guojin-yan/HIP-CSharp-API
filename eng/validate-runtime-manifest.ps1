@@ -5,6 +5,10 @@ param(
     [switch]$RequirePackable,
     [string]$CandidateAttestation,
     [string]$CandidateAttestationSha256,
+    [string]$PromotionReceipt,
+    [string]$PromotionReceiptSha256,
+    [string]$FinalAttestation,
+    [string]$FinalAttestationSha256,
     [switch]$SkipStaging
 )
 
@@ -21,8 +25,75 @@ Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:$RequirePackabl
 if ($RequirePackable -and -not [string]::IsNullOrWhiteSpace($CandidateAttestation)) {
     throw "HIPSHARP1001: Candidate and final-package validation modes are mutually exclusive."
 }
+if (-not [string]::IsNullOrWhiteSpace($CandidateAttestation) -and -not [string]::IsNullOrWhiteSpace($PromotionReceipt)) {
+    throw "HIPSHARP1001: Candidate and final-package validation modes are mutually exclusive."
+}
 if ([string]::IsNullOrWhiteSpace($CandidateAttestation) -ne [string]::IsNullOrWhiteSpace($CandidateAttestationSha256)) {
     throw "HIPSHARP1001: Candidate attestation path and SHA-256 must be supplied together."
+}
+if ([string]::IsNullOrWhiteSpace($PromotionReceipt) -ne [string]::IsNullOrWhiteSpace($PromotionReceiptSha256)) {
+    throw "HIPSHARP1001: Promotion receipt path and SHA-256 must be supplied together."
+}
+if ([string]::IsNullOrWhiteSpace($FinalAttestation) -ne [string]::IsNullOrWhiteSpace($FinalAttestationSha256)) {
+    throw "HIPSHARP1001: Final-pack attestation path and SHA-256 must be supplied together."
+}
+if ($RequirePackable -and ([string]::IsNullOrWhiteSpace($PromotionReceipt) -or [string]::IsNullOrWhiteSpace($FinalAttestation))) {
+    throw "HIPSHARP1001: Direct final packaging is disabled; use eng/pack-runtime.ps1 with the tracked promotion receipt and clean-SHA final attestation."
+}
+
+if ($RequirePackable) {
+    $receiptMetadata = $runtimeManifest.verification.promotionReceipt
+    $expectedReceiptPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $receiptMetadata.path))
+    $receiptPath = if ([System.IO.Path]::IsPathRooted($PromotionReceipt)) { [System.IO.Path]::GetFullPath($PromotionReceipt) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $PromotionReceipt)) }
+    $expectedLockPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $receiptMetadata.lockPath))
+    $fixedLockPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/m8.7-promotion-lock.json"))
+    if ($receiptPath -ne $expectedReceiptPath -or $expectedLockPath -ne $fixedLockPath) {
+        throw "HIPSHARP1001: Final packaging must use the repository-tracked M8.7 promotion receipt and lock."
+    }
+    if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) { throw "HIPSHARP1001: The tracked promotion receipt is missing." }
+    Assert-HipSharpHash $PromotionReceiptSha256 "promotion receipt SHA-256"
+    $actualReceiptHash = Get-HipSharpSha256 $receiptPath
+    if ($actualReceiptHash -ne $PromotionReceiptSha256 -or
+        $actualReceiptHash -ne $receiptMetadata.sha256 -or
+        $actualReceiptHash -ne $runtimeManifest.verification.validationSha256) {
+        throw "HIPSHARP1001: Promotion receipt hash mismatch."
+    }
+    & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $expectedLockPath -ExpectedReceipt $receiptPath
+    if ($LASTEXITCODE -ne 0) { throw "HIPSHARP1001: Promotion receipt evidence validation failed." }
+
+    if ($SkipStaging) { throw "HIPSHARP1001: Final-pack attestation validation cannot skip staging." }
+    $artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))
+    $attestationPath = if ([System.IO.Path]::IsPathRooted($FinalAttestation)) { [System.IO.Path]::GetFullPath($FinalAttestation) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $FinalAttestation)) }
+    if (-not $attestationPath.StartsWith($artifactsRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) -or
+        -not (Test-Path -LiteralPath $attestationPath -PathType Leaf)) {
+        throw "HIPSHARP1001: Final-pack attestation must be an existing file under the ignored artifacts directory."
+    }
+    Assert-HipSharpHash $FinalAttestationSha256 "final-pack attestation SHA-256"
+    if ((Get-HipSharpSha256 $attestationPath) -ne $FinalAttestationSha256) { throw "HIPSHARP1001: Final-pack attestation hash mismatch." }
+    $attestation = Get-Content -Raw -LiteralPath $attestationPath | ConvertFrom-Json -AsHashtable
+    foreach ($name in @("schemaVersion", "mode", "publishable", "releaseAuthorized", "gitSha", "packageId", "packageVersion", "rid", "manifestSha256", "promotionReceiptSha256", "sbomSha256", "stagingDigestSha256")) {
+        if (-not $attestation.ContainsKey($name)) { throw "HIPSHARP1001: Final-pack attestation is missing '$name'." }
+    }
+    if ($attestation.schemaVersion -ne 1 -or $attestation.mode -ne "verified-final-local" -or $attestation.publishable -or $attestation.releaseAuthorized) {
+        throw "HIPSHARP1001: Final-pack attestation mode or release boundary is invalid."
+    }
+    foreach ($name in @("manifestSha256", "promotionReceiptSha256", "sbomSha256", "stagingDigestSha256")) {
+        Assert-HipSharpHash ([string]$attestation[$name]) "final-pack attestation $name"
+    }
+    $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
+    $gitStatus = @(& git -C $repositoryRoot status --porcelain=v1)
+    if ($LASTEXITCODE -ne 0 -or $gitSha -notmatch '^[0-9a-f]{40}$' -or $gitStatus.Count -ne 0) {
+        throw "HIPSHARP1001: Final packaging requires a clean Git SHA."
+    }
+    $finalStagingRoot = if ([System.IO.Path]::IsPathRooted($StagingDirectory)) { [System.IO.Path]::GetFullPath($StagingDirectory) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $StagingDirectory)) }
+    if (-not (Test-Path -LiteralPath $finalStagingRoot -PathType Container)) { throw "HIPSHARP1001: Final staging directory is missing." }
+    if ($attestation.gitSha -ne $gitSha -or $attestation.packageId -ne $runtimeManifest.packageId -or
+        $attestation.packageVersion -ne $runtimeManifest.packageVersion -or $attestation.rid -ne $runtimeManifest.rid -or
+        $attestation.manifestSha256 -ne (Get-HipSharpSha256 $manifestInfo.Path) -or
+        $attestation.promotionReceiptSha256 -ne $actualReceiptHash -or $attestation.sbomSha256 -ne $runtimeManifest.sbom.sha256 -or
+        $attestation.stagingDigestSha256 -ne (Get-HipSharpStagingDigest $finalStagingRoot)) {
+        throw "HIPSHARP1001: Final-pack attestation does not bind the current clean SHA, package identity, manifest, receipt, SBOM, and staging content."
+    }
 }
 
 if (-not $SkipStaging -and $runtimeManifest.rid -eq "linux-x64") {

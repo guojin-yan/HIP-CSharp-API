@@ -43,7 +43,7 @@ No public version of HIP CSharp API has been released yet. The repository is und
 
 Current artifacts are local development and validation outputs only. They are not published packages, stable releases, or a compatibility commitment. Until the first release is available, build the project from source and validate it in the intended deployment environment.
 
-Historical GPU validation used separately authorized Radeon Cloud sessions with Ubuntu 24.04.4, ROCm 7.2.1, HIP 7.2.53211, and a `gfx1100` GPU. These results are development evidence only and do not constitute broad platform or production support.
+The M8.7 exact `JYPPX.ROCm.*` candidate passed separately authorized official-host and package-only Radeon Cloud gates on Ubuntu 24.04.4, ROCm 7.2.1, HIP 7.2.53211, and one `gfx1100` GPU. The receipt-locked M8.8 promotion preserves that evidence while requiring a new exact-final-package gate before release handoff. These results are development evidence only and do not constitute broad platform or production support.
 
 ## 🚀 Get Started In 30 Seconds
 
@@ -82,7 +82,7 @@ Applications using the managed package must still provide compatible native `amd
 | Package | Native baseline | Contents | State |
 | --- | --- | --- | --- |
 | `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HipSharp` assembly, XML docs, package README, logo, and license | Under development; no version published |
-| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, and SBOM | Internal validation only; unpublished and non-publishable |
+| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | Receipt-verified local final candidate; final exact-package gate pending; unpublished and non-publishable |
 | `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
@@ -110,7 +110,7 @@ The Core project directly targets 15 frameworks:
 
 | Platform | Core build/package | GPU validation | Runtime package |
 | --- | --- | --- | --- |
-| Linux x64 | Yes | Historical Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` evidence | Guarded 7.2.1 candidate |
+| Linux x64 | Yes | M8.7 exact candidate passed on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`; M8.8 final bytes pending recheck | Guarded receipt-verified 7.2.1 local final candidate |
 | Windows x64 | Yes; loader and PE paths are statically audited | Not yet validated on an AMD GPU | Disabled 7.2.0 skeleton |
 
 Several older .NET targets are end-of-support upstream and exist only for package compatibility. The full distinctions between build compatibility, historical validation, and supported deployment are documented in [framework compatibility](docs/compatibility/frameworks.md) and [platform compatibility](docs/compatibility/platforms.md).

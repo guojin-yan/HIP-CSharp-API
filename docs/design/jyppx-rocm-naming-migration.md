@@ -44,9 +44,9 @@ The migration covers project paths and references, explicit namespaces and using
 
 Required gates are deterministic interop generation, 459 Runtime plus 18 HIPRTC low-level declarations, the 100-entry managed-owner manifest, all 15 target frameworks, public API parity, managed package content and clean consumers, runtime manifest/supply-chain static tests, Windows skeleton rejection tests, DocFX, and old-name residue scans. Historical or static evidence is never upgraded to current GPU execution evidence.
 
-Changing the Linux runtime package ID creates a new package identity even though its native allowlist and source hashes are unchanged. The renamed base manifest therefore remains `packEnabled=false` and `verified=false`; former package-ID audits, loader maps, and GPU results are historical only. A hash-bound clean-SHA candidate and newly Owner-authorized exact-package validation are required before any final package can be enabled.
+Changing the Linux runtime package ID created a new package identity even though its native allowlist and source hashes were unchanged. The renamed base manifest therefore remained `packEnabled=false` and `verified=false` until a hash-bound clean-SHA candidate passed newly Owner-authorized exact-package validation in M8.7. M8.8 enables final packaging only through the deterministic M8.7 receipt and protected-payload equivalence; newly built final bytes still require a separate authorized final-mode gate.
 
-Linux runtime 包 ID 的改变会创建新的包身份，即使 native allowlist 和来源哈希保持不变。重命名后的基础 manifest 因此保持 `packEnabled=false`、`verified=false`；旧包 ID 的 package audit、loader map 和 GPU 结果只作为历史资料。只有绑定 clean SHA 的候选通过新一次 Owner 授权的 exact-package 验证后，才允许启用 final 包。
+Linux runtime 包 ID 的改变会创建新的包身份，即使 native allowlist 和来源哈希保持不变。重命名后的基础 manifest 因此曾保持 `packEnabled=false`、`verified=false`，直到绑定 clean SHA 的候选在 M8.7 通过新一次 Owner 授权的 exact-package 验证。M8.8 只通过确定性 M8.7 receipt 与受保护 payload 等价证明启用 final 打包；新生成的 final 字节仍须单独授权的 final-mode 门禁。
 
 ## Rollback boundary / 回滚边界
 

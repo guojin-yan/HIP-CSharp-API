@@ -68,6 +68,7 @@ try {
     $entryNames = @($entries | ForEach-Object { $_.FullName.Replace("\", "/") })
     if (@($entryNames | Group-Object | Where-Object Count -gt 1).Count -ne 0) { throw "Runtime package has duplicate paths." }
     $expected = @($runtimeManifest.files | ForEach-Object path) + @($runtimeManifest.licenses | ForEach-Object packagePath) + @("runtime-manifest.json", [System.IO.Path]::GetFileName($runtimeManifest.sbom.path), "README.md", "LICENSE", "logo.jpg")
+    if (-not $Candidate) { $expected += "promotion-receipt.json" }
     foreach ($path in $expected) { if ($entryNames -notcontains $path) { throw "Runtime package is missing $path." } }
     $unexpected = @($entryNames | Where-Object {
         $_ -notin $expected -and
@@ -91,7 +92,13 @@ try {
         try { $actual = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant() } finally { $stream.Dispose() }
         if ($actual -ne $license.sha256) { throw "Runtime package license hash mismatch: $($license.packagePath)" }
     }
-    foreach ($metadataFile in @{ "runtime-manifest.json" = (Get-HipSharpSha256 $manifestInfo.Path); ([System.IO.Path]::GetFileName($runtimeManifest.sbom.path)) = $runtimeManifest.sbom.sha256 }.GetEnumerator()) {
+    $metadataHashes = @{ "runtime-manifest.json" = (Get-HipSharpSha256 $manifestInfo.Path); ([System.IO.Path]::GetFileName($runtimeManifest.sbom.path)) = $runtimeManifest.sbom.sha256 }
+    if (-not $Candidate) {
+        $receiptPath = Join-Path $repositoryRoot $runtimeManifest.verification.promotionReceipt.path
+        $metadataHashes["promotion-receipt.json"] = Get-HipSharpSha256 $receiptPath
+        if ($metadataHashes["promotion-receipt.json"] -ne $runtimeManifest.verification.promotionReceipt.sha256) { throw "Promotion receipt changed after manifest promotion." }
+    }
+    foreach ($metadataFile in $metadataHashes.GetEnumerator()) {
         $entry = @($entries | Where-Object { $_.FullName.Replace("\", "/") -eq $metadataFile.Key })[0]
         $stream = $entry.Open()
         try { $actual = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant() } finally { $stream.Dispose() }
@@ -122,13 +129,17 @@ $report = [ordered]@{
     size = (Get-Item -LiteralPath $package).Length
     contentAudit = "passed"
     mode = $auditMode
-    publishable = (-not $Candidate) -and (-not $isRegression)
+    technicalState = if ($Candidate) { "candidate" } elseif ($isRegression) { "historical-regression" } else { "verified-final" }
+    publishable = $false
+    releaseAuthorized = $false
     currentGitCommit = $gitSha
     packageRepositoryCommit = $packageRepositoryCommit
     rid = $runtimeManifest.rid
     packageId = $runtimeManifest.packageId
     manifestSha256 = Get-HipSharpSha256 $manifestInfo.Path
     sbomSha256 = $runtimeManifest.sbom.sha256
+    promotionReceiptSha256 = if ($Candidate) { $null } else { $runtimeManifest.verification.promotionReceipt.sha256 }
+    finalExactPackageGate = if ($Candidate -or $isRegression) { "not-applicable" } else { "pending-owner-authorization" }
     sourceManifestSha256 = if ($Candidate) { $runtimeManifest.candidate.sourceManifestSha256 } else { $null }
 }
 $report | ConvertTo-Json -Depth 8 | Set-Content -LiteralPath (Join-Path $audit "runtime-package-audit.json") -Encoding utf8NoBOM
