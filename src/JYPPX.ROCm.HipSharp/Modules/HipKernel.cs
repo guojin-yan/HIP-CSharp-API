@@ -475,15 +475,30 @@ public sealed class HipKernel
         return value;
     }
 
-    private ulong ReadByteFunctionAttribute(HipFunctionAttributeNative attribute) =>
-        (ulong)ReadNonNegativeFunctionAttribute(attribute);
+    private ulong ReadByteFunctionAttribute(HipFunctionAttributeNative attribute)
+    {
+        int value = ReadFunctionAttribute(attribute);
+        // AMD ROCm reports constMemSize - 1, so an unused constant region is encoded as -1.
+        if (attribute == HipFunctionAttributeNative.ConstantSizeBytes && value == -1)
+        {
+            return 0;
+        }
+        if (value < 0) throw new InvalidOperationException("HIP returned a negative function attribute for " + attribute + ".");
+        return (ulong)value;
+    }
 
     private int ReadNonNegativeFunctionAttribute(HipFunctionAttributeNative attribute)
+    {
+        int value = ReadFunctionAttribute(attribute);
+        if (value < 0) throw new InvalidOperationException("HIP returned a negative function attribute for " + attribute + ".");
+        return value;
+    }
+
+    private int ReadFunctionAttribute(HipFunctionAttributeNative attribute)
     {
         HipCall.ThrowIfFailed(_module.NativeApi,
             _module.NativeApi.FuncGetAttribute(out int value, attribute, _function),
             "hipFuncGetAttribute");
-        if (value < 0) throw new InvalidOperationException("HIP returned a negative function attribute for " + attribute + ".");
         return value;
     }
 

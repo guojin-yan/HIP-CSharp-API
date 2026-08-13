@@ -444,6 +444,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(program, "IsMemoryPoolNotSupported");
         StringAssert.Contains(program, "IsGraphMemoryNodeNotSupported");
         StringAssert.Contains(program, "attributes-occupancy");
+        Assert.IsFalse(program.Contains("#include <hip/", StringComparison.Ordinal));
+        Assert.IsFalse(program.Contains("cooperative_groups", StringComparison.Ordinal));
         Assert.IsFalse(program.Contains("catch (HipException exception) when (exception.Error == HipError.NotSupported)", StringComparison.Ordinal));
         StringAssert.Contains(model, "PerformanceClaim");
         StringAssert.Contains(model, "Iterations");

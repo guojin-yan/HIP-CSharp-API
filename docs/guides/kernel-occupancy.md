@@ -32,7 +32,11 @@ if (device.SupportsCooperativeLaunch)
 
 `HipKernelAttributes` reports maximum threads per block, static shared-memory bytes per block, constant-memory bytes, local-memory bytes per thread, registers per thread, the binary version, and maximum dynamic shared-memory bytes per block. Backend-specific PTX, cache-mode, and shared-memory carveout policy fields are intentionally absent.
 
+On AMD ROCm 7.2.1, an unused constant-memory region is reported by `hipFuncGetAttribute` as the exact sentinel `-1`; `GetAttributes()` normalizes that value to zero. Other negative resource values still fail closed.
+
 `HipKernelAttributes` 返回每个 block 最大线程数、每个 block 静态共享内存字节数、常量内存字节数、每线程 local memory 字节数、每线程寄存器数、binary version 和每个 block 最大动态共享内存字节数。具有 backend-specific 含义的 PTX、cache mode 和 shared-memory carveout policy 字段不会伪装成通用契约。
+
+在 AMD ROCm 7.2.1 上，未使用的常量内存区域会被 `hipFuncGetAttribute` 以精确 sentinel `-1` 返回；`GetAttributes()` 会将其归一化为零，其他负资源值仍会 fail closed。
 
 `GetOccupancy(blockSize, dynamicSharedMemoryBytes, flags)` takes a one-dimensional thread count and returns active blocks per multiprocessor, the device multiprocessor count, and their checked product. `GetOccupancyPlan` returns a minimum grid size in blocks and a suggested block size in threads. A `blockSizeLimit` of zero means the native kernel maximum. `HipOccupancyFlags.Default` uses the non-flags export; `DisableCachingOverride` uses the flags export. Unknown bits fail before native code.
 

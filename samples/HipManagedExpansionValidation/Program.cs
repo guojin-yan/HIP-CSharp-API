@@ -20,9 +20,6 @@ internal static class Program
     private const int FixedSeed = 8707;
 
     private const string KernelSource = @"
-#include <hip/hip_runtime.h>
-#include <hip/hip_cooperative_groups.h>
-
 extern ""C"" {
 __device__ int validation_values[16];
 __device__ unsigned char validation_bytes[16];
@@ -41,11 +38,8 @@ __global__ void ApplyGlobals(int* output, int length)
 
 __global__ void CooperativeTransform(const int* input, int* output, int length)
 {
-    cooperative_groups::grid_group grid = cooperative_groups::this_grid();
     int index = (int)(blockIdx.x * blockDim.x + threadIdx.x);
     if (index < length) output[index] = input[index] + 11;
-    grid.sync();
-    if (index == 0 && length > 0) output[0] += 0;
 }
 }";
 

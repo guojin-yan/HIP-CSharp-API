@@ -21,6 +21,14 @@ static_assert(std::is_same<decltype(&hipGetDevice), hipError_t (*)(int*)>::value
 static_assert(std::is_same<decltype(&hipSetDevice), hipError_t (*)(int)>::value, "hipSetDevice signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceGetName), hipError_t (*)(char*, int, int)>::value, "hipDeviceGetName signature mismatch");
 static_assert(std::is_same<decltype(&hipDeviceGetAttribute), hipError_t (*)(int*, hipDeviceAttribute_t, int)>::value, "hipDeviceGetAttribute signature mismatch");
+static_assert(hipDeviceAttributeMaxThreadsPerBlock == 56, "hipDeviceAttributeMaxThreadsPerBlock value mismatch");
+static_assert(hipDeviceAttributeMaxSharedMemoryPerBlock == 74, "hipDeviceAttributeMaxSharedMemoryPerBlock value mismatch");
+static_assert(hipDeviceAttributeCooperativeLaunch == 10, "hipDeviceAttributeCooperativeLaunch value mismatch");
+static_assert(hipDeviceAttributeClockRate == 5, "hipDeviceAttributeClockRate value mismatch");
+static_assert(hipDeviceAttributeComputeCapabilityMajor == 23, "hipDeviceAttributeComputeCapabilityMajor value mismatch");
+static_assert(hipDeviceAttributeComputeCapabilityMinor == 61, "hipDeviceAttributeComputeCapabilityMinor value mismatch");
+static_assert(hipDeviceAttributeMultiprocessorCount == 63, "hipDeviceAttributeMultiprocessorCount value mismatch");
+static_assert(hipDeviceAttributeWarpSize == 87, "hipDeviceAttributeWarpSize value mismatch");
 static_assert(std::is_same<decltype(&hipMallocManaged), hipError_t (*)(void**, std::size_t, unsigned int)>::value, "hipMallocManaged signature mismatch");
 static_assert(std::is_same<decltype(&hipMemPrefetchAsync), hipError_t (*)(const void*, std::size_t, int, hipStream_t)>::value, "hipMemPrefetchAsync signature mismatch");
 static_assert(std::is_same<decltype(&hipMemAdvise), hipError_t (*)(const void*, std::size_t, hipMemoryAdvise, int)>::value, "hipMemAdvise signature mismatch");
@@ -100,6 +108,13 @@ static_assert(std::is_same<decltype(&hipModuleUnload), hipError_t (*)(hipModule_
 static_assert(std::is_same<decltype(&hipModuleGetFunction), hipError_t (*)(hipFunction_t*, hipModule_t, const char*)>::value, "hipModuleGetFunction signature mismatch");
 static_assert(std::is_same<decltype(&hipModuleGetGlobal), hipError_t (*)(hipDeviceptr_t*, std::size_t*, hipModule_t, const char*)>::value, "hipModuleGetGlobal signature mismatch");
 static_assert(std::is_same<decltype(&hipFuncGetAttribute), hipError_t (*)(int*, hipFunction_attribute, hipFunction_t)>::value, "hipFuncGetAttribute signature mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK == 0, "HIP_FUNC_ATTRIBUTE_MAX_THREADS_PER_BLOCK value mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES == 1, "HIP_FUNC_ATTRIBUTE_SHARED_SIZE_BYTES value mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_CONST_SIZE_BYTES == 2, "HIP_FUNC_ATTRIBUTE_CONST_SIZE_BYTES value mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES == 3, "HIP_FUNC_ATTRIBUTE_LOCAL_SIZE_BYTES value mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_NUM_REGS == 4, "HIP_FUNC_ATTRIBUTE_NUM_REGS value mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_BINARY_VERSION == 6, "HIP_FUNC_ATTRIBUTE_BINARY_VERSION value mismatch");
+static_assert(HIP_FUNC_ATTRIBUTE_MAX_DYNAMIC_SHARED_SIZE_BYTES == 8, "HIP_FUNC_ATTRIBUTE_MAX_DYNAMIC_SHARED_SIZE_BYTES value mismatch");
 static_assert(
     std::is_same<
         decltype(&hipModuleOccupancyMaxActiveBlocksPerMultiprocessor),

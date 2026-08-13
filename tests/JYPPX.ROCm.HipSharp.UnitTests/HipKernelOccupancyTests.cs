@@ -14,7 +14,7 @@ public sealed class HipKernelOccupancyTests
 {
     private static readonly int[] ExpectedFunctionAttributeValues = { 0, 1, 2, 3, 4, 6, 8 };
     private static readonly int[] ExpectedOccupancyFlagValues = { 0, 1 };
-    private static readonly int[] ExpectedDeviceAttributeValues = { 11, 64, 89 };
+    private static readonly int[] ExpectedDeviceAttributeValues = { 56, 74, 10, 5, 23, 61, 63, 87 };
 
     [TestMethod]
     public void PinnedKernelOccupancyAndDeviceEnumValuesAreStable()
@@ -38,7 +38,12 @@ public sealed class HipKernelOccupancyTests
             ExpectedDeviceAttributeValues,
             new[]
             {
+                (int)HipDeviceAttribute.MaxThreadsPerBlock,
+                (int)HipDeviceAttribute.MaxSharedMemoryPerBlock,
                 (int)HipDeviceAttribute.CooperativeLaunch,
+                (int)HipDeviceAttribute.ClockRate,
+                (int)HipDeviceAttribute.ComputeCapabilityMajor,
+                (int)HipDeviceAttribute.ComputeCapabilityMinor,
                 (int)HipDeviceAttribute.MultiprocessorCount,
                 (int)HipDeviceAttribute.WarpSize,
             });
@@ -94,7 +99,7 @@ public sealed class HipKernelOccupancyTests
     }
 
     [TestMethod]
-    public void GetAttributesFailsClosedForInvalidOutputFailureAndDisposedModule()
+    public void GetAttributesNormalizesUnusedConstantMemoryAndFailsClosedForOtherInvalidOutput()
     {
         using var native = new FakeHipNativeApi();
         var runtime = new HipRuntime(native);
@@ -102,8 +107,12 @@ public sealed class HipKernelOccupancyTests
         HipKernel kernel = module.GetKernel("kernel");
         native.FunctionAttributes[HipFunctionAttributeNative.ConstantSizeBytes] = -1;
 
+        Assert.AreEqual(0UL, kernel.GetAttributes().ConstantMemoryBytes);
+
+        native.FunctionAttributes[HipFunctionAttributeNative.ConstantSizeBytes] = -2;
+
         Assert.ThrowsExactly<InvalidOperationException>(() => kernel.GetAttributes());
-        Assert.AreEqual(3, native.FunctionAttributeCalls.Count);
+        Assert.AreEqual(10, native.FunctionAttributeCalls.Count);
 
         native.FunctionAttributes[HipFunctionAttributeNative.ConstantSizeBytes] = 1;
         native.FunctionAttributeResults[HipFunctionAttributeNative.LocalSizeBytes] = HipError.InvalidValue;
