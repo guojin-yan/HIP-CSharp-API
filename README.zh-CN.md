@@ -35,6 +35,7 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 - 根据固定 HIP 7.2.1 头文件生成完整低层接口：459 个 HIP Runtime 声明与 18 个 HIPRTC 声明。
 - .NET 7 及以上使用源生成 `LibraryImport`，旧目标框架保留 `DllImport` 兼容路径。
 - 包含确定性 interop 生成、冻结的公开 API 快照、包审计以及无需 GPU 的托管测试。
+- 为独立打包的 MIGraphX adapter 提供 friend-only 原子 stream enqueue/pending-callback 边界，不新增公开裸 handle API，也不让 core 依赖 MIGraphXSharp。
 - 提供内存复制、HIPRTC VectorAdd、stream/event 顺序、graph、托管内存及 P2P copy-or-skip 等可运行正确性样例。
 
 ## 📢 当前状态：初始开发阶段
@@ -143,6 +144,7 @@ dotnet run --project .\samples\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release
 | [Linux Runtime 包](docs/guides/linux-runtime-package.md) | 来源、依赖闭包与打包边界 |
 | [Windows Runtime 审计](docs/guides/windows-runtime-static-audit.md) | 当前仅静态验证的 Windows 状态 |
 | [API 参考](docs/api/toc.yml) | 生成式公开 API 参考 |
+| [MIGraphX adapter 租约设计](docs/design/migraphx-adapter-pending-lease.md) | internal stream callback 边界；不新增 HipSharp 公开 API |
 
 运行 `./eng/docs.ps1` 可在 `_site` 目录生成 DocFX 文档站点。
 

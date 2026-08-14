@@ -40,6 +40,8 @@
   items:
     - name: JYPPX ROCm Naming Migration / JYPPX ROCm 命名迁移
       href: design/jyppx-rocm-naming-migration.md
+    - name: MIGraphX Adapter Pending Lease / MIGraphX 适配器 Pending 租约
+      href: design/migraphx-adapter-pending-lease.md
 - name: Releases / 版本
   items:
     - name: 0.9.0 Linux Release Candidate / Linux 发布候选

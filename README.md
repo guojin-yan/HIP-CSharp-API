@@ -35,6 +35,7 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 - A complete generated low-level surface based on pinned HIP 7.2.1 headers: 459 HIP Runtime declarations and 18 HIPRTC declarations.
 - Source-generated `LibraryImport` on .NET 7 and later, with `DllImport` compatibility on older targets.
 - Deterministic interop generation, a frozen public API snapshot, package audits, and managed tests that do not require a GPU.
+- A friend-only atomic stream enqueue/pending-callback boundary for the separately packaged MIGraphX adapter, without adding a public raw-handle API or a core dependency on MIGraphXSharp.
 - Runnable correctness samples for memory copies, HIPRTC VectorAdd, stream/event ordering, graphs, managed memory, and P2P copy-or-skip behavior.
 
 ## 📢 Current Status: Initial Development
@@ -143,6 +144,7 @@ These samples validate correctness and ownership behavior; they are not benchmar
 | [Linux runtime package](docs/guides/linux-runtime-package.md) | Provenance, dependency closure, and packaging boundary |
 | [Windows runtime audit](docs/guides/windows-runtime-static-audit.md) | Current static-only Windows state |
 | [API reference](docs/api/toc.yml) | Generated public API reference |
+| [MIGraphX adapter lease design](docs/design/migraphx-adapter-pending-lease.md) | Internal stream callback boundary; no public HipSharp API addition |
 
 Run `./eng/docs.ps1` to build the DocFX site under `_site`.
 

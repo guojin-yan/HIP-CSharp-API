@@ -1,4 +1,5 @@
 using System;
+using JYPPX.ROCm.HipSharp.Graphs;
 using JYPPX.ROCm.HipSharp.Memory;
 using JYPPX.ROCm.HipSharp.Modules;
 using JYPPX.ROCm.HipSharp.Streams;
@@ -82,5 +83,45 @@ public sealed class HipStreamEventMemoryTests
         Assert.AreEqual(1, native.AsyncCopyCount);
         stream.Synchronize();
         Assert.ThrowsExactly<ObjectDisposedException>(() => pinned.DangerousGetHandle());
+    }
+
+    [TestMethod]
+    public void AdapterEnqueueIsAtomicAndCompletesOnlyAfterStreamCompletion()
+    {
+        using var native = new FakeHipNativeApi { StreamQueryResult = HipError.NotReady };
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        bool completed = false;
+
+        int token = stream.EnqueuePending(handle =>
+        {
+            Assert.AreNotEqual(IntPtr.Zero, handle);
+            return 42;
+        }, value => completed = value == 42);
+
+        Assert.AreEqual(42, token);
+        Assert.IsFalse(completed);
+        Assert.IsFalse(stream.Query());
+        Assert.IsFalse(completed);
+        native.StreamQueryResult = HipError.Success;
+        Assert.IsTrue(stream.Query());
+        Assert.IsTrue(completed);
+        Assert.IsTrue(stream.Query());
+    }
+
+    [TestMethod]
+    public void AdapterEnqueueRejectsCaptureAndDoesNotRegisterFailedWork()
+    {
+        using var native = new FakeHipNativeApi();
+        var runtime = new HipRuntime(native);
+        using HipStream stream = runtime.CreateStream();
+        stream.BeginCapture();
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            stream.EnqueuePending(_ => 1, _ => Assert.Fail("Rejected work must not complete.")));
+        using HipGraph graph = stream.EndCapture();
+
+        Assert.ThrowsExactly<InvalidOperationException>(() =>
+            stream.EnqueuePending<int>(_ => throw new InvalidOperationException("enqueue"), _ => Assert.Fail("Failed work must not complete.")));
+        Assert.IsTrue(stream.Query());
     }
 }

@@ -183,6 +183,29 @@ public sealed class HipStream : IDisposable
         }
     }
 
+    internal TResult EnqueuePending<TResult>(Func<IntPtr, TResult> enqueue, Action<TResult> complete)
+    {
+        if (enqueue is null) throw new ArgumentNullException(nameof(enqueue));
+        if (complete is null) throw new ArgumentNullException(nameof(complete));
+
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            if (_captureActive)
+            {
+                throw new InvalidOperationException("External asynchronous execution is not supported during HIP graph capture.");
+            }
+
+            EnsurePendingCapacity();
+            var completion = new PendingCompletion<TResult>(complete);
+            var lease = new HipAsyncLease(completion.Invoke);
+            TResult result = enqueue(_handle.DangerousGetHandle());
+            completion.SetResult(result);
+            _pending.Add(lease);
+            return result;
+        }
+    }
+
     internal IDisposable RegisterOwnedResource()
     {
         lock (_sync)
@@ -210,6 +233,33 @@ public sealed class HipStream : IDisposable
             HipStream? stream = System.Threading.Interlocked.Exchange(ref _stream, null);
             stream?.ReleaseOwnedResource();
         }
+    }
+
+    private sealed class PendingCompletion<TResult>
+    {
+        private readonly Action<TResult> _complete;
+        private TResult _result = default!;
+        private bool _hasResult;
+
+        internal PendingCompletion(Action<TResult> complete) => _complete = complete;
+
+        internal void SetResult(TResult result)
+        {
+            _result = result;
+            _hasResult = true;
+        }
+
+        internal void Invoke()
+        {
+            if (!_hasResult) throw new InvalidOperationException("The pending operation did not produce a completion result.");
+            _complete(_result);
+        }
+    }
+
+    private void EnsurePendingCapacity()
+    {
+        if (_pending.Count != _pending.Capacity) return;
+        _pending.Capacity = _pending.Count == 0 ? 4 : checked(_pending.Count * 2);
     }
 
     private bool ClearPending()
