@@ -255,7 +255,7 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
-    public void RuntimeManifestsUsePackageFamilyAndGuardUnverifiedForwardFix()
+    public void RuntimeManifestsUsePackageFamilyAndRequireForwardFixReceipt()
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
         XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
@@ -265,8 +265,8 @@ public sealed class RepositoryQualityTests
             Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
             Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", root.GetProperty("packageId").GetString());
             Assert.AreEqual(versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value, root.GetProperty("packageVersion").GetString());
-            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
@@ -275,12 +275,25 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(root.GetProperty("verification").GetProperty("closureVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
-            Assert.AreEqual(JsonValueKind.Null, root.GetProperty("verification").GetProperty("validationSha256").ValueKind);
-            Assert.AreEqual(JsonValueKind.Null, root.GetProperty("verification").GetProperty("environment").ValueKind);
-            Assert.IsFalse(root.GetProperty("verification").TryGetProperty("promotionReceipt", out _));
-            StringAssert.Contains(root.GetProperty("verification").GetProperty("reason").GetString()!, "M8.9 package-family forward fix");
+            JsonElement verification = root.GetProperty("verification");
+            Assert.IsTrue(verification.GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsTrue(verification.GetProperty("gpuValidated").GetBoolean());
+            string validationSha256 = verification.GetProperty("validationSha256").GetString()!;
+            Assert.AreEqual(64, validationSha256.Length);
+            Assert.AreEqual(JsonValueKind.Object, verification.GetProperty("environment").ValueKind);
+            JsonElement promotionReceipt = verification.GetProperty("promotionReceipt");
+            Assert.AreEqual("nuget/runtime-manifests/linux-x64.promotion-receipt.json", promotionReceipt.GetProperty("path").GetString());
+            Assert.AreEqual("eng/promotion/m8.9-forward-fix-promotion-lock.json", promotionReceipt.GetProperty("lockPath").GetString());
+            Assert.AreEqual(validationSha256, promotionReceipt.GetProperty("sha256").GetString());
+            StringAssert.Contains(verification.GetProperty("reason").GetString()!, "M8.9 validated the corrected Core assembly identity");
+        }
+
+        using (JsonDocument receipt = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "linux-x64.promotion-receipt.json"))))
+        {
+            JsonElement root = receipt.RootElement;
+            Assert.AreEqual("m8.9-forward-fix-linux-0.9.1", root.GetProperty("promotionId").GetString());
+            Assert.AreEqual("0.9.1", root.GetProperty("candidatePackages").GetProperty("core").GetProperty("version").GetString());
+            Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", root.GetProperty("candidatePackages").GetProperty("runtime").GetProperty("id").GetString());
         }
 
         using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
