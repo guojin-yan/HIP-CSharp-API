@@ -16,7 +16,7 @@
 
 # HIP CSharp API
 
-HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。单一 `JYPPX.ROCm.HipSharp` 程序集既包含适合常见 GPU 工作流的托管所有者 API，也包含面向原生 ABI 直接调用场景的生成式低层入口。
+HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。单一 `JYPPX.ROCm.HIP.CSharp.API` 程序集公开 `JYPPX.ROCm.HipSharp` 命名空间，既包含适合常见 GPU 工作流的托管所有者 API，也包含面向原生 ABI 直接调用场景的生成式低层入口。
 
 ## 📖 项目简介
 
@@ -39,11 +39,9 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 
 ## 📢 当前状态：初始开发阶段
 
-HIP CSharp API 尚未公开发布任何版本。项目当前处于初始开发阶段，首次发布前，API、包内容和部署方式仍可能发生变化。
+Core `0.9.0` 与 Linux Runtime `7.2.1` 已于 2026-08-14 发布，但 Core 包误用了 `JYPPX.ROCm.HipSharp` 程序集 identity。请勿采用 Core `0.9.0`；`0.9.1` forward-fix 候选会把包名和程序集 identity 统一为 `JYPPX.ROCm.HIP.CSharp.API`，同时保留 `JYPPX.ROCm.HipSharp` 命名空间。
 
-当前生成的产物仅用于本地开发与验证，不属于已发布包、稳定版本或兼容性承诺。首个版本发布前，请从源码构建，并在实际目标环境中自行完成验证。
-
-M8.7 的精确 `JYPPX.ROCm.*` 候选已在单独授权的 official-host 与 package-only Radeon Cloud 门禁通过，环境为 Ubuntu 24.04.4、ROCm 7.2.1、HIP 7.2.53211 与单张 `gfx1100` GPU。M8.8 使用 receipt 锁定该证据，但发布交接前仍须对新的 final 精确包字节复核。这些结果仅作为开发验证证据，不代表广泛平台支持或生产可用性承诺。
+M8.7/M8.8 的精确包证据只适用于不可变的 `0.9.0` bytes，不能验证程序集改名后的 `0.9.1`。forward fix 在新的 exact-package GPU 门禁和 Owner 独立发布授权完成前保持不可发布。Windows 仍为 static-only 且未经 GPU 验证；不作性能声明。
 
 ## 🚀 30 秒开始
 
@@ -81,8 +79,8 @@ foreach (HipDevice device in runtime.GetDevices())
 
 | 包 | 原生基线 | 内容 | 状态 |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HipSharp` 程序集、XML 文档、包 README、logo 与许可证 | 开发中，尚无已发布版本 |
-| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | receipt 已验证的本地 final 候选；final 精确包门禁待执行；尚未发布且不可发布 |
+| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.0` 已发布但程序集 identity 错误；`0.9.1` forward fix 待重新验证 |
+| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | `7.2.1` 已发布；须与修正后的 Core 重跑 public-feed smoke |
 | `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。

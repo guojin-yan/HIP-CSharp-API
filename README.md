@@ -16,7 +16,7 @@
 
 # HIP CSharp API
 
-HIP CSharp API provides direct .NET bindings for the AMD HIP Runtime and HIPRTC C APIs. The single `JYPPX.ROCm.HipSharp` assembly combines ergonomic managed owners for common GPU workflows with generated low-level entry points for applications that need the native ABI directly.
+HIP CSharp API provides direct .NET bindings for the AMD HIP Runtime and HIPRTC C APIs. The single `JYPPX.ROCm.HIP.CSharp.API` assembly exposes the `JYPPX.ROCm.HipSharp` namespace, combining ergonomic managed owners for common GPU workflows with generated low-level entry points for applications that need the native ABI directly.
 
 ## 📖 Introduction
 
@@ -39,11 +39,9 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 
 ## 📢 Current Status: Initial Development
 
-No public version of HIP CSharp API has been released yet. The repository is under active initial development, and its API, package contents, and deployment model may change before the first release.
+Core `0.9.0` and Linux Runtime `7.2.1` were published on 2026-08-14, but the Core package used the unintended `JYPPX.ROCm.HipSharp` assembly identity. Do not adopt Core `0.9.0`; a `0.9.1` forward-fix candidate aligns the package and assembly identity as `JYPPX.ROCm.HIP.CSharp.API` while retaining the `JYPPX.ROCm.HipSharp` namespace.
 
-Current artifacts are local development and validation outputs only. They are not published packages, stable releases, or a compatibility commitment. Until the first release is available, build the project from source and validate it in the intended deployment environment.
-
-The M8.7 exact `JYPPX.ROCm.*` candidate passed separately authorized official-host and package-only Radeon Cloud gates on Ubuntu 24.04.4, ROCm 7.2.1, HIP 7.2.53211, and one `gfx1100` GPU. The receipt-locked M8.8 promotion preserves that evidence while requiring a new exact-final-package gate before release handoff. These results are development evidence only and do not constitute broad platform or production support.
+The M8.7/M8.8 exact-package evidence applies only to the immutable `0.9.0` bytes. It does not validate the renamed `0.9.1` assembly. The forward fix remains non-publishable until a fresh exact-package GPU gate and separate Owner publication authorization are complete. Windows remains static-only and GPU-unvalidated; no performance claim is made.
 
 ## 🚀 Get Started In 30 Seconds
 
@@ -81,8 +79,8 @@ Applications using the managed package must still provide compatible native `amd
 
 | Package | Native baseline | Contents | State |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HipSharp` assembly, XML docs, package README, logo, and license | Under development; no version published |
-| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | Receipt-verified local final candidate; final exact-package gate pending; unpublished and non-publishable |
+| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.0` published with wrong assembly identity; `0.9.1` forward fix pending fresh validation |
+| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | `7.2.1` published; public-feed smoke must be rerun with the corrected Core |
 | `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.

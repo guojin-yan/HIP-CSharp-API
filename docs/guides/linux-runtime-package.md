@@ -1,6 +1,6 @@
 # Linux runtime package audit / Linux runtime 包审计
 
-`JYPPX.ROCm.HIP.CSharp.API` remains managed-only and can use a system ROCm installation. The optional `JYPPX.ROCm.HipSharp.Runtime.linux-x64` package is a separate ROCm 7.2.1 user-mode closure. M8.7 validated the exact renamed 0.9.0/7.2.1 candidate on official-host and package-only paths. M8.8 imports only that fixed evidence through a deterministic promotion receipt; publication remains unauthorized.
+`JYPPX.ROCm.HIP.CSharp.API` remains managed-only and can use a system ROCm installation. The optional `JYPPX.ROCm.HipSharp.Runtime.linux-x64` package is a separate ROCm 7.2.1 user-mode closure. Runtime `7.2.1` was published with repository signing, but its old Core pairing and M8.7/M8.8 evidence do not validate the corrected Core `0.9.1` assembly identity. A fresh public-feed gate is required before the forward-fix release.
 
 The source lock accepts only AMD's signed Ubuntu Noble repository. `prepare-runtime.ps1` checks the pinned archive-key fingerprint, `InRelease`, `Packages.gz`, six Debian packages, canonical ELF metadata, file hashes, component licenses, closure boundaries, and CycloneDX hash. It stages only HIP Runtime, HIPRTC/builtins, HSA Runtime, COMGR, rocprofiler-register, loader/SONAME aliases, licenses, manifest, and SBOM. Headers, compilers, static libraries, debug symbols, rocminfo executables, rocm-core scripts, kernel drivers, and device nodes are forbidden.
 
