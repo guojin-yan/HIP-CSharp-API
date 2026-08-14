@@ -16,10 +16,28 @@ if ($Rid -ne "linux-x64") { throw "HIPSHARP1001: Windows runtime packaging is di
 
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
+
+function Assert-TextLineEndings([string]$Path, [ValidateSet("CRLF", "LF")][string]$Expected) {
+    $bytes = [System.IO.File]::ReadAllBytes($Path)
+    for ($index = 0; $index -lt $bytes.Length; $index++) {
+        if ($bytes[$index] -eq 0x0A) {
+            $hasCarriageReturn = $index -gt 0 -and $bytes[$index - 1] -eq 0x0D
+            if (($Expected -eq "CRLF") -ne $hasCarriageReturn) {
+                throw "HIPSHARP1001: Runtime metadata line endings must be $Expected before packaging: $Path"
+            }
+        } elseif ($bytes[$index] -eq 0x0D -and ($index + 1 -ge $bytes.Length -or $bytes[$index + 1] -ne 0x0A)) {
+            throw "HIPSHARP1001: Runtime metadata contains a bare carriage return: $Path"
+        }
+    }
+}
+
 $Version = Get-HipSharpVersion -Kind LinuxRuntime -Override $Version -RepositoryRoot $repositoryRoot
 $sourceManifestPath = Join-Path $repositoryRoot "nuget/runtime-manifests/$Rid.json"
 $sourceManifestInfo = Get-HipSharpRuntimeManifest $sourceManifestPath
 if ($sourceManifestInfo.Value.packageVersion -ne $Version) { throw "Runtime package version must equal the central and manifest version." }
+$sourceSbomPath = Join-Path (Split-Path -Parent $sourceManifestPath) $sourceManifestInfo.Value.sbom.path
+Assert-TextLineEndings $sourceManifestPath CRLF
+Assert-TextLineEndings $sourceSbomPath CRLF
 
 $gitSha = (& git -C $repositoryRoot rev-parse HEAD 2>$null).Trim()
 if ($LASTEXITCODE -ne 0 -or $gitSha -notmatch "^[0-9a-f]{40}$") { throw "A 40-character Git SHA is required for runtime packaging." }
@@ -98,6 +116,7 @@ if ($Candidate) {
     $arguments += "-p:RuntimeCandidateAttestationPath=$attestationPath", "-p:RuntimeCandidateAttestationSha256=$attestationSha256"
 } else {
     $receiptPath = Join-Path $repositoryRoot $runtimeManifest.verification.promotionReceipt.path
+    Assert-TextLineEndings $receiptPath LF
     $receiptSha256 = Get-HipSharpSha256 $receiptPath
     $finalDirectory = Join-Path $repositoryRoot "artifacts/runtime-final"
     New-Item -ItemType Directory -Force -Path $finalDirectory | Out-Null

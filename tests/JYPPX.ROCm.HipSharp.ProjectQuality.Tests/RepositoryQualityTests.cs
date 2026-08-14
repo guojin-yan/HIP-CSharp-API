@@ -316,9 +316,37 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-windows-runtime.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-windows-runtime-skeleton.ps1")));
 
+        string attributes = File.ReadAllText(Path.Combine(RepositoryRoot, ".gitattributes"));
+        foreach (string metadata in new[]
+        {
+            "linux-x64.json",
+            "linux-x64.cdx.json",
+            "linux-x64.dependency-closure.json",
+            "linux-x64.licenses.json",
+            "linux-x64.provenance.json",
+            "linux-x64.sizes.json",
+        })
+        {
+            StringAssert.Contains(attributes, $"nuget/runtime-manifests/{metadata} text eol=crlf");
+            byte[] bytes = File.ReadAllBytes(Path.Combine(manifestDirectory, metadata));
+            for (int index = 0; index < bytes.Length; index++)
+            {
+                if (bytes[index] == (byte)'\n')
+                {
+                    Assert.IsTrue(index > 0 && bytes[index - 1] == (byte)'\r', $"{metadata} must use promotion-locked CRLF bytes.");
+                }
+                else if (bytes[index] == (byte)'\r')
+                {
+                    Assert.IsTrue(index + 1 < bytes.Length && bytes[index + 1] == (byte)'\n', $"{metadata} contains a bare carriage return.");
+                }
+            }
+        }
+
         string runtimePackScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1"));
         StringAssert.Contains(runtimePackScript, "stagingDigestSha256");
         StringAssert.Contains(runtimePackScript, "publishable = $false");
+        StringAssert.Contains(runtimePackScript, "Assert-TextLineEndings $sourceManifestPath CRLF");
+        StringAssert.Contains(runtimePackScript, "Assert-TextLineEndings $receiptPath LF");
         string runtimeTargets = File.ReadAllText(Path.Combine(RepositoryRoot, "pack", "Directory.Build.targets"));
         StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationPath");
         StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationSha256");

@@ -17,11 +17,11 @@ $outputDirectory = Split-Path -Parent $manifestInfo.Path
 $prefix = [System.IO.Path]::GetFileNameWithoutExtension($manifestInfo.Path)
 
 function Write-DeterministicJson([string]$path, [object]$value) {
-    $content = $value | ConvertTo-Json -Depth 20
+    $content = (($value | ConvertTo-Json -Depth 20) -replace "`r?`n", "`r`n") + "`r`n"
     if ($Check) {
         if (-not (Test-Path -LiteralPath $path) -or (Get-Content -Raw -LiteralPath $path).TrimEnd() -ne $content.TrimEnd()) { throw "Generated runtime metadata is stale: $path" }
     } else {
-        $content | Set-Content -LiteralPath $path -Encoding utf8NoBOM
+        [System.IO.File]::WriteAllText($path, $content, [System.Text.UTF8Encoding]::new($false))
     }
 }
 

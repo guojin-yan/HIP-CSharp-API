@@ -59,7 +59,8 @@ if (-not $isPromoted) {
     $verification["reason"] = "M8.7 validated the exact JYPPX.ROCm 0.9.0/7.2.1 candidate through official-host and PRoot package-only paths. The deterministic promotion receipt binds the package audits, symbol and ABI completeness, 1,127 managed comparisons, reliability run, four fail-closed negatives, and the unchanged native payload. Publication remains unauthorized."
     $manifestValue["size"]["topology"] = "single-package"
     $manifestValue["size"]["decision"] = "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
-    $manifestValue | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $manifestPath -Encoding utf8NoBOM
+    $manifestJson = (($manifestValue | ConvertTo-Json -Depth 30) -replace "`r?`n", "`r`n") + "`r`n"
+    [System.IO.File]::WriteAllText($manifestPath, $manifestJson, [System.Text.UTF8Encoding]::new($false))
     $manifestValue = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable
     $verification = $manifestValue["verification"]
 }
