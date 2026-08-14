@@ -80,8 +80,8 @@ Applications using the managed package must still provide compatible native `amd
 | Package | Native baseline | Contents | State |
 | --- | --- | --- | --- |
 | `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.0` published with wrong assembly identity; `0.9.1` forward fix pending fresh validation |
-| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | `7.2.1` published; public-feed smoke must be rerun with the corrected Core |
-| `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | Old ID `JYPPX.ROCm.HipSharp.Runtime.linux-x64` `7.2.1` is public; new ID requires fresh validation |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
 

@@ -11,8 +11,8 @@ HIP-CSharp-API 继续作为 JYPPX ROCm 产品家族中的独立仓库和独立�
 | Root namespace / 根命名空间 | `JYPPX.HipSharp` | `JYPPX.ROCm.HipSharp` |
 | Core assembly / 核心程序集 | `JYPPX.HipSharp.dll` | `JYPPX.ROCm.HIP.CSharp.API.dll` |
 | Managed NuGet | `JYPPX.HIP.CSharp.API` | `JYPPX.ROCm.HIP.CSharp.API` |
-| Linux runtime NuGet | `JYPPX.HipSharp.Runtime.linux-x64` | `JYPPX.ROCm.HipSharp.Runtime.linux-x64` |
-| Windows runtime NuGet | `JYPPX.HipSharp.Runtime.win-x64` | `JYPPX.ROCm.HipSharp.Runtime.win-x64` |
+| Linux runtime NuGet | `JYPPX.HipSharp.Runtime.linux-x64` | `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` |
+| Windows runtime NuGet | `JYPPX.HipSharp.Runtime.win-x64` | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` |
 
 The repository name, GitHub URL, `HipSharp.sln`, public HIP namespaces and type/member names, native entry points, logical library names, and pinned HIP 7.2.1 headers do not change. The assembly identity is deliberately aligned with the managed NuGet package ID; it is independent of the `JYPPX.ROCm.HipSharp` root namespace.
 
@@ -30,9 +30,9 @@ HipSharp Core 永远不依赖 adapter、MIGraphX 或算法库；不创建 `JYPPX
 
 ## Compatibility policy / 兼容策略
 
-NuGet.org had no exact match for the former managed or runtime package IDs when this migration was performed. During the first publication attempt, Core `0.9.0` was published with the intended package ID but the unintended `JYPPX.ROCm.HipSharp` assembly identity. The immutable version is handled through a `0.9.1` forward fix; there is no compatibility namespace, facade, forwarding assembly, legacy NuGet, or dual public surface.
+NuGet.org had no exact match for the former managed or runtime package IDs when this migration was performed. During the first publication attempt, Core `0.9.0` and Runtime `7.2.1` were published under identities that did not align with the final package family. The immutable versions are handled through a corrected Core `0.9.1` and a new Runtime package ID; there is no compatibility namespace, facade, forwarding assembly, legacy NuGet, or dual public surface.
 
-执行迁移时，NuGet.org 对原 managed/runtime 包 ID 均无精确命中。首次发布时，Core `0.9.0` 使用了预期包 ID，但程序集 identity 仍误为 `JYPPX.ROCm.HipSharp`。该不可变版本通过 `0.9.1` forward fix 处理；不保留兼容命名空间、facade、类型转发程序集、旧 NuGet 或新旧双公开面。
+执行迁移时，NuGet.org 对原 managed/runtime 包 ID 均无精确命中。首次发布时，Core `0.9.0` 与 Runtime `7.2.1` 的 identity 尚未与最终包族对齐。不可变版本通过修正后的 Core `0.9.1` 和新的 Runtime 包 ID 处理；不保留兼容命名空间、facade、类型转发程序集、旧 NuGet 或新旧双公开面。
 
 The former public API snapshot is invalidated by this pre-release namespace decision. `eng/public-api/JYPPX.ROCm.HipSharp.0.9.0.txt`, generated from the renamed assembly, is the new freeze baseline. All ownership, disposal, error, ABI, and target-framework contracts remain unchanged.
 

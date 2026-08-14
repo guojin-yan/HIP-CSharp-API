@@ -62,7 +62,7 @@ function Assert-HipSharpRuntimeManifest {
     }
 
     if ($Manifest.schemaVersion -ne 2) { throw "Runtime manifest schemaVersion must be 2." }
-    if ($Manifest.packageId -notmatch "^JYPPX\.ROCm\.HipSharp\.Runtime\.(linux|win)-x64$") { throw "Runtime packageId is invalid." }
+    if ($Manifest.packageId -notmatch "^JYPPX\.ROCm\.HIP\.CSharp\.API\.Runtime\.(linux|win)-x64$") { throw "Runtime packageId is invalid." }
     if ([string]::IsNullOrWhiteSpace($Manifest.packageVersion)) { throw "Runtime packageVersion is required." }
     if ($Manifest.nativeAssetPath -ne "runtimes/$($Manifest.rid)/native") { throw "nativeAssetPath must match the package RID." }
     ConvertTo-HipSharpRelativePath $Manifest.nativeAssetPath | Out-Null

@@ -26,6 +26,12 @@ function Assert-Rejected([string]$name, [scriptblock]$mutation) {
 
 function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
     $candidate = New-ManifestCopy
+    $candidate.packEnabled = $true
+    $candidate.verified = $true
+    $candidate.verification.packageAuditVerified = $true
+    $candidate.verification.gpuValidated = $true
+    $candidate.verification.validationSha256 = ("11" * 32)
+    $candidate.verification.promotionReceipt = [ordered]@{ path = "nuget/runtime-manifests/linux-x64.promotion-receipt.json"; sha256 = ("22" * 32); lockPath = "eng/promotion/m8.7-promotion-lock.json" }
     & $mutation $candidate
     try {
         Assert-HipSharpRuntimeManifest $candidate -RequirePackable
@@ -38,7 +44,10 @@ function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
 
 $baseline = New-ManifestCopy
 Assert-HipSharpRuntimeManifest $baseline
-Assert-HipSharpRuntimeManifest $baseline -RequirePackable
+if ($baseline.packEnabled -or $baseline.verified) {
+    throw "The current Runtime manifest must remain unverified until the new package-family identity passes a fresh exact gate."
+}
+Write-Host "Forward-fix Runtime manifest is intentionally unverified and non-packable."
 & (Join-Path $PSScriptRoot "generate-runtime-metadata.ps1") -Manifest $manifestPath -Check
 
 Assert-Rejected "wrong architecture" { param($m) $m.packages[0].architecture = "arm64" }

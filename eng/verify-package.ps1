@@ -186,7 +186,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "m8.9-0.9.0-evidence-invalidated-by-assembly-identity-forward-fix; fresh-exact-candidate-validation-required"
+    runtimeAndGpuValidation = "m8.9-package-family-forward-fix; old Core/Runtime identities superseded; fresh-exact-candidate-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

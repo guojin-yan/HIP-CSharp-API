@@ -145,7 +145,7 @@ if (-not [IO.File]::Exists($resolvedManifest)) { Stop-Audit "manifest does not e
 $manifest = Get-Content -LiteralPath $resolvedManifest -Raw | ConvertFrom-Json
 
 if ($manifest.schemaVersion -ne 2 -or $manifest.rid -ne 'win-x64' -or
-    $manifest.packageId -ne 'JYPPX.ROCm.HipSharp.Runtime.win-x64') {
+    $manifest.packageId -ne 'JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64') {
     Stop-Audit 'manifest identity or schema is invalid'
 }
 if ($manifest.source.sdkVersion -ne '7.2.0' -or

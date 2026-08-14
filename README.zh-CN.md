@@ -80,8 +80,8 @@ foreach (HipDevice device in runtime.GetDevices())
 | 包 | 原生基线 | 内容 | 状态 |
 | --- | --- | --- | --- |
 | `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.0` 已发布但程序集 identity 错误；`0.9.1` forward fix 待重新验证 |
-| `JYPPX.ROCm.HipSharp.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | `7.2.1` 已发布；须与修正后的 Core 重跑 public-feed smoke |
-| `JYPPX.ROCm.HipSharp.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | 旧 ID `JYPPX.ROCm.HipSharp.Runtime.linux-x64` `7.2.1` 已公开；新 ID 需重新验证 |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。
 

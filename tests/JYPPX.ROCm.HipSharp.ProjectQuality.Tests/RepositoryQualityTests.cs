@@ -122,11 +122,11 @@ public sealed class RepositoryQualityTests
             .Any(text => text.Contains("JYPPX.ROCm.Native", StringComparison.Ordinal) || text.Contains("JYPPX.ROCm.Common", StringComparison.Ordinal)));
 
         using JsonDocument schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests", "runtime-manifest.schema.json")));
-        Assert.AreEqual("^JYPPX\\.ROCm\\.HipSharp\\.Runtime\\.(linux|win)-x64$", schema.RootElement.GetProperty("properties").GetProperty("packageId").GetProperty("pattern").GetString());
+        Assert.AreEqual("^JYPPX\\.ROCm\\.HIP\\.CSharp\\.API\\.Runtime\\.(linux|win)-x64$", schema.RootElement.GetProperty("properties").GetProperty("packageId").GetProperty("pattern").GetString());
         foreach (string rid in new[] { "linux-x64", "win-x64" })
         {
             using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests", $"{rid}.json")));
-            Assert.AreEqual($"JYPPX.ROCm.HipSharp.Runtime.{rid}", manifest.RootElement.GetProperty("packageId").GetString());
+            Assert.AreEqual($"JYPPX.ROCm.HIP.CSharp.API.Runtime.{rid}", manifest.RootElement.GetProperty("packageId").GetString());
         }
 
         string generator = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.BindingGenerator", "Program.cs"));
@@ -255,7 +255,7 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
-    public void RuntimeManifestsUseReceiptLockedLinuxPromotionAndGuardDirectPackaging()
+    public void RuntimeManifestsUsePackageFamilyAndGuardUnverifiedForwardFix()
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
         XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
@@ -263,10 +263,10 @@ public sealed class RepositoryQualityTests
         {
             JsonElement root = linux.RootElement;
             Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
-            Assert.AreEqual("JYPPX.ROCm.HipSharp.Runtime.linux-x64", root.GetProperty("packageId").GetString());
+            Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", root.GetProperty("packageId").GetString());
             Assert.AreEqual(versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value, root.GetProperty("packageVersion").GetString());
-            Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
-            Assert.IsTrue(root.GetProperty("verified").GetBoolean());
+            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
@@ -275,20 +275,17 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(root.GetProperty("verification").GetProperty("closureVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
-            Assert.IsTrue(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
-            Assert.IsTrue(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
-            string receiptHash = root.GetProperty("verification").GetProperty("validationSha256").GetString()!;
-            Assert.AreEqual(64, receiptHash.Length);
-            JsonElement promotionReceipt = root.GetProperty("verification").GetProperty("promotionReceipt");
-            Assert.AreEqual(receiptHash, promotionReceipt.GetProperty("sha256").GetString());
-            Assert.AreEqual("nuget/runtime-manifests/linux-x64.promotion-receipt.json", promotionReceipt.GetProperty("path").GetString());
-            Assert.AreEqual("official-host + PRoot package-only", root.GetProperty("verification").GetProperty("environment").GetProperty("isolation").GetString());
-            StringAssert.Contains(root.GetProperty("verification").GetProperty("reason").GetString()!, "M8.7 validated");
+            Assert.IsFalse(root.GetProperty("verification").GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsFalse(root.GetProperty("verification").GetProperty("gpuValidated").GetBoolean());
+            Assert.AreEqual(JsonValueKind.Null, root.GetProperty("verification").GetProperty("validationSha256").ValueKind);
+            Assert.AreEqual(JsonValueKind.Null, root.GetProperty("verification").GetProperty("environment").ValueKind);
+            Assert.IsFalse(root.GetProperty("verification").TryGetProperty("promotionReceipt", out _));
+            StringAssert.Contains(root.GetProperty("verification").GetProperty("reason").GetString()!, "M8.9 package-family forward fix");
         }
 
         using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
         {
-            Assert.AreEqual("JYPPX.ROCm.HipSharp.Runtime.win-x64", windows.RootElement.GetProperty("packageId").GetString());
+            Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64", windows.RootElement.GetProperty("packageId").GetString());
             Assert.IsFalse(windows.RootElement.GetProperty("packEnabled").GetBoolean());
             Assert.IsFalse(windows.RootElement.GetProperty("verified").GetBoolean());
             Assert.AreEqual(0, windows.RootElement.GetProperty("files").GetArrayLength());
@@ -356,7 +353,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationSha256");
 
         XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj"));
-        Assert.AreEqual("JYPPX.ROCm.HipSharp.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
         Assert.AreEqual("$(HipSharpLinuxRuntimeVersion)", linuxProject.Descendants("PackageVersion").Single().Value);
 
         string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj");
@@ -571,7 +568,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "m8.9-0.9.0-evidence-invalidated-by-assembly-identity-forward-fix; fresh-exact-candidate-validation-required");
+        StringAssert.Contains(packageVerifier, "m8.9-package-family-forward-fix; old Core/Runtime identities superseded; fresh-exact-candidate-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
     }
 
