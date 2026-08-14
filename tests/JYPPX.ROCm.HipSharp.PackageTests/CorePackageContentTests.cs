@@ -26,7 +26,7 @@ public sealed class CorePackageContentTests
 
         foreach (string framework in Frameworks)
         {
-            string[] expectedFiles = { "JYPPX.ROCm.HipSharp.dll", "JYPPX.ROCm.HipSharp.xml" };
+            string[] expectedFiles = { "JYPPX.ROCm.HIP.CSharp.API.dll", "JYPPX.ROCm.HIP.CSharp.API.xml" };
             foreach (string file in expectedFiles)
             {
                 Assert.IsTrue(entries.Contains($"lib/{framework}/{file}"), $"Missing {framework} asset: {file}");

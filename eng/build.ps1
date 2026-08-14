@@ -33,7 +33,7 @@ try {
 
     $missing = [System.Collections.Generic.List[string]]::new()
     foreach ($framework in $frameworks) {
-        foreach ($file in @("JYPPX.ROCm.HipSharp.dll", "JYPPX.ROCm.HipSharp.xml")) {
+        foreach ($file in @("JYPPX.ROCm.HIP.CSharp.API.dll", "JYPPX.ROCm.HIP.CSharp.API.xml")) {
             $path = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/$file"
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
                 $missing.Add("$framework/$file")
@@ -45,7 +45,7 @@ try {
         throw "The multi-target build did not produce: $($missing -join ', ')"
     }
 
-    Write-Host "Build verified: JYPPX.ROCm.HipSharp DLL and XML documentation x 15 target frameworks ($Configuration)."
+    Write-Host "Build verified: JYPPX.ROCm.HIP.CSharp.API DLL and XML documentation x 15 target frameworks ($Configuration)."
 }
 finally {
     Pop-Location

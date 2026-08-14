@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>$(JYPPXManagedTargetFrameworks)</TargetFrameworks>
-    <AssemblyName>JYPPX.ROCm.HipSharp</AssemblyName>
+    <AssemblyName>JYPPX.ROCm.HIP.CSharp.API</AssemblyName>
     <RootNamespace>JYPPX.ROCm.HipSharp</RootNamespace>
     <IsHipSharpCoreProject>true</IsHipSharpCoreProject>
 
@@ -20,7 +20,7 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <EnablePackageValidation>true</EnablePackageValidation>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
-    <PackageReleaseNotes>$(HipSharpCoreVersion) release candidate for API-freeze review. This package is not a published stable release.</PackageReleaseNotes>
+    <PackageReleaseNotes>$(HipSharpCoreVersion) forward-fix candidate aligning the assembly identity with the package ID while preserving the JYPPX.ROCm.HipSharp namespace. Fresh exact-package validation and Owner publication authorization are required.</PackageReleaseNotes>
     <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->

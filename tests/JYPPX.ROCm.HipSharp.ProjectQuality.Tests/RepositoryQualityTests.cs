@@ -35,8 +35,8 @@ public sealed class RepositoryQualityTests
         XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
-        Assert.AreEqual("JYPPX.ROCm.HipSharp", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.9.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
+        Assert.AreEqual("0.9.1", versions.Descendants("HipSharpCoreVersion").Single().Value);
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -70,7 +70,7 @@ public sealed class RepositoryQualityTests
     public void RocmFamilyNamingMigrationIsComplete()
     {
         XDocument core = XDocument.Load(CoreProject());
-        Assert.AreEqual("JYPPX.ROCm.HipSharp", core.Descendants("AssemblyName").Single().Value);
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", core.Descendants("AssemblyName").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HipSharp", core.Descendants("RootNamespace").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", core.Descendants("PackageId").Single().Value);
 
@@ -540,7 +540,7 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.0.txt");
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.1.txt");
         Assert.IsTrue(File.Exists(snapshot));
         StringAssert.StartsWith(File.ReadAllText(snapshot), "# HipSharp public API snapshot schema 1");
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "public-api", "categories.json")));
@@ -568,10 +568,10 @@ public sealed class RepositoryQualityTests
         };
         CollectionAssert.AreEqual(expectedTargets, entries.Select(entry => entry.Element("Target")?.Value).ToArray());
         Assert.IsTrue(entries.All(entry => entry.Element("DiagnosticId")?.Value == "CP0008"));
-        Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HipSharp.dll"));
-        Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HipSharp.dll"));
+        Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
+        Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "m8.7-exact-candidate-passed; m8.8-final-exact-package-gate-pending-owner-authorization");
+        StringAssert.Contains(packageVerifier, "m8.9-0.9.0-evidence-invalidated-by-assembly-identity-forward-fix; fresh-exact-candidate-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
     }
 
@@ -579,7 +579,7 @@ public sealed class RepositoryQualityTests
     public void AssemblySemanticSnapshotHandlesConstructors()
     {
         string tool = Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.ApiSurface", "JYPPX.ROCm.HipSharp.ApiSurface.csproj");
-        string assembly = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", "net10.0", "JYPPX.ROCm.HipSharp.dll");
+        string assembly = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", "net10.0", "JYPPX.ROCm.HIP.CSharp.API.dll");
         string snapshot = Path.Combine(RepositoryRoot, "artifacts", "project-quality", "semantic-net10.0.txt");
         ProcessResult result = RunProcess("dotnet", "run", "--project", tool, "--configuration", "Release", "--no-build", "--no-restore", "--", "--assembly", assembly, "--semantic", snapshot);
 
@@ -606,7 +606,7 @@ public sealed class RepositoryQualityTests
 
     private static void AssertBuilt(string framework)
     {
-        string path = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", framework, "JYPPX.ROCm.HipSharp.dll");
+        string path = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", framework, "JYPPX.ROCm.HIP.CSharp.API.dll");
         Assert.IsTrue(File.Exists(path), $"Representative compile output is missing: {path}");
     }
 

@@ -20,9 +20,9 @@ public sealed class AssemblyBaselineTests
     [TestMethod]
     public void CoreAssemblyExposesM6ApiAndMetadata()
     {
-        Assembly managed = Assembly.Load("JYPPX.ROCm.HipSharp");
+        Assembly managed = Assembly.Load("JYPPX.ROCm.HIP.CSharp.API");
 
-        Assert.AreEqual("JYPPX.ROCm.HipSharp", managed.GetName().Name);
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", managed.GetName().Name);
         CollectionAssert.IsSubsetOf(
             new[]
             {

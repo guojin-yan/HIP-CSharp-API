@@ -42,7 +42,7 @@ $archive = [System.IO.Compression.ZipFile]::OpenRead($resolvedPackage)
 try {
     $entries = @($archive.Entries | ForEach-Object { $_.FullName.Replace("\", "/") })
     foreach ($framework in $frameworks) {
-        $expectedFiles = @("JYPPX.ROCm.HipSharp.dll", "JYPPX.ROCm.HipSharp.xml")
+        $expectedFiles = @("JYPPX.ROCm.HIP.CSharp.API.dll", "JYPPX.ROCm.HIP.CSharp.API.xml")
         foreach ($file in $expectedFiles) {
             $expected = "lib/$framework/$file"
             if ($entries -notcontains $expected) { throw "Package asset is missing: $expected" }
@@ -186,7 +186,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "m8.7-exact-candidate-passed; m8.8-final-exact-package-gate-pending-owner-authorization"
+    runtimeAndGpuValidation = "m8.9-0.9.0-evidence-invalidated-by-assembly-identity-forward-fix; fresh-exact-candidate-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

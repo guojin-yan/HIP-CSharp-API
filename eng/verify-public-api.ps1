@@ -20,8 +20,8 @@ $frameworks = @(
 )
 
 function Invoke-Snapshot([string]$framework, [string]$target, [string]$mode) {
-    $assembly = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HipSharp.dll"
-    $xml = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HipSharp.xml"
+    $assembly = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HIP.CSharp.API.dll"
+    $xml = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HIP.CSharp.API.xml"
     if (-not (Test-Path -LiteralPath $assembly -PathType Leaf) -or -not (Test-Path -LiteralPath $xml -PathType Leaf)) {
         throw "Public API input is missing for $framework. Build all target frameworks first."
     }
