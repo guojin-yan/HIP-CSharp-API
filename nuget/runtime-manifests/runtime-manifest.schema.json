@@ -28,7 +28,7 @@
           "properties": {
             "path": { "const": "nuget/runtime-manifests/linux-x64.promotion-receipt.json" },
             "sha256": { "type": "string", "pattern": "^[0-9a-f]{64}$" },
-            "lockPath": { "const": "eng/promotion/m8.7-promotion-lock.json" }
+            "lockPath": { "enum": ["eng/promotion/m8.7-promotion-lock.json", "eng/promotion/m8.9-forward-fix-promotion-lock.json"] }
           },
           "additionalProperties": false
         }

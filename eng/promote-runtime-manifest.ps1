@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$LockFile = "eng/promotion/m8.7-promotion-lock.json",
+    [string]$LockFile = "eng/promotion/m8.9-forward-fix-promotion-lock.json",
     [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
     [string]$Receipt = "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
     [switch]$Check
@@ -26,7 +26,7 @@ if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) {
     throw "HIPSHARP1001: The tracked promotion receipt is missing."
 }
 & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $lockPath -ExpectedReceipt $receiptPath
-if ($LASTEXITCODE -ne 0) { throw "HIPSHARP1001: M8.7 promotion evidence did not reproduce the tracked receipt." }
+if ($LASTEXITCODE -ne 0) { throw "HIPSHARP1001: Promotion evidence did not reproduce the tracked receipt." }
 
 $receiptHash = Get-HipSharpSha256 $receiptPath
 $manifestValue = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable
@@ -37,7 +37,7 @@ $isPromoted = $manifestValue["packEnabled"] -and $manifestValue["verified"] -and
 if (-not $isPromoted) {
     if ($Check) { throw "HIPSHARP1001: The Linux runtime manifest has not been promoted." }
     if ((Get-HipSharpSha256 $manifestPath) -ne $lock["inputs"]["sourceManifest"]["sha256"]) {
-        throw "HIPSHARP1001: The source manifest no longer matches the immutable M8.7 promotion input."
+        throw "HIPSHARP1001: The source manifest no longer matches the immutable promotion input."
     }
 
     $manifestValue["packEnabled"] = $true
@@ -51,12 +51,14 @@ if (-not $isPromoted) {
         gpu = "gfx1100"
         isolation = "official-host + PRoot package-only"
     }
+    $lockRelativePath = [System.IO.Path]::GetRelativePath($repositoryRoot, $lockPath).Replace("\", "/")
+    $receiptRelativePath = [System.IO.Path]::GetRelativePath($repositoryRoot, $receiptPath).Replace("\", "/")
     $verification["promotionReceipt"] = [ordered]@{
-        path = "nuget/runtime-manifests/linux-x64.promotion-receipt.json"
+        path = $receiptRelativePath
         sha256 = $receiptHash
-        lockPath = "eng/promotion/m8.7-promotion-lock.json"
+        lockPath = $lockRelativePath
     }
-    $verification["reason"] = "M8.7 validated the exact JYPPX.ROCm 0.9.0/7.2.1 candidate through official-host and PRoot package-only paths. The deterministic promotion receipt binds the package audits, symbol and ABI completeness, 1,127 managed comparisons, reliability run, four fail-closed negatives, and the unchanged native payload. Publication remains unauthorized."
+    $verification["reason"] = if ($lock.ContainsKey("promotionReason")) { [string]$lock["promotionReason"] } else { "The deterministic promotion receipt binds the exact candidate package audits, symbol and ABI completeness, managed comparisons, reliability run, fail-closed negatives, and unchanged protected payload. Publication remains a separate authorization boundary." }
     $manifestValue["size"]["topology"] = "single-package"
     $manifestValue["size"]["decision"] = "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
     $manifestJson = (($manifestValue | ConvertTo-Json -Depth 30) -replace "`r?`n", "`r`n") + "`r`n"
@@ -66,14 +68,16 @@ if (-not $isPromoted) {
 }
 
 if (-not $verification.ContainsKey("promotionReceipt")) {
-    throw "HIPSHARP1001: The promoted manifest does not bind the tracked M8.7 receipt."
+    throw "HIPSHARP1001: The promoted manifest does not bind the tracked receipt."
 }
 $promotionReceipt = $verification["promotionReceipt"]
-if ($promotionReceipt["path"] -ne "nuget/runtime-manifests/linux-x64.promotion-receipt.json" -or
-    $promotionReceipt["lockPath"] -ne "eng/promotion/m8.7-promotion-lock.json" -or
+$expectedReceiptRelativePath = [System.IO.Path]::GetRelativePath($repositoryRoot, $receiptPath).Replace("\", "/")
+$expectedLockRelativePath = [System.IO.Path]::GetRelativePath($repositoryRoot, $lockPath).Replace("\", "/")
+if ($promotionReceipt["path"] -ne $expectedReceiptRelativePath -or
+    $promotionReceipt["lockPath"] -ne $expectedLockRelativePath -or
     $promotionReceipt["sha256"] -ne $receiptHash -or
     $verification["validationSha256"] -ne $receiptHash) {
-    throw "HIPSHARP1001: The promoted manifest does not bind the tracked M8.7 receipt."
+    throw "HIPSHARP1001: The promoted manifest does not bind the tracked receipt and lock."
 }
 
 Assert-HipSharpRuntimeManifest $manifestValue -RequirePackable

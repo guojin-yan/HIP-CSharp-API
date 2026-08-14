@@ -135,8 +135,32 @@ foreach ($name in @("schemaVersion", "promotionId", "validatedGitCommit", "gener
     if (-not $lock.ContainsKey($name)) { Fail "Promotion lock is missing '$name'." }
 }
 Assert-Equal $lock.schemaVersion 1 "promotion lock schemaVersion"
-Assert-Equal $lock.promotionId "m8.7-to-m8.8-linux-0.9.0" "promotionId"
 if ([string]$lock.validatedGitCommit -notmatch '^[0-9a-f]{40}$') { Fail "validatedGitCommit must be a lowercase 40-character SHA." }
+
+if ($lock.ContainsKey("expectations")) {
+    Assert-Equal $lock.promotionId "m8.9-forward-fix-linux-0.9.1" "promotionId"
+    $expectations = $lock.expectations
+    foreach ($name in @(
+        "summaryTopic", "pushed", "corePackageId", "corePackageVersion", "runtimePackageId",
+        "runtimePackageVersion", "candidateMode", "candidateStatus", "coreNuspec", "runtimeNuspec"
+    )) {
+        if (-not $expectations.ContainsKey($name)) { Fail "Promotion expectations are missing '$name'." }
+    }
+} else {
+    Assert-Equal $lock.promotionId "m8.7-to-m8.8-linux-0.9.0" "promotionId"
+    $expectations = [ordered]@{
+        summaryTopic = "m8.7-managed-expansion"
+        pushed = $false
+        corePackageId = "JYPPX.ROCm.HIP.CSharp.API"
+        corePackageVersion = "0.9.0"
+        runtimePackageId = "JYPPX.ROCm.HipSharp.Runtime.linux-x64"
+        runtimePackageVersion = "7.2.1"
+        candidateMode = "isolated-gpu-candidate"
+        candidateStatus = "local-unverified-internal-candidate"
+        coreNuspec = "JYPPX.ROCm.HIP.CSharp.API.nuspec"
+        runtimeNuspec = "JYPPX.ROCm.HipSharp.Runtime.linux-x64.nuspec"
+    }
+}
 
 $requiredRoles = @(
     "validationSummary", "gitBundle", "transferManifest", "coreCandidate", "runtimeCandidate",
@@ -158,27 +182,28 @@ $candidateManifest = Read-Json $paths.candidateManifest "candidateManifest"
 $attestation = Read-Json $paths.candidateAttestation "candidateAttestation"
 
 Assert-Equal $summary.schemaVersion 1 "validation summary schemaVersion"
-Assert-Equal $summary.topic "m8.7-managed-expansion" "validation summary topic"
+Assert-Equal $summary.topic $expectations.summaryTopic "validation summary topic"
 Assert-Equal $summary.status "completed" "validation summary status"
 Assert-Equal $summary.finalGitCommit $lock.validatedGitCommit "validation summary Git SHA"
 Assert-Equal $summary.validatedCheckout "clean-detached" "validation checkout"
 Assert-Equal $summary.officialHostGateExitCode 0 "official host gate exit code"
 Assert-Equal $summary.isolatedPRootGateExitCode 0 "PRoot gate exit code"
-foreach ($name in @("pushed", "published", "publishable")) { Assert-False $summary[$name] "validation summary $name" }
+Assert-Equal $summary.pushed $expectations.pushed "validation summary pushed"
+foreach ($name in @("published", "publishable")) { Assert-False $summary[$name] "validation summary $name" }
 
 $corePackage = $summary.packages.core
 $runtimePackage = $summary.packages.runtime
-Assert-Equal $corePackage.id "JYPPX.ROCm.HIP.CSharp.API" "Core package ID"
-Assert-Equal $corePackage.version "0.9.0" "Core package version"
+Assert-Equal $corePackage.id $expectations.corePackageId "Core package ID"
+Assert-Equal $corePackage.version $expectations.corePackageVersion "Core package version"
 Assert-Equal ([string]$corePackage.sha256).ToLowerInvariant() $lock.inputs.coreCandidate.sha256 "Core package hash"
 Assert-Equal $corePackage.size $lock.inputs.coreCandidate.size "Core package size"
 Assert-Equal $corePackage.repositoryCommit $lock.validatedGitCommit "Core repository commit"
-Assert-Equal $runtimePackage.id "JYPPX.ROCm.HipSharp.Runtime.linux-x64" "Runtime package ID"
-Assert-Equal $runtimePackage.version "7.2.1" "Runtime package version"
+Assert-Equal $runtimePackage.id $expectations.runtimePackageId "Runtime package ID"
+Assert-Equal $runtimePackage.version $expectations.runtimePackageVersion "Runtime package version"
 Assert-Equal ([string]$runtimePackage.sha256).ToLowerInvariant() $lock.inputs.runtimeCandidate.sha256 "Runtime package hash"
 Assert-Equal $runtimePackage.size $lock.inputs.runtimeCandidate.size "Runtime package size"
 Assert-Equal $runtimePackage.repositoryCommit $lock.validatedGitCommit "Runtime repository commit"
-Assert-Equal $runtimePackage.mode "isolated-gpu-candidate" "Runtime candidate mode"
+Assert-Equal $runtimePackage.mode $expectations.candidateMode "Runtime candidate mode"
 
 Assert-Equal $summary.symbols.managedRuntime "91/91" "managed Runtime symbols"
 Assert-Equal $summary.symbols.managedHiprtc "9/9" "managed HIPRTC symbols"
@@ -243,7 +268,7 @@ Assert-Equal $runtimeNuspec.repository.commit $lock.validatedGitCommit "Runtime 
 
 Assert-Equal ([string]$coreAudit.sha256).ToLowerInvariant() $lock.inputs.coreCandidate.sha256 "Core audit package hash"
 Assert-Equal $coreAudit.size $lock.inputs.coreCandidate.size "Core audit package size"
-Assert-Equal $coreAudit.packageVersion "0.9.0" "Core audit version"
+Assert-Equal $coreAudit.packageVersion $expectations.corePackageVersion "Core audit version"
 Assert-Equal $coreAudit.repositoryCommit $lock.validatedGitCommit "Core audit repository commit"
 Assert-Equal $coreAudit.contentAudit "passed" "Core content audit"
 Assert-False $coreAudit.publishable "Core audit publishable"
@@ -257,22 +282,22 @@ foreach ($consumer in @($coreAudit.consumers)) {
 Assert-Equal ([string]$runtimeAudit.sha256).ToLowerInvariant() $lock.inputs.runtimeCandidate.sha256 "Runtime audit package hash"
 Assert-Equal $runtimeAudit.size $lock.inputs.runtimeCandidate.size "Runtime audit package size"
 Assert-Equal $runtimeAudit.packageId $runtimePackage.id "Runtime audit package ID"
-Assert-Equal $runtimeAudit.packageVersion "7.2.1" "Runtime audit version"
+Assert-Equal $runtimeAudit.packageVersion $expectations.runtimePackageVersion "Runtime audit version"
 Assert-Equal $runtimeAudit.contentAudit "passed" "Runtime content audit"
-Assert-Equal $runtimeAudit.mode "isolated-gpu-candidate" "Runtime audit mode"
+Assert-Equal $runtimeAudit.mode $expectations.candidateMode "Runtime audit mode"
 Assert-False $runtimeAudit.publishable "Runtime audit publishable"
 Assert-Equal $runtimeAudit.currentGitCommit $lock.validatedGitCommit "Runtime audit current commit"
 Assert-Equal $runtimeAudit.packageRepositoryCommit $lock.validatedGitCommit "Runtime audit repository commit"
 
 foreach ($manifest in @($sourceManifest, $candidateManifest)) {
     Assert-Equal $manifest.packageId $runtimePackage.id "Runtime manifest package ID"
-    Assert-Equal $manifest.packageVersion "7.2.1" "Runtime manifest version"
+    Assert-Equal $manifest.packageVersion $expectations.runtimePackageVersion "Runtime manifest version"
     foreach ($name in @("packEnabled", "verified")) { Assert-False $manifest[$name] "Runtime manifest $name" }
     foreach ($name in @("packageAuditVerified", "gpuValidated")) { Assert-False $manifest.verification[$name] "Runtime manifest verification.$name" }
 }
 Assert-Equal $candidateManifest.candidate.gitSha $lock.validatedGitCommit "candidate manifest Git SHA"
 Assert-False $candidateManifest.candidate.publishable "candidate manifest publishable"
-Assert-Equal $candidateManifest.candidate.status "local-unverified-internal-candidate" "candidate manifest status"
+Assert-Equal $candidateManifest.candidate.status $expectations.candidateStatus "candidate manifest status"
 Assert-Equal $candidateManifest.candidate.sourceManifestSha256 $lock.inputs.sourceManifest.sha256 "candidate source manifest hash"
 Assert-Equal $candidateManifest.sbom.sha256 $lock.inputs.sbom.sha256 "candidate manifest SBOM hash"
 Assert-Equal $runtimeAudit.manifestSha256 $lock.inputs.candidateManifest.sha256 "Runtime audit candidate manifest hash"
@@ -280,12 +305,12 @@ Assert-Equal $runtimeAudit.sbomSha256 $lock.inputs.sbom.sha256 "Runtime audit SB
 Assert-Equal $runtimeAudit.sourceManifestSha256 $lock.inputs.sourceManifest.sha256 "Runtime audit source manifest hash"
 
 Assert-Equal $attestation.schemaVersion 1 "candidate attestation schemaVersion"
-Assert-Equal $attestation.mode "isolated-gpu-candidate" "candidate attestation mode"
+Assert-Equal $attestation.mode $expectations.candidateMode "candidate attestation mode"
 Assert-False $attestation.publishable "candidate attestation publishable"
 Assert-Equal $attestation.gitSha $lock.validatedGitCommit "candidate attestation Git SHA"
-Assert-Equal $attestation.coreVersion "0.9.0" "candidate attestation Core version"
+Assert-Equal $attestation.coreVersion $expectations.corePackageVersion "candidate attestation Core version"
 Assert-Equal $attestation.packageId $runtimePackage.id "candidate attestation package ID"
-Assert-Equal $attestation.packageVersion "7.2.1" "candidate attestation package version"
+Assert-Equal $attestation.packageVersion $expectations.runtimePackageVersion "candidate attestation package version"
 Assert-Equal $attestation.rid "linux-x64" "candidate attestation RID"
 Assert-Equal $attestation.sourceManifestSha256 $lock.inputs.sourceManifest.sha256 "attestation source manifest hash"
 Assert-Equal $attestation.manifestSha256 $lock.inputs.candidateManifest.sha256 "attestation candidate manifest hash"
@@ -339,8 +364,8 @@ $receipt = [ordered]@{
     generatorVersion = [string]$lock.generatorVersion
     inputs = $receiptInputs
     candidatePackages = [ordered]@{
-        core = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API"; version = "0.9.0"; size = [int64]$lock.inputs.coreCandidate.size; sha256 = [string]$lock.inputs.coreCandidate.sha256; repositoryCommit = [string]$lock.validatedGitCommit }
-        runtime = [ordered]@{ id = "JYPPX.ROCm.HipSharp.Runtime.linux-x64"; version = "7.2.1"; size = [int64]$lock.inputs.runtimeCandidate.size; sha256 = [string]$lock.inputs.runtimeCandidate.sha256; repositoryCommit = [string]$lock.validatedGitCommit }
+        core = [ordered]@{ id = [string]$expectations.corePackageId; version = [string]$expectations.corePackageVersion; size = [int64]$lock.inputs.coreCandidate.size; sha256 = [string]$lock.inputs.coreCandidate.sha256; repositoryCommit = [string]$lock.validatedGitCommit }
+        runtime = [ordered]@{ id = [string]$expectations.runtimePackageId; version = [string]$expectations.runtimePackageVersion; size = [int64]$lock.inputs.runtimeCandidate.size; sha256 = [string]$lock.inputs.runtimeCandidate.sha256; repositoryCommit = [string]$lock.validatedGitCommit }
     }
     payload = [ordered]@{
         coreManagedLicenseAndLogo = $corePayload
@@ -351,8 +376,8 @@ $receipt = [ordered]@{
         stagingDigestSha256 = [string]$lock.stagingDigestSha256
     }
     allowedMetadataPaths = [ordered]@{
-        core = @("_rels/.rels", "[Content_Types].xml", "JYPPX.ROCm.HIP.CSharp.API.nuspec", "package/services/metadata/core-properties/*.psmdcp", "README.md")
-        runtime = @("_rels/.rels", "[Content_Types].xml", "JYPPX.ROCm.HipSharp.Runtime.linux-x64.nuspec", "package/services/metadata/core-properties/*.psmdcp", "README.md", "runtime-manifest.json", "promotion-receipt.json")
+        core = @("_rels/.rels", "[Content_Types].xml", [string]$expectations.coreNuspec, "package/services/metadata/core-properties/*.psmdcp", "README.md")
+        runtime = @("_rels/.rels", "[Content_Types].xml", [string]$expectations.runtimeNuspec, "package/services/metadata/core-properties/*.psmdcp", "README.md", "runtime-manifest.json", "promotion-receipt.json")
     }
     validationScope = [ordered]@{
         environment = [ordered]@{ os = "Ubuntu 24.04.4"; architecture = "x86_64"; gpuArchitecture = "gfx1100"; isolation = "official-host + PRoot package-only" }
@@ -389,4 +414,4 @@ if (-not [string]::IsNullOrWhiteSpace($OutputReceipt)) {
     Write-Host "Promotion receipt: $outputPath"
 }
 
-Write-Host "M8.7 promotion evidence passed: exact candidate, 100/477 symbols, ABI schema 7, 1127 comparisons, reliability, and four fail-closed negatives."
+Write-Host "Promotion evidence passed for $($lock.promotionId): exact candidate, 100/477 symbols, ABI schema 7, 1127 comparisons, reliability, and four fail-closed negatives."

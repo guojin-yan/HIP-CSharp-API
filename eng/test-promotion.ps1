@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$LockFile = "eng/promotion/m8.7-promotion-lock.json")
+param([string]$LockFile = "eng/promotion/m8.9-forward-fix-promotion-lock.json")
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"

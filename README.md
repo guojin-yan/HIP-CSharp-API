@@ -79,8 +79,8 @@ Applications using the managed package must still provide compatible native `amd
 
 | Package | Native baseline | Contents | State |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.0` published with wrong assembly identity; `0.9.1` forward fix pending fresh validation |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | Old ID `JYPPX.ROCm.HipSharp.Runtime.linux-x64` `7.2.1` is public; new ID requires fresh validation |
+| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.0` had the wrong assembly identity; the `0.9.1` candidate passed fresh promotion gates and awaits final/public-feed validation |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | The old `JYPPX.ROCm.HipSharp.Runtime.linux-x64` family is superseded; the corrected candidate passed fresh promotion gates and awaits final/public-feed validation |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.

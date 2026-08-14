@@ -46,9 +46,12 @@ if ($RequirePackable) {
     $expectedReceiptPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $receiptMetadata.path))
     $receiptPath = if ([System.IO.Path]::IsPathRooted($PromotionReceipt)) { [System.IO.Path]::GetFullPath($PromotionReceipt) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $PromotionReceipt)) }
     $expectedLockPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $receiptMetadata.lockPath))
-    $fixedLockPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/m8.7-promotion-lock.json"))
-    if ($receiptPath -ne $expectedReceiptPath -or $expectedLockPath -ne $fixedLockPath) {
-        throw "HIPSHARP1001: Final packaging must use the repository-tracked M8.7 promotion receipt and lock."
+    $approvedLockPaths = @(
+        [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/m8.7-promotion-lock.json")),
+        [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/m8.9-forward-fix-promotion-lock.json"))
+    )
+    if ($receiptPath -ne $expectedReceiptPath -or $expectedLockPath -notin $approvedLockPaths) {
+        throw "HIPSHARP1001: Final packaging must use a repository-tracked promotion receipt and approved lock."
     }
     if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) { throw "HIPSHARP1001: The tracked promotion receipt is missing." }
     Assert-HipSharpHash $PromotionReceiptSha256 "promotion receipt SHA-256"

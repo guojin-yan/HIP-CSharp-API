@@ -1,73 +1,73 @@
 {
   "schemaVersion": 1,
-  "promotionId": "m8.7-to-m8.8-linux-0.9.0",
-  "validatedGitCommit": "4d8edb29daa7a25b50aeaf42938df90320f628fa",
-  "generatorVersion": "1.0.0",
+  "promotionId": "m8.9-forward-fix-linux-0.9.1",
+  "validatedGitCommit": "c5e1b28c916a5534d84abed2257a0b513509cbae",
+  "generatorVersion": "1.1.0",
   "inputs": {
     "validationSummary": {
-      "size": 2480,
-      "sha256": "994128d01ca0b0cdfbf560ea297c505d212b6866f246693f02c5ce2bf9bf1549"
+      "size": 2824,
+      "sha256": "736a7f4adc488366e3f300f68d9ce56464481b037d7eff52684430fe739e5e32"
     },
     "gitBundle": {
-      "size": 675524,
-      "sha256": "f028a023a20a9c08372d347ae563dd3c791c7a4ed510e3bdf9582fc92d25dbe5"
+      "size": 725600,
+      "sha256": "8f561a67ff87b401a64ee10dc31e199b81600b19ee134d7a6fececc449cb6759"
     },
     "transferManifest": {
-      "size": 3224,
-      "sha256": "566ad918fdae6bbed988b6731a1e3e9170a8272a486a1b6f72f29429091e3884"
+      "size": 2159,
+      "sha256": "61597449127245d94bb97f06e56a53de39b70afb03bbe94360d20f5ffd4c3797"
     },
     "coreCandidate": {
-      "size": 2386156,
-      "sha256": "8625b934e557e982dd5759da18155e1a0e7583983409f2d6ae492b90d258bb5c"
+      "size": 2387222,
+      "sha256": "407638e0ca0db0b3ed47a524fc882a91a82f046cfe3e6d432b20cecf2f5c3395"
     },
     "runtimeCandidate": {
-      "size": 162892132,
-      "sha256": "3992957f04951828ed8abfc6cbfa89344dd5af0567927a28e2fd636895eee874"
+      "size": 162892144,
+      "sha256": "70a7acbb8af75f8c138e2e71c5eeede5988483d0e862c47b54572b1c66404ec3"
     },
     "coreAudit": {
-      "size": 2887,
-      "sha256": "9151c93cb9a283227ac87e2464699eed6af32b56b2eacc0a1af7600bc61b4cb1"
+      "size": 3099,
+      "sha256": "7fc88270fc83dcd8c7e0f2eef04e1674510d4a973aaf4de5fbb375c40c18c204"
     },
     "runtimeAudit": {
-      "size": 786,
-      "sha256": "2ff7a74e22d6df18786e53d3317d731d2cb03f6dbcc14a631e4f019de6cc1dec"
+      "size": 944,
+      "sha256": "0729c2d8a045742a66c4d5e0b92f6b63fe5eeb293f44d505eae49e39689c9f1e"
     },
     "sourceManifest": {
-      "size": 16070,
-      "sha256": "348dc5c02834bea11a58263d06e64a08277262263ec8ce5fbde9ded844d06a58"
+      "size": 18289,
+      "sha256": "e3fc16bf4200745bc45ca795069f02117be8d50f9801226251dc87f317eeb6b2"
     },
     "candidateManifest": {
-      "size": 18710,
-      "sha256": "3c25e4189772b65d702b56597e8dfb1b2aae765261b125315f880dbacc3454df"
+      "size": 18640,
+      "sha256": "e2b65e197d7874d507d03d49d18b8a43f10974c70e88b63249b950e79b0cb263"
     },
     "sbom": {
-      "size": 17454,
-      "sha256": "0a0c014d0bb2b8579f68c39dc612e29f0ca98023303453414210c1f13643be8d"
+      "size": 17472,
+      "sha256": "eaa02374b3744ec3177fcfba43be5f947fa81ce2b59bf112b691323cbf835619"
     },
     "candidateAttestation": {
-      "size": 647,
-      "sha256": "c2f2e90b730de30d30cbbdb41dd0dc92808e545785b07bb0016069bc8ec67f13"
+      "size": 653,
+      "sha256": "89ffe9fa45fb8781ba448bb8e43726bb7a396b6e44ea6b4b1c79830246986471"
     }
   },
   "candidatePackages": {
     "core": {
       "id": "JYPPX.ROCm.HIP.CSharp.API",
-      "version": "0.9.0",
-      "size": 2386156,
-      "sha256": "8625b934e557e982dd5759da18155e1a0e7583983409f2d6ae492b90d258bb5c",
-      "repositoryCommit": "4d8edb29daa7a25b50aeaf42938df90320f628fa"
+      "version": "0.9.1",
+      "size": 2387222,
+      "sha256": "407638e0ca0db0b3ed47a524fc882a91a82f046cfe3e6d432b20cecf2f5c3395",
+      "repositoryCommit": "c5e1b28c916a5534d84abed2257a0b513509cbae"
     },
     "runtime": {
-      "id": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
+      "id": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
       "version": "7.2.1",
-      "size": 162892132,
-      "sha256": "3992957f04951828ed8abfc6cbfa89344dd5af0567927a28e2fd636895eee874",
-      "repositoryCommit": "4d8edb29daa7a25b50aeaf42938df90320f628fa"
+      "size": 162892144,
+      "sha256": "70a7acbb8af75f8c138e2e71c5eeede5988483d0e862c47b54572b1c66404ec3",
+      "repositoryCommit": "c5e1b28c916a5534d84abed2257a0b513509cbae"
     }
   },
   "payload": {
     "coreManagedLicenseAndLogo": {
-      "sha256": "4e8b61e57ac830e078ad4a885291f69cd49e2d2fc2d14f1d3e0b9931d64114dc",
+      "sha256": "7f54d4680fd4db4b48a1f2927f710127091f1c54f5d843ceccbe3d22468e0198",
       "paths": 32
     },
     "runtimeNative": {
@@ -79,14 +79,14 @@
       "paths": 7
     },
     "runtimeSbom": {
-      "sha256": "f3288abb32da90f8a1414834898609c957aa4491d88d530a505b79f061cc16bf",
+      "sha256": "b192dfbd36e86cdf0e2d956c88dd9f53376b4f9145aba97de4b42836254ef007",
       "paths": 1
     },
     "runtimeProtectedPayload": {
-      "sha256": "a9df6299180666f7c90571185a1db599425e6340ecad330f2acac6c6bc09a650",
+      "sha256": "abde2e1aef8ee5a632292ff64473e069aa57610a61e065d4142270bf607732b1",
       "paths": 23
     },
-    "stagingDigestSha256": "dce0bffb0aabf82b03519e2c14a7f93f27c5234bd8406323cc2b1d89edca0ea5"
+    "stagingDigestSha256": "6fd123b1f65062f87d34452793bc82ed889493ccaa11836a58953260587a6c7b"
   },
   "allowedMetadataPaths": {
     "core": [
@@ -99,7 +99,7 @@
     "runtime": [
       "_rels/.rels",
       "[Content_Types].xml",
-      "JYPPX.ROCm.HipSharp.Runtime.linux-x64.nuspec",
+      "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.nuspec",
       "package/services/metadata/core-properties/*.psmdcp",
       "README.md",
       "runtime-manifest.json",

@@ -51,20 +51,20 @@ function Invoke-ApiTool([string[]]$Arguments) {
     if ($LASTEXITCODE -ne 0) { throw "HIPSHARP1001: Core API/semantic comparison tool failed." }
 }
 
-function Compare-CoreSemantics([string]$CandidatePackage, [string]$FinalPackage) {
+function Compare-CoreSemantics([string]$CandidatePackage, [string]$FinalPackage, [string]$AssemblyName) {
     $frameworks = @("net46", "net461", "net462", "net47", "net471", "net472", "net48", "net481", "netcoreapp3.1", "net5.0", "net6.0", "net7.0", "net8.0", "net9.0", "net10.0")
     $root = Join-Path $repositoryRoot "artifacts/promotion/package-diff"
     $categories = Join-Path $repositoryRoot "eng/public-api/categories.json"
     $results = [System.Collections.Generic.List[object]]::new()
     foreach ($framework in $frameworks) {
-        $candidateDll = Join-Path $root "candidate/$framework/JYPPX.ROCm.HipSharp.dll"
-        $candidateXml = Join-Path $root "candidate/$framework/JYPPX.ROCm.HipSharp.xml"
-        $finalDll = Join-Path $root "final/$framework/JYPPX.ROCm.HipSharp.dll"
-        $finalXml = Join-Path $root "final/$framework/JYPPX.ROCm.HipSharp.xml"
-        Extract-Entry $CandidatePackage "lib/$framework/JYPPX.ROCm.HipSharp.dll" $candidateDll
-        Extract-Entry $CandidatePackage "lib/$framework/JYPPX.ROCm.HipSharp.xml" $candidateXml
-        Extract-Entry $FinalPackage "lib/$framework/JYPPX.ROCm.HipSharp.dll" $finalDll
-        Extract-Entry $FinalPackage "lib/$framework/JYPPX.ROCm.HipSharp.xml" $finalXml
+        $candidateDll = Join-Path $root "candidate/$framework/$AssemblyName.dll"
+        $candidateXml = Join-Path $root "candidate/$framework/$AssemblyName.xml"
+        $finalDll = Join-Path $root "final/$framework/$AssemblyName.dll"
+        $finalXml = Join-Path $root "final/$framework/$AssemblyName.xml"
+        Extract-Entry $CandidatePackage "lib/$framework/$AssemblyName.dll" $candidateDll
+        Extract-Entry $CandidatePackage "lib/$framework/$AssemblyName.xml" $candidateXml
+        Extract-Entry $FinalPackage "lib/$framework/$AssemblyName.dll" $finalDll
+        Extract-Entry $FinalPackage "lib/$framework/$AssemblyName.xml" $finalXml
 
         $candidateApi = Join-Path $root "candidate/$framework/public-api.txt"
         $finalApi = Join-Path $root "final/$framework/public-api.txt"
@@ -141,8 +141,9 @@ if ((Get-Sha $candidateCorePath) -ne $receiptValue.candidatePackages.core.sha256
     throw "HIPSHARP1001: Candidate package hashes do not match the promotion receipt."
 }
 
-$core = Compare-Payload "Core" (Get-Entries $candidateCorePath) (Get-Entries $finalCorePath) @($receiptValue.allowedMetadataPaths.core) @("lib/*/JYPPX.ROCm.HipSharp.dll")
-$coreSemantics = Compare-CoreSemantics $candidateCorePath $finalCorePath
+$coreAssemblyName = if ($receiptValue.candidatePackages.core.version -eq "0.9.0") { "JYPPX.ROCm.HipSharp" } else { [string]$receiptValue.candidatePackages.core.id }
+$core = Compare-Payload "Core" (Get-Entries $candidateCorePath) (Get-Entries $finalCorePath) @($receiptValue.allowedMetadataPaths.core) @("lib/*/$coreAssemblyName.dll")
+$coreSemantics = Compare-CoreSemantics $candidateCorePath $finalCorePath $coreAssemblyName
 $runtimeEntries = Get-Entries $finalRuntimePath
 if (-not $runtimeEntries.Contains("promotion-receipt.json") -or $runtimeEntries["promotion-receipt.json"].sha256 -ne (Get-Sha $receiptPath)) {
     throw "HIPSHARP1001: Final runtime package does not embed the exact promotion receipt."

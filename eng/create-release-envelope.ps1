@@ -9,7 +9,7 @@ param(
     [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
     [string]$Sbom = "nuget/runtime-manifests/linux-x64.cdx.json",
     [string]$StagingDirectory = "eng/native-assets/staging/linux-x64",
-    [string]$Output = "artifacts/release-envelope/m8.8-linux-0.9.0.json"
+    [string]$Output = "artifacts/release-envelope/m8.9-linux-0.9.1.json"
 )
 
 Set-StrictMode -Version Latest
@@ -56,12 +56,12 @@ if ([string]$diffValue.status -ne "passed" -or -not $diffValue.allowedChangesOnl
 $stagingPath = if ([System.IO.Path]::IsPathRooted($StagingDirectory)) { [System.IO.Path]::GetFullPath($StagingDirectory) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $StagingDirectory)) }
 $envelope = [ordered]@{
     schemaVersion = 1
-    stage = "m8.8-linux-0.9.0"
+    stage = "m8.9-linux-0.9.1"
     status = "blocked-pending-owner-authorized-final-exact-package-gate"
     finalGitCommit = $gitSha
     packages = [ordered]@{
-        core = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API"; version = "0.9.0"; size = $coreIdentity.size; sha256 = $coreIdentity.sha256; repositoryCommit = $gitSha }
-        runtime = [ordered]@{ id = "JYPPX.ROCm.HipSharp.Runtime.linux-x64"; version = "7.2.1"; size = $runtimeIdentity.size; sha256 = $runtimeIdentity.sha256; repositoryCommit = $gitSha; mode = "verified-final" }
+        core = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API"; version = "0.9.1"; size = $coreIdentity.size; sha256 = $coreIdentity.sha256; repositoryCommit = $gitSha }
+        runtime = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64"; version = "7.2.1"; size = $runtimeIdentity.size; sha256 = $runtimeIdentity.sha256; repositoryCommit = $gitSha; mode = "verified-final" }
     }
     evidence = [ordered]@{
         promotionReceipt = File-Identity $PromotionReceipt
@@ -97,5 +97,5 @@ $outputPath = if ([System.IO.Path]::IsPathRooted($Output)) { [System.IO.Path]::G
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $outputPath) | Out-Null
 $json = (($envelope | ConvertTo-Json -Depth 20) -replace "`r`n", "`n") + "`n"
 [System.IO.File]::WriteAllText($outputPath, $json, [System.Text.UTF8Encoding]::new($false))
-Write-Host "Deterministic M8.8 release envelope written: $outputPath"
+Write-Host "Deterministic M8.9 release envelope written: $outputPath"
 Write-Output $outputPath
