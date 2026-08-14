@@ -43,22 +43,22 @@
       "sha256": "70a7acbb8af75f8c138e2e71c5eeede5988483d0e862c47b54572b1c66404ec3"
     },
     "coreAudit": {
-      "path": "artifacts/package-audit/package-audit.json",
+      "path": "artifacts/promotion/m8.9-candidate/core-package-audit.json",
       "size": 3099,
       "sha256": "7fc88270fc83dcd8c7e0f2eef04e1674510d4a973aaf4de5fbb375c40c18c204"
     },
     "runtimeAudit": {
-      "path": "artifacts/runtime-package-audit/runtime-package-audit.json",
+      "path": "artifacts/promotion/m8.9-candidate/runtime-package-audit.json",
       "size": 944,
       "sha256": "0729c2d8a045742a66c4d5e0b92f6b63fe5eeb293f44d505eae49e39689c9f1e"
     },
     "sourceManifest": {
-      "path": "artifacts/runtime-candidate/source-linux-x64.json",
+      "path": "artifacts/promotion/m8.9-candidate/source-linux-x64.json",
       "size": 18289,
       "sha256": "e3fc16bf4200745bc45ca795069f02117be8d50f9801226251dc87f317eeb6b2"
     },
     "candidateManifest": {
-      "path": "artifacts/runtime-candidate/linux-x64.json",
+      "path": "artifacts/promotion/m8.9-candidate/candidate-linux-x64.json",
       "size": 18640,
       "sha256": "e2b65e197d7874d507d03d49d18b8a43f10974c70e88b63249b950e79b0cb263"
     },
@@ -68,7 +68,7 @@
       "sha256": "eaa02374b3744ec3177fcfba43be5f947fa81ce2b59bf112b691323cbf835619"
     },
     "candidateAttestation": {
-      "path": "artifacts/runtime-candidate/candidate-attestation.json",
+      "path": "artifacts/promotion/m8.9-candidate/candidate-attestation.json",
       "size": 653,
       "sha256": "89ffe9fa45fb8781ba448bb8e43726bb7a396b6e44ea6b4b1c79830246986471"
     }
