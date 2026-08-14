@@ -1,11 +1,11 @@
 {
   "$schema": "./runtime-manifest.schema.json",
   "schemaVersion": 2,
-  "packageId": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
   "packageVersion": "7.2.1",
   "rid": "linux-x64",
-  "packEnabled": true,
-  "verified": true,
+  "packEnabled": false,
+  "verified": false,
   "nativeAssetPath": "runtimes/linux-x64/native",
   "rocm": "7.2.1",
   "hip": "7.2.53211",
@@ -467,20 +467,10 @@
     "closureVerified": true,
     "licensesVerified": true,
     "sbomVerified": true,
-    "packageAuditVerified": true,
-    "gpuValidated": true,
-    "validationSha256": "31d40bb4828a27978b02dfdcf0d4de0473e0522dd7c2b7921e90bfd706c15ec3",
-    "environment": {
-      "os": "Ubuntu 24.04.4",
-      "architecture": "x86_64",
-      "gpu": "gfx1100",
-      "isolation": "official-host + PRoot package-only"
-    },
-    "reason": "M8.7 validated the exact JYPPX.ROCm 0.9.0/7.2.1 candidate through official-host and PRoot package-only paths. The deterministic promotion receipt binds the package audits, symbol and ABI completeness, 1,127 managed comparisons, reliability run, four fail-closed negatives, and the unchanged native payload. Publication remains unauthorized.",
-    "promotionReceipt": {
-      "path": "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
-      "sha256": "31d40bb4828a27978b02dfdcf0d4de0473e0522dd7c2b7921e90bfd706c15ec3",
-      "lockPath": "eng/promotion/m8.7-promotion-lock.json"
-    }
+    "packageAuditVerified": false,
+    "gpuValidated": false,
+    "validationSha256": null,
+    "environment": null,
+    "reason": "M8.9 package-family forward fix: the old Runtime package ID was published, so this new identity requires fresh exact-package and public-feed GPU validation."
   }
 }

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "packageId": "JYPPX.ROCm.HipSharp.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
   "unpackedBytes": 415070520,
   "packageBytes": 162891900,
   "nugetLimitBytes": 262144000,
