@@ -15,6 +15,9 @@
 *.nupkg binary
 *.snupkg binary
 
+# Exact license bytes carried by the M8.9 validated candidate packages.
+nuget/promotion/m8.9/LICENSE binary
+
 # Promotion-locked runtime metadata was validated and packaged with CRLF bytes.
 # Keep clean checkouts byte-identical on every host; the receipt remains LF.
 nuget/runtime-manifests/linux-x64.json text eol=crlf

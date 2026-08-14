@@ -31,7 +31,7 @@
   <ItemGroup>
     <None Include="..\..\nuget\README.md" Pack="true" PackagePath="\" Link="README.md" />
     <None Include="..\..\nuget\logo.jpg" Pack="true" PackagePath="\" Link="logo.jpg" />
-    <None Include="..\..\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
+    <None Include="..\..\nuget\promotion\m8.9\LICENSE" Pack="true" PackagePath="\" Link="LICENSE" />
   </ItemGroup>
 
 </Project>
