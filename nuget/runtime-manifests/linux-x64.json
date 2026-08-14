@@ -453,7 +453,7 @@
   "sbom": {
     "format": "CycloneDX-1.5",
     "path": "linux-x64.cdx.json",
-    "sha256": "0a0c014d0bb2b8579f68c39dc612e29f0ca98023303453414210c1f13643be8d"
+    "sha256": "eaa02374b3744ec3177fcfba43be5f947fa81ce2b59bf112b691323cbf835619"
   },
   "size": {
     "unpackedBytes": 415070520,
