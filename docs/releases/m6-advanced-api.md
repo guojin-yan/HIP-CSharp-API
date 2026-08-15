@@ -1,4 +1,6 @@
-# M6 advanced API validation
+# Historical: M6 advanced API validation
+
+> Historical engineering record. It is retained for traceability and is not the current release state.
 
 M6 adds stream-ordered allocation/free, managed-memory advice and prefetch, explicit P2P capability/enable/copy ownership, and stream-captured graphs. Captured wrapper operations automatically retain memory, module, managed-array, and pinned-buffer leases across the source graph and every executable. P2P copies use allocation and stream creation-device metadata instead of caller-supplied ordinals. The normalized interop model contains 55 functions and drives both `LibraryImport` and `DllImport` branches. ABI evidence schema 3 adds advanced signatures, enum widths/values, graph handle sizes, and required real-library symbol records.
 

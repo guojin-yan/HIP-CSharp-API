@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml"><img src="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/guojin-yan/HIP-CSharp-API.svg" alt="许可证" /></a>
-  <a href="#-当前状态初始开发阶段"><img src="https://img.shields.io/badge/status-in%20development-f59e0b" alt="开发中" /></a>
+  <a href="#-当前状态已发布预览版--10-候选"><img src="https://img.shields.io/badge/status-1.0%20candidate-2563eb" alt="1.0 候选" /></a>
   <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-net46%20to%20net10.0-512BD4" alt=".NET 目标框架" /></a>
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/HIP-CSharp-API?style=flat&amp;label=Stars" alt="GitHub stars" /></a>
 </p>
@@ -38,15 +38,23 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 - 为独立打包的 MIGraphX adapter 提供 friend-only 原子 stream enqueue/pending-callback 边界，不新增公开裸 handle API，也不让 core 依赖 MIGraphXSharp。
 - 提供内存复制、HIPRTC VectorAdd、stream/event 顺序、graph、托管内存及 P2P copy-or-skip 等可运行正确性样例。
 
-## 📢 当前状态：初始开发阶段
+## 📢 当前状态：已发布预览版 / 1.0 候选
 
-Core `0.9.0` 与 Linux Runtime `7.2.1` 已于 2026-08-14 发布，但 Core 包误用了 `JYPPX.ROCm.HipSharp` 程序集 identity。请勿采用 Core `0.9.0`；`0.9.1` forward-fix 候选会把包名和程序集 identity 统一为 `JYPPX.ROCm.HIP.CSharp.API`，同时保留 `JYPPX.ROCm.HipSharp` 命名空间。
+Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已在 nuget.org 公开。其 repository-signed 公开字节已于 2026-08-14 通过 nuget.org-only 静态消费者和 fresh package-only Linux GPU/ABI 门禁。Core `0.9.0` 因错误的 `JYPPX.ROCm.HipSharp` 程序集 identity 保持不可变且已 unlist，请勿采用。
 
-M8.7/M8.8 的精确包证据只适用于不可变的 `0.9.0` bytes，不能验证程序集改名后的 `0.9.1`。forward fix 在新的 exact-package GPU 门禁和 Owner 独立发布授权完成前保持不可发布。Windows 仍为 static-only 且未经 GPU 验证；不作性能声明。
+当前源码正在形成 Linux Core `1.0.0` 候选，公开 surface 与 `0.9.1` 的 68 types/1,002 members 保持一致。本地构建候选不等于 GPU 验证、发布授权或已经发布：精确 `1.0.0` nupkg 仍需新的 Owner-authorized official-host 与隔离 package-only 门禁。Windows Runtime 继续 disabled/unverified/static-only；单设备 P2P 如实 skip，不作性能声明。
 
 ## 🚀 30 秒开始
 
-在首个正式包发布前，请直接运行源码仓库。需要 `global.json` 指定的 .NET 10 SDK，以及已正确安装 AMD 驱动和兼容 HIP/ROCm 用户态运行时的机器。
+安装已公开的托管 Core，并选择兼容的 system ROCm 或可选的 Linux Runtime 包：
+
+```powershell
+dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.9.1
+# Ubuntu 24.04 x64 可选：
+dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
+```
+
+从源码运行时，需要 `global.json` 指定的 .NET 10 SDK，以及已正确安装 AMD 驱动和兼容 HIP/ROCm 用户态运行时的机器：
 
 ```powershell
 git clone https://github.com/guojin-yan/HIP-CSharp-API.git
@@ -80,8 +88,8 @@ foreach (HipDevice device in runtime.GetDevices())
 
 | 包 | 原生基线 | 内容 | 状态 |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.0` 的程序集 identity 错误；`0.9.1` 候选已通过 fresh promotion gate，等待 final/public-feed 验证 |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | 旧 `JYPPX.ROCm.HipSharp.Runtime.linux-x64` 包族已被替代；修正候选已通过 fresh promotion gate，等待 final/public-feed 验证 |
+| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.1` 已公开并通过 public-feed 验证；`1.0.0` 候选尚未发布，等待 exact-package GPU 验证 |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | `7.2.1` 已公开并通过 public-feed package-only 验证；版本与 Core 独立 |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。
@@ -109,7 +117,7 @@ Core 项目直接面向 15 个目标框架：
 
 | 平台 | Core 构建/打包 | GPU 验证 | Runtime 包 |
 | --- | --- | --- | --- |
-| Linux x64 | 是 | M8.7 精确候选已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过；M8.8 final 字节待复核 | receipt 验证且受控的 7.2.1 本地 final 候选 |
+| Linux x64 | 是 | 公开 Core `0.9.1` + Runtime `7.2.1` 已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过 M8.9 nuget.org-only package GPU/ABI 门禁；精确 Core `1.0.0` 候选仍需新门禁 | 已公开且 receipt-verified 的 Runtime `7.2.1`；也可选择 system ROCm |
 | Windows x64 | 是；loader 与 PE 路径已静态审计 | 尚未在 AMD GPU 上验证 | 已禁用的 7.2.0 骨架 |
 
 部分旧 .NET 目标已结束上游支持，本项目仅将其作为包兼容目标保留。构建兼容、历史验证与正式支持之间的完整区别见[框架兼容性](docs/compatibility/frameworks.md)和[平台兼容性](docs/compatibility/platforms.md)。

@@ -7,7 +7,7 @@
 <p align="center">
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml"><img src="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/guojin-yan/HIP-CSharp-API.svg" alt="License" /></a>
-  <a href="#-current-status-initial-development"><img src="https://img.shields.io/badge/status-in%20development-f59e0b" alt="In development" /></a>
+  <a href="#-current-status-published-preview--10-candidate"><img src="https://img.shields.io/badge/status-1.0%20candidate-2563eb" alt="1.0 candidate" /></a>
   <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-net46%20to%20net10.0-512BD4" alt=".NET target frameworks" /></a>
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/HIP-CSharp-API?style=flat&amp;label=Stars" alt="GitHub stars" /></a>
 </p>
@@ -38,15 +38,23 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 - A friend-only atomic stream enqueue/pending-callback boundary for the separately packaged MIGraphX adapter, without adding a public raw-handle API or a core dependency on MIGraphXSharp.
 - Runnable correctness samples for memory copies, HIPRTC VectorAdd, stream/event ordering, graphs, managed memory, and P2P copy-or-skip behavior.
 
-## 📢 Current Status: Initial Development
+## 📢 Current Status: Published Preview / 1.0 Candidate
 
-Core `0.9.0` and Linux Runtime `7.2.1` were published on 2026-08-14, but the Core package used the unintended `JYPPX.ROCm.HipSharp` assembly identity. Do not adopt Core `0.9.0`; a `0.9.1` forward-fix candidate aligns the package and assembly identity as `JYPPX.ROCm.HIP.CSharp.API` while retaining the `JYPPX.ROCm.HipSharp` namespace.
+Core `0.9.1` and the optional Linux Runtime `7.2.1` are published on nuget.org. Their repository-signed public bytes passed nuget.org-only static consumers and a fresh package-only Linux GPU/ABI gate on 2026-08-14. Core `0.9.0` remains immutable and unlisted with its known unintended `JYPPX.ROCm.HipSharp` assembly identity; do not adopt it.
 
-The M8.7/M8.8 exact-package evidence applies only to the immutable `0.9.0` bytes. It does not validate the renamed `0.9.1` assembly. The forward fix remains non-publishable until a fresh exact-package GPU gate and separate Owner publication authorization are complete. Windows remains static-only and GPU-unvalidated; no performance claim is made.
+The source tree is preparing a Linux Core `1.0.0` candidate with the same 68-type/1,002-member public surface as `0.9.1`. Local candidate construction is not GPU validation, release authorization, or publication: the exact `1.0.0` nupkg still requires a new Owner-authorized official-host and isolated package-only gate. Windows Runtime remains disabled/unverified/static-only; single-device P2P is an honest skip and no performance claim is made.
 
 ## 🚀 Get Started In 30 Seconds
 
-Until the first package is published, run the source checkout directly. You need the .NET 10 SDK selected by `global.json` and a machine with a working AMD driver and compatible HIP/ROCm user-mode runtime.
+Install the published managed Core and choose either a compatible system ROCm installation or the optional published Linux Runtime package:
+
+```powershell
+dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.9.1
+# Optional on Ubuntu 24.04 x64:
+dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
+```
+
+To run from source, use the .NET 10 SDK selected by `global.json` and a machine with a working AMD driver plus compatible HIP/ROCm user-mode runtime:
 
 ```powershell
 git clone https://github.com/guojin-yan/HIP-CSharp-API.git
@@ -80,8 +88,8 @@ Applications using the managed package must still provide compatible native `amd
 
 | Package | Native baseline | Contents | State |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.0` had the wrong assembly identity; the `0.9.1` candidate passed fresh promotion gates and awaits final/public-feed validation |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | The old `JYPPX.ROCm.HipSharp.Runtime.linux-x64` family is superseded; the corrected candidate passed fresh promotion gates and awaits final/public-feed validation |
+| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.1` published and public-feed validated; `1.0.0` candidate is unpublished and awaits exact-package GPU validation |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | `7.2.1` published and public-feed package-only validated; independently versioned from Core |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
@@ -109,7 +117,7 @@ The Core project directly targets 15 frameworks:
 
 | Platform | Core build/package | GPU validation | Runtime package |
 | --- | --- | --- | --- |
-| Linux x64 | Yes | M8.7 exact candidate passed on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`; M8.8 final bytes pending recheck | Guarded receipt-verified 7.2.1 local final candidate |
+| Linux x64 | Yes | Public Core `0.9.1` + Runtime `7.2.1` passed the M8.9 nuget.org-only package GPU/ABI gate on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`; exact Core `1.0.0` candidate still requires a new gate | Published, receipt-verified Runtime `7.2.1`; optional to system ROCm |
 | Windows x64 | Yes; loader and PE paths are statically audited | Not yet validated on an AMD GPU | Disabled 7.2.0 skeleton |
 
 Several older .NET targets are end-of-support upstream and exist only for package compatibility. The full distinctions between build compatibility, historical validation, and supported deployment are documented in [framework compatibility](docs/compatibility/frameworks.md) and [platform compatibility](docs/compatibility/platforms.md).

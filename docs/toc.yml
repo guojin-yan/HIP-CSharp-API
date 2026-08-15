@@ -24,7 +24,7 @@
       href: guides/memory-pools.md
     - name: Complete Native API / 完整原生 API
       href: guides/complete-native-api.md
-    - name: 0.9 API Freeze / 0.9 API 冻结
+    - name: 1.0 API Freeze / 1.0 API 冻结
       href: guides/api-freeze.md
     - name: Linux Runtime Package Audit / Linux Runtime 包审计
       href: guides/linux-runtime-package.md
@@ -44,15 +44,23 @@
       href: design/migraphx-adapter-pending-lease.md
 - name: Releases / 版本
   items:
-    - name: 0.9.0 Linux Release Candidate / Linux 发布候选
-      href: releases/0.9.0-rc.md
+    - name: 1.0.0 Linux Core Candidate / Linux Core 候选
+      href: releases/1.0.0.md
+    - name: 1.0.0 Readiness / 1.0.0 就绪矩阵
+      href: releases/1.0.0-readiness.md
+    - name: M8.10 Controlled Cleanup / M8.10 受控清理
+      href: releases/1.0.0-cleanup.md
     - name: 0.9.1 Assembly Identity Forward Fix / 程序集 Identity 修正
       href: releases/0.9.1-forward-fix.md
-    - name: Manual Publishing Checklist / 人工发布清单
+    - name: 1.0.0 Publishing Checklist / 1.0.0 发布清单
       href: releases/publishing-checklist.md
-    - name: 0.0.0 M4 Local Release Candidate / M4 本地发布候选
-      href: releases/0.0.0.md
-    - name: Linux Runtime 7.2.1 Candidate / Linux Runtime 7.2.1 候选
+    - name: Linux Runtime 7.2.1 Published State / 已发布状态
       href: releases/7.2.1-runtime-candidate.md
+- name: Historical Records / 历史记录
+  items:
+    - name: 0.9.0 Assembly Incident / 程序集事故
+      href: releases/0.9.0-rc.md
+    - name: 0.0.0 M4-M6 Candidate / M4-M6 候选
+      href: releases/0.0.0.md
     - name: M6 Advanced API Validation / M6 高级 API 验证
       href: releases/m6-advanced-api.md

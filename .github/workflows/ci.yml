@@ -27,11 +27,14 @@ jobs:
       - name: Test and audit package
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild
+      - name: Test clean DocFX regeneration
+        shell: pwsh
+        run: ./eng/test-docs.ps1 -Configuration Release
       - name: Upload test and audit artifacts
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hipsharp-windows-m1-evidence
+          name: hipsharp-windows-core-candidate-evidence
           if-no-files-found: warn
           path: |
             artifacts/test-results/**
@@ -58,7 +61,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hipsharp-linux-m1-evidence
+          name: hipsharp-linux-core-candidate-evidence
           if-no-files-found: warn
           path: |
             artifacts/test-results/**

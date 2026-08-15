@@ -6,4 +6,4 @@ The host must be Ubuntu 24.04 x64 with the AMD `amdgpu`/`amdkfd` kernel driver, 
 
 The package includes its deterministic CycloneDX SBOM, per-component license texts, and the exact signed-source/file manifest. ROCm and HIP versions are fixed to 7.2.1/7.2.53211 for this package version.
 
-The M8.7/M8.8 exact candidate passed official-host and package-only validation under the old Runtime package ID, and that old `7.2.1` package was later published with repository signing. The corrected package-family ID is a new identity and must be rechecked in a fresh public-feed consumer before it is treated as part of a corrected release. Technical verification is not publication permission.
+The corrected package-family ID passed fresh official-host, signed Ubuntu Base/PRoot package-only, repository-signature, nuget.org-only static, and public package GPU/ABI validation in M8.9. Its public signed SHA-256 is `21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799`. That evidence applies to these immutable `7.2.1` bytes; a new Core package still needs its own exact-package validation. Technical verification is not publication permission.

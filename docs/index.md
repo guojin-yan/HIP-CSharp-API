@@ -1,17 +1,20 @@
 # HipSharp API Documentation / API 文档
 
-HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Published Core `0.9.0` has an assembly-identity naming defect and should not be adopted. The `0.9.1` forward-fix candidate aligns the package and assembly identity as `JYPPX.ROCm.HIP.CSharp.API` while keeping public APIs under `JYPPX.ROCm.HipSharp`; it requires fresh exact-package validation and Owner publication authorization. Windows remains static-only and GPU-unvalidated.
+HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.9.1` and optional Linux Runtime `7.2.1` are published and passed fresh nuget.org-only static plus package-only GPU/ABI validation. The source tree prepares an unpublished Linux Core `1.0.0` candidate with the same frozen public surface. That exact candidate still requires a new Owner-authorized GPU gate. Windows remains disabled/unverified/static-only.
 
-HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。已发布 Core `0.9.0` 存在程序集 identity 命名缺陷，不应采用。`0.9.1` forward-fix 候选将包与程序集 identity 统一为 `JYPPX.ROCm.HIP.CSharp.API`，公开 API 仍位于 `JYPPX.ROCm.HipSharp`；它需要新的 exact-package 验证和 Owner 发布授权。Windows 仍为 static-only，未经过 GPU 验证。
+HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已公开，并通过 fresh nuget.org-only 静态及 package-only GPU/ABI 验证。当前源码准备公开 surface 不变的 Linux Core `1.0.0` 未发布候选；该精确候选仍需新的 Owner-authorized GPU 门禁。Windows 保持 disabled/unverified/static-only。
 
 ## Documentation / 文档
 
 - [Framework compatibility / 框架兼容性](compatibility/frameworks.md)
 - [Platform compatibility / 平台兼容性](compatibility/platforms.md)
-- [0.9.0 release candidate / 0.9.0 发布候选](releases/0.9.0-rc.md)
+- [Historical 0.9.0 assembly incident / 0.9.0 程序集事故历史](releases/0.9.0-rc.md)
 - [0.9.1 assembly identity forward fix / 0.9.1 程序集 identity 修正](releases/0.9.1-forward-fix.md)
-- [Manual publishing checklist / 人工发布清单](releases/publishing-checklist.md)
-- [0.9 API freeze review / 0.9 API 冻结审查](guides/api-freeze.md)
+- [1.0.0 candidate notes / 1.0.0 候选说明](releases/1.0.0.md)
+- [1.0.0 readiness matrix / 1.0.0 就绪矩阵](releases/1.0.0-readiness.md)
+- [M8.10 controlled cleanup / M8.10 受控清理](releases/1.0.0-cleanup.md)
+- [1.0.0 manual publishing checklist / 1.0.0 人工发布清单](releases/publishing-checklist.md)
+- [1.0 API freeze review / 1.0 API 冻结审查](guides/api-freeze.md)
 - [JYPPX ROCm naming migration / JYPPX ROCm 命名迁移](design/jyppx-rocm-naming-migration.md)
 - [MIGraphX adapter pending-lease boundary / MIGraphX 适配器 pending 租约边界](design/migraphx-adapter-pending-lease.md)
 - [HIPRTC VectorAdd guide / HIPRTC VectorAdd 指南](guides/hiprtc-vectoradd.md)

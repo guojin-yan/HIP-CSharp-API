@@ -36,7 +36,7 @@ public sealed class RepositoryQualityTests
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.9.1", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("1.0.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -524,6 +524,15 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual("net10.0", metadata.GetProperty("properties").GetProperty("TargetFramework").GetString());
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, ".config", "dotnet-tools.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "docs", "toc.yml")));
+        string docsScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "docs.ps1"));
+        StringAssert.Contains(docsScript, "Resolve-RepositoryOutputDirectory");
+        StringAssert.Contains(docsScript, "Remove-DocumentationOutput");
+        StringAssert.Contains(docsScript, "docs/api");
+        StringAssert.Contains(docsScript, "_site");
+        StringAssert.Contains(docsScript, "Legacy API namespace pages remain");
+        string docsTest = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-docs.ps1"));
+        StringAssert.Contains(docsTest, "$legacyNamespace.LegacySentinel");
+        StringAssert.Contains(docsTest, "legacy API pages=0");
         Assert.IsTrue(docfx.RootElement.GetProperty("build").GetProperty("content")[1].GetProperty("files")
             .EnumerateArray().Any(item => item.GetString() == "guides/**/*.md"));
 
@@ -550,9 +559,12 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.1.txt");
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.1.0.0.txt");
         Assert.IsTrue(File.Exists(snapshot));
         StringAssert.StartsWith(File.ReadAllText(snapshot), "# HipSharp public API snapshot schema 1");
+        string historicalSnapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.1.txt");
+        Assert.IsTrue(File.Exists(historicalSnapshot));
+        Assert.AreEqual(File.ReadAllText(historicalSnapshot), File.ReadAllText(snapshot));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "public-api", "categories.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-public-api.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.ApiSurface", "Program.cs")));
@@ -581,8 +593,21 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "m8.9-package-family-forward-fix; old Core/Runtime identities superseded; fresh-exact-candidate-validation-required");
+        StringAssert.Contains(packageVerifier, "m8.10-linux-core-1.0.0-candidate; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
+        string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
+        StringAssert.Contains(pairingGate, "21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799");
+        StringAssert.Contains(pairingGate, "source-mapped-local-target-packages-plus-nuget-framework-packs");
+        StringAssert.Contains(pairingGate, "packageSourceMapping");
+        StringAssert.Contains(pairingGate, "native assets=14");
+        StringAssert.Contains(pairingGate, "system-native Core-only native assets=0");
+        string candidateAttestation = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "create-core-candidate-attestation.ps1"));
+        StringAssert.Contains(candidateAttestation, "normalizedContentSha256");
+        StringAssert.Contains(candidateAttestation, "protectedContentSha256");
+        StringAssert.Contains(candidateAttestation, "equalToHistorical = $true");
+        StringAssert.Contains(candidateAttestation, "gpuValidated = $false");
+        StringAssert.Contains(candidateAttestation, "publishable = $false");
+        StringAssert.Contains(candidateAttestation, "releaseAuthorized = $false");
     }
 
     [TestMethod]
