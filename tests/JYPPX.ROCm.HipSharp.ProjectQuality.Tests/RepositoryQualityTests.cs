@@ -608,6 +608,10 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(candidateAttestation, "gpuValidated = $false");
         StringAssert.Contains(candidateAttestation, "publishable = $false");
         StringAssert.Contains(candidateAttestation, "releaseAuthorized = $false");
+        string windowsBuild = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.ps1"));
+        string linuxBuild = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.sh"));
+        StringAssert.Contains(windowsBuild, "-p:ContinuousIntegrationBuild=true");
+        StringAssert.Contains(linuxBuild, "-p:ContinuousIntegrationBuild=true");
     }
 
     [TestMethod]

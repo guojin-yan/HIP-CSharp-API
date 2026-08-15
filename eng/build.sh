@@ -18,7 +18,10 @@ if command -v pwsh >/dev/null 2>&1; then
   pwsh -NoProfile -File "${repository_root}/eng/generate-interop.ps1" -Verify
 fi
 dotnet restore "${solution}" --locked-mode
-dotnet build "${solution}" --configuration "${configuration}" --no-restore -p:Version="${version}" -p:PackageVersion="${version}"
+dotnet build "${solution}" --configuration "${configuration}" --no-restore \
+  -p:Version="${version}" \
+  -p:PackageVersion="${version}" \
+  -p:ContinuousIntegrationBuild=true
 dotnet pack "src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj" \
   --configuration "${configuration}" \
   --no-build \

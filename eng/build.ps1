@@ -28,7 +28,10 @@ try {
         if ($LASTEXITCODE -ne 0) { throw "dotnet restore failed with exit code $LASTEXITCODE." }
     }
 
-    & dotnet build $solution --configuration $Configuration --no-restore -p:Version=$Version -p:PackageVersion=$Version
+    & dotnet build $solution --configuration $Configuration --no-restore `
+        -p:Version=$Version `
+        -p:PackageVersion=$Version `
+        -p:ContinuousIntegrationBuild=true
     if ($LASTEXITCODE -ne 0) { throw "dotnet build failed with exit code $LASTEXITCODE." }
 
     $missing = [System.Collections.Generic.List[string]]::new()
