@@ -160,7 +160,7 @@ static int RunProgramLinkerValidation(HipRtc rtc, Options options, string source
     {
         beforeCompile.AddNameExpression(nameExpression);
         ExpectRtcResult(
-            HipRtcResult.NoLoweredNamesBeforeCompilation,
+            HipRtcResult.NameExpressionNotValid,
             () => beforeCompile.GetLoweredName(nameExpression),
             "lowered-name-before-compile",
             negatives);

@@ -547,6 +547,12 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(verifier, "merge-base --is-ancestor");
         StringAssert.Contains(verifier, "historical-regression");
         StringAssert.Contains(verifier, "releaseAuthorized = $false");
+        StringAssert.Contains(verifier, "dotnet nuget verify --all");
+        StringAssert.Contains(verifier, "repositorySignature = $repositorySignature");
+
+        string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipRtcVectorAdd", "Program.cs"));
+        StringAssert.Contains(rtcSample, "HipRtcResult.NameExpressionNotValid");
+        StringAssert.Contains(rtcSample, "\"lowered-name-before-compile\"");
 
         string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
         StringAssert.Contains(sample, "peer=passed(1->0");

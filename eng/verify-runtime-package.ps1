@@ -67,8 +67,19 @@ try {
     $entries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith("/") })
     $entryNames = @($entries | ForEach-Object { $_.FullName.Replace("\", "/") })
     if (@($entryNames | Group-Object | Where-Object Count -gt 1).Count -ne 0) { throw "Runtime package has duplicate paths." }
+    $signatureEntries = @($entries | Where-Object { $_.FullName.Replace("\", "/") -eq ".signature.p7s" })
+    $repositorySignature = "absent"
+    if ($signatureEntries.Count -eq 1) {
+        if ($signatureEntries[0].Length -le 0) { throw "Runtime package repository signature is empty." }
+        $signatureVerification = @(& dotnet nuget verify --all $package 2>&1)
+        if ($LASTEXITCODE -ne 0) {
+            throw "Runtime package repository signature verification failed: $($signatureVerification -join [Environment]::NewLine)"
+        }
+        $repositorySignature = "verified"
+    }
     $expected = @($runtimeManifest.files | ForEach-Object path) + @($runtimeManifest.licenses | ForEach-Object packagePath) + @("runtime-manifest.json", [System.IO.Path]::GetFileName($runtimeManifest.sbom.path), "README.md", "LICENSE", "logo.jpg")
     if (-not $Candidate) { $expected += "promotion-receipt.json" }
+    if ($repositorySignature -eq "verified") { $expected += ".signature.p7s" }
     foreach ($path in $expected) { if ($entryNames -notcontains $path) { throw "Runtime package is missing $path." } }
     $unexpected = @($entryNames | Where-Object {
         $_ -notin $expected -and
@@ -134,6 +145,7 @@ $report = [ordered]@{
     releaseAuthorized = $false
     currentGitCommit = $gitSha
     packageRepositoryCommit = $packageRepositoryCommit
+    repositorySignature = $repositorySignature
     rid = $runtimeManifest.rid
     packageId = $runtimeManifest.packageId
     manifestSha256 = Get-HipSharpSha256 $manifestInfo.Path
