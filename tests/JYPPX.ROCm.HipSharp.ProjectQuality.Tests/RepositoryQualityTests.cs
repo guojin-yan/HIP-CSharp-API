@@ -615,7 +615,9 @@ public sealed class RepositoryQualityTests
             File.WriteAllText(unrelated, "pwsh: command not found");
             ProcessResult unrelatedResult = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-ExitCode", "1", "-EvidencePath", unrelated);
             Assert.AreNotEqual(0, unrelatedResult.ExitCode, "An unrelated nonzero failure must not satisfy the tamper negative.");
-            StringAssert.Contains(unrelatedResult.Output, "accepted package verification path");
+            // PowerShell may wrap exception messages at the host console width.
+            StringAssert.Contains(unrelatedResult.Output, "Tampered Runtime package did not fail through");
+            StringAssert.Contains(unrelatedResult.Output, "verification path.");
 
             ProcessResult zeroExitResult = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-ExitCode", "0", "-EvidencePath", hashSize);
             Assert.AreNotEqual(0, zeroExitResult.ExitCode, "A successful verification command must not satisfy the tamper negative.");
