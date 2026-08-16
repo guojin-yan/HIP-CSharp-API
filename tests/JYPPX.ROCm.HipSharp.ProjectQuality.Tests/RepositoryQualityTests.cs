@@ -588,6 +588,46 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
+    public void TamperedRuntimePackageGateAcceptsOnlyExpectedVerificationRejections()
+    {
+        string verifier = Path.Combine(RepositoryRoot, "eng", "verify-runtime-tamper-failure.ps1");
+        Assert.IsTrue(File.Exists(verifier));
+        string gate = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "runtime-gate.sh"));
+        StringAssert.Contains(gate, "verify-runtime-tamper-failure.ps1");
+
+        string fixtureDirectory = Path.Combine(Path.GetTempPath(), "hipsharp-tamper-verifier-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(fixtureDirectory);
+        try
+        {
+            string hashSize = Path.Combine(fixtureDirectory, "hash-size.txt");
+            File.WriteAllText(hashSize, "Runtime package hash/size mismatch: runtimes/linux-x64/native/libhsa-runtime64.so.1");
+            ProcessResult hashSizeResult = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-ExitCode", "1", "-EvidencePath", hashSize);
+            Assert.AreEqual(0, hashSizeResult.ExitCode, hashSizeResult.Output);
+            StringAssert.Contains(hashSizeResult.Output, "hash/size verification");
+
+            string signature = Path.Combine(fixtureDirectory, "signature.txt");
+            File.WriteAllText(signature, "Runtime package repository signature verification failed:\nerror: NU3005: The package signature file entry is invalid. Package signature validation failed.");
+            ProcessResult signatureResult = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-ExitCode", "1", "-EvidencePath", signature);
+            Assert.AreEqual(0, signatureResult.ExitCode, signatureResult.Output);
+            StringAssert.Contains(signatureResult.Output, "NuGet signature verification (NU3005)");
+
+            string unrelated = Path.Combine(fixtureDirectory, "unrelated.txt");
+            File.WriteAllText(unrelated, "pwsh: command not found");
+            ProcessResult unrelatedResult = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-ExitCode", "1", "-EvidencePath", unrelated);
+            Assert.AreNotEqual(0, unrelatedResult.ExitCode, "An unrelated nonzero failure must not satisfy the tamper negative.");
+            StringAssert.Contains(unrelatedResult.Output, "accepted package verification path");
+
+            ProcessResult zeroExitResult = RunProcess("pwsh", "-NoProfile", "-File", verifier, "-ExitCode", "0", "-EvidencePath", hashSize);
+            Assert.AreNotEqual(0, zeroExitResult.ExitCode, "A successful verification command must not satisfy the tamper negative.");
+            StringAssert.Contains(zeroExitResult.Output, "unexpectedly succeeded");
+        }
+        finally
+        {
+            Directory.Delete(fixtureDirectory, recursive: true);
+        }
+    }
+
+    [TestMethod]
     public void ManagedExpansionSampleAndBothLinuxGatesUseTheVersionedResultContract()
     {
         string sampleDirectory = Path.Combine(RepositoryRoot, "samples", "HipManagedExpansionValidation");

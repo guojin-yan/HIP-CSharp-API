@@ -350,8 +350,10 @@ tamper_args=(-NoProfile -File "${repository_root}/eng/verify-runtime-package.ps1
 pwsh "${tamper_args[@]}" >"${evidence_dir}/tampered-package-negative.txt" 2>&1
 tamper_exit=$?
 set -e
-if [[ ${tamper_exit} -eq 0 ]] || ! grep -q 'hash/size mismatch' "${evidence_dir}/tampered-package-negative.txt"; then
-  echo 'Tampered runtime package did not fail the content audit.' >&2
+if ! pwsh -NoProfile -File "${repository_root}/eng/verify-runtime-tamper-failure.ps1" \
+  -ExitCode "${tamper_exit}" \
+  -EvidencePath "${evidence_dir}/tampered-package-negative.txt" | tee -a "${evidence_dir}/tampered-package-negative.txt"; then
+  echo 'Tampered runtime package did not fail through an accepted package verification path.' >&2
   exit 1
 fi
 
