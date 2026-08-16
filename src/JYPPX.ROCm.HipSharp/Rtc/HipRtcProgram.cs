@@ -25,6 +25,60 @@ public sealed class HipRtcProgram : IDisposable
     public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
 
     /// <summary>
+    /// 在编译前注册一个 C++ name expression / Registers a C++ name expression before compilation.
+    /// </summary>
+    /// <param name="nameExpression">要实例化和降级的 UTF-8 name expression / UTF-8 name expression to instantiate and lower.</param>
+    /// <exception cref="ArgumentNullException">表达式为 null / The expression is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">表达式为空、全空白或包含 null 字符 / The expression is empty, whitespace-only, or contains a null character.</exception>
+    /// <exception cref="ObjectDisposedException">program 已释放 / The program has been released.</exception>
+    /// <exception cref="HipRtcException">HIPRTC 拒绝表达式 / HIPRTC rejects the expression.</exception>
+    public void AddNameExpression(string nameExpression)
+    {
+        ValidateNameExpression(nameExpression);
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            HipRtcCall.ThrowIfFailed(
+                _nativeApi,
+                _nativeApi.AddNameExpression(_handle.DangerousGetHandle(), nameExpression),
+                "hiprtcAddNameExpression");
+            GC.KeepAlive(this);
+        }
+    }
+
+    /// <summary>
+    /// 在成功编译后复制已注册表达式的 lowered name / Copies the lowered name of a registered expression after successful compilation.
+    /// </summary>
+    /// <param name="nameExpression">此前注册的 name expression / A previously registered name expression.</param>
+    /// <returns>不依赖 program 生命周期的托管名称副本 / A managed name copy independent of the program lifetime.</returns>
+    /// <exception cref="ArgumentNullException">表达式为 null / The expression is <see langword="null"/>.</exception>
+    /// <exception cref="ArgumentException">表达式为空、全空白或包含 null 字符 / The expression is empty, whitespace-only, or contains a null character.</exception>
+    /// <exception cref="ObjectDisposedException">program 已释放 / The program has been released.</exception>
+    /// <exception cref="HipRtcException">表达式未注册、尚未编译或读取失败 / The expression is not registered, has not been compiled, or retrieval fails.</exception>
+    /// <exception cref="InvalidOperationException">HIPRTC 成功但返回 null 名称 / HIPRTC succeeds but returns a null name.</exception>
+    public string GetLoweredName(string nameExpression)
+    {
+        ValidateNameExpression(nameExpression);
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            HipRtcCall.ThrowIfFailed(
+                _nativeApi,
+                _nativeApi.GetLoweredName(_handle.DangerousGetHandle(), nameExpression, out IntPtr loweredName),
+                "hiprtcGetLoweredName");
+            if (loweredName == IntPtr.Zero)
+            {
+                throw new InvalidOperationException("hiprtcGetLoweredName succeeded but returned a null name.");
+            }
+
+            string result = Marshal.PtrToStringAnsi(loweredName) ??
+                throw new InvalidOperationException("hiprtcGetLoweredName returned an unreadable name.");
+            GC.KeepAlive(this);
+            return result;
+        }
+    }
+
+    /// <summary>
     /// 使用指定选项编译 program / Compiles the program with the specified options.
     /// </summary>
     /// <param name="options">编译选项；null 表示无选项 / Compiler options; <see langword="null"/> means no options.</param>
@@ -49,6 +103,35 @@ public sealed class HipRtcProgram : IDisposable
             string log = ReadLog(program);
             byte[] codeObject = ReadCode(program);
             return new HipRtcCompilation(codeObject, log, optionSnapshot);
+        }
+    }
+
+    /// <summary>
+    /// 使用指定选项编译 program 并复制 LLVM bitcode / Compiles the program with the specified options and copies its LLVM bitcode.
+    /// </summary>
+    /// <param name="options">编译选项；通常包含 <c>-fgpu-rdc</c>；null 表示无选项 / Compiler options, typically including <c>-fgpu-rdc</c>; <see langword="null"/> means no options.</param>
+    /// <returns>不依赖 program 生命周期的 bitcode 副本 / A bitcode copy independent of the program lifetime.</returns>
+    /// <exception cref="ArgumentException">选项集合包含 null 元素或 null 字符 / An option is null or contains a null character.</exception>
+    /// <exception cref="ObjectDisposedException">program 已释放 / The program has been released.</exception>
+    /// <exception cref="HipRtcException">编译或 bitcode 读取失败；编译失败异常包含编译日志 / Compilation or bitcode retrieval fails; compilation failures include the compiler log.</exception>
+    /// <exception cref="InvalidOperationException">HIPRTC 返回空或过大的 bitcode / HIPRTC returns empty or oversized bitcode.</exception>
+    public byte[] CompileToBitcode(IEnumerable<string>? options = null)
+    {
+        List<string> optionSnapshot = SnapshotOptions(options);
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            IntPtr program = _handle.DangerousGetHandle();
+            HipRtcResult result = _nativeApi.CompileProgram(program, optionSnapshot);
+            if (result != HipRtcResult.Success)
+            {
+                string failedLog = TryReadLog(program);
+                HipRtcCall.ThrowIfFailed(_nativeApi, result, "hiprtcCompileProgram", failedLog);
+            }
+
+            byte[] bitcode = ReadBitcode(program);
+            GC.KeepAlive(this);
+            return bitcode;
         }
     }
 
@@ -154,6 +237,29 @@ public sealed class HipRtcProgram : IDisposable
         }
     }
 
+    private byte[] ReadBitcode(IntPtr program)
+    {
+        HipRtcCall.ThrowIfFailed(_nativeApi, _nativeApi.GetBitcodeSize(program, out UIntPtr nativeSize), "hiprtcGetBitcodeSize");
+        int size = ToManagedSize(nativeSize, "HIPRTC bitcode");
+        if (size == 0)
+        {
+            throw new InvalidOperationException("hiprtcGetBitcodeSize succeeded but returned empty bitcode.");
+        }
+
+        IntPtr buffer = Marshal.AllocHGlobal(size);
+        try
+        {
+            HipRtcCall.ThrowIfFailed(_nativeApi, _nativeApi.GetBitcode(program, buffer), "hiprtcGetBitcode");
+            var bitcode = new byte[size];
+            Marshal.Copy(buffer, bitcode, 0, size);
+            return bitcode;
+        }
+        finally
+        {
+            Marshal.FreeHGlobal(buffer);
+        }
+    }
+
     private static int ToManagedSize(UIntPtr nativeSize, string valueName)
     {
         ulong size = nativeSize.ToUInt64();
@@ -185,6 +291,19 @@ public sealed class HipRtcProgram : IDisposable
 #else
         return value.IndexOf('\0') >= 0;
 #endif
+    }
+
+    private static void ValidateNameExpression(string nameExpression)
+    {
+        if (nameExpression is null)
+        {
+            throw new ArgumentNullException(nameof(nameExpression));
+        }
+
+        if (string.IsNullOrWhiteSpace(nameExpression) || ContainsNull(nameExpression))
+        {
+            throw new ArgumentException("A name expression must be non-empty and cannot contain null characters.", nameof(nameExpression));
+        }
     }
 
     private void ThrowIfDisposed()

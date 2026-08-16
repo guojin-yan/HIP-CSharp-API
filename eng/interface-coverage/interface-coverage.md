@@ -6,8 +6,8 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 ## Inventory
 
 - Total entries: 477 (Runtime 459, HIPRTC 18).
-- Complete model: 477; managed owner manifest: 100.
-- Disposition: managed 100, managed-next 91, raw-only-reviewed 238, deferred-capability 48.
+- Complete model: 477; managed owner manifest: 109.
+- Disposition: managed 109, managed-next 82, raw-only-reviewed 238, deferred-capability 48.
 - Cloud function evidence: historical pass 100, not-tested 377; export scan is tracked separately.
 
 ## Managed workload mapping
@@ -22,6 +22,7 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 | `memory-copy` (7) | basic allocation, copy, and synchronization | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipStreamEventMemoryTests.cs` | `memory-copy` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
 | `advanced-features` (9) | managed memory and peer capability | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipAdvancedApiTests.cs` | `advanced-features` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
 | `hiprtc-vector-add` (13) | HIPRTC code-object and module lifetime | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipRtcTests.cs` | `hiprtc-vector-add-and-negative-compile` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
+| `hiprtc-program-linker-0.9.3` (9) | HIPRTC lowered-name, bitcode, and linker ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipRtcTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
 | `m8.5-kernel-occupancy` (6) | kernel metadata and cooperative launch | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipKernelOccupancyTests.cs` | `m8.5-kernel-occupancy` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
 | `module-global` (1) | borrowed module-global views | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipModuleGlobalTests.cs` | `m8.6-module-globals` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
 | `errors` (2) | error identity and diagnostic ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipRuntimeTests.cs` | `negative-compile-and-error-diagnostics` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |

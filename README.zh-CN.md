@@ -42,7 +42,7 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 
 Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已在 nuget.org 公开。其 repository-signed 公开字节已于 2026-08-14 通过 nuget.org-only 静态消费者和 fresh package-only Linux GPU/ABI 门禁。Core `0.9.0` 因错误的 `JYPPX.ROCm.HipSharp` 程序集 identity 保持不可变且已 unlist，请勿采用。
 
-当前源码正在验证未发布的 Core `0.9.2` 逐接口账本批次，公开 surface 与 `0.9.1` 的 68 types/1,002 members 保持一致。它追踪固定 header 的全部 477 个 HIP 声明，但不把 symbol scan 写成功能测试。未来任何 `1.0.0` 都必须同时满足 Windows AMD GPU 实机验证和 Owner 明确发布指令；本次 `0.9.2` 工作不能替代或绕过任一条件。
+当前源码正在验证未发布的 Core `0.9.3` HIPRTC Program/Linker 扩展批次。它把固定模型中的 9 个 HIPRTC 声明提升为托管 owner；在取得新 exact-SHA Radeon Cloud 证据前，这 9 项的云端功能状态仍为 `not-tested`。未来任何 `1.0.0` 都必须同时满足 Windows AMD GPU 实机验证和 Owner 明确发布指令；本次 `0.9.3` 工作不能替代或绕过任一条件。
 
 ## 🚀 30 秒开始
 
@@ -88,7 +88,7 @@ foreach (HipDevice device in runtime.GetDevices())
 
 | 包 | 原生基线 | 内容 | 状态 |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.1` 已公开；`0.9.2` 逐接口账本验证批次尚未发布且未获发布授权 |
+| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.1` 已公开；`0.9.3` HIPRTC 扩展批次尚未发布且未获发布授权 |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | `7.2.1` 已公开并通过 public-feed package-only 验证；版本与 Core 独立 |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
 
@@ -117,7 +117,7 @@ Core 项目直接面向 15 个目标框架：
 
 | 平台 | Core 构建/打包 | GPU 验证 | Runtime 包 |
 | --- | --- | --- | --- |
-| Linux x64 | 是 | 公开 Core `0.9.1` + Runtime `7.2.1` 已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过 M8.9 nuget.org-only package GPU/ABI 门禁；不同的 `0.9.2` bytes 需要 exact-SHA 证据 | 已公开且 receipt-verified 的 Runtime `7.2.1`；也可选择 system ROCm |
+| Linux x64 | 是 | 公开 Core `0.9.1` + Runtime `7.2.1` 已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过 M8.9 nuget.org-only package GPU/ABI 门禁；新的 `0.9.3` bytes 需要自己的 exact-SHA 证据 | 已公开且 receipt-verified 的 Runtime `7.2.1`；也可选择 system ROCm |
 | Windows x64 | 是；loader 与 PE 路径已静态审计 | 尚未在 AMD GPU 上验证 | 已禁用的 7.2.0 骨架 |
 
 部分旧 .NET 目标已结束上游支持，本项目仅将其作为包兼容目标保留。构建兼容、历史验证与正式支持之间的完整区别见[框架兼容性](docs/compatibility/frameworks.md)和[平台兼容性](docs/compatibility/platforms.md)。

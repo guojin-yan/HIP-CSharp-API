@@ -23,6 +23,7 @@ $workloads = @(
     [ordered]@{ Name = "memory-copy"; Entries = @("hipMalloc", "hipFree", "hipMemcpy", "hipMemcpyAsync", "hipHostMalloc", "hipHostFree", "hipDeviceSynchronize"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipStreamEventMemoryTests.cs"; Cloud = "memory-copy"; Topic = "basic allocation, copy, and synchronization" },
     [ordered]@{ Name = "advanced-features"; Entries = @("hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync", "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipAdvancedApiTests.cs"; Cloud = "advanced-features"; Topic = "managed memory and peer capability" },
     [ordered]@{ Name = "hiprtc-vector-add"; Entries = @("hipModuleLoadData", "hipModuleUnload", "hipModuleGetFunction", "hipModuleLaunchKernel", "hiprtcVersion", "hiprtcGetErrorString", "hiprtcCreateProgram", "hiprtcDestroyProgram", "hiprtcCompileProgram", "hiprtcGetProgramLogSize", "hiprtcGetProgramLog", "hiprtcGetCodeSize", "hiprtcGetCode"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipRtcTests.cs"; Cloud = "hiprtc-vector-add-and-negative-compile"; Topic = "HIPRTC code-object and module lifetime" },
+    [ordered]@{ Name = "hiprtc-program-linker-0.9.3"; Entries = @("hiprtcAddNameExpression", "hiprtcGetLoweredName", "hiprtcGetBitcodeSize", "hiprtcGetBitcode", "hiprtcLinkCreate", "hiprtcLinkAddFile", "hiprtcLinkAddData", "hiprtcLinkComplete", "hiprtcLinkDestroy"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipRtcTests.cs"; Cloud = "not-tested"; Topic = "HIPRTC lowered-name, bitcode, and linker ownership" },
     [ordered]@{ Name = "m8.5-kernel-occupancy"; Entries = @("hipFuncGetAttribute", "hipModuleOccupancyMaxActiveBlocksPerMultiprocessor", "hipModuleOccupancyMaxActiveBlocksPerMultiprocessorWithFlags", "hipModuleOccupancyMaxPotentialBlockSize", "hipModuleOccupancyMaxPotentialBlockSizeWithFlags", "hipModuleLaunchCooperativeKernel"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipKernelOccupancyTests.cs"; Cloud = "m8.5-kernel-occupancy"; Topic = "kernel metadata and cooperative launch" },
     [ordered]@{ Name = "module-global"; Entries = @("hipModuleGetGlobal"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipModuleGlobalTests.cs"; Cloud = "m8.6-module-globals"; Topic = "borrowed module-global views" },
     [ordered]@{ Name = "errors"; Entries = @("hipGetErrorName", "hipGetErrorString"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipRuntimeTests.cs"; Cloud = "negative-compile-and-error-diagnostics"; Topic = "error identity and diagnostic ownership" }
@@ -65,12 +66,18 @@ foreach ($function in $functions) {
     $library = [string]$function.library
     $managed = $managedByEntry[$entryPoint]
     $workload = Get-Workload $entryPoint
+    $functionalEvidence = [ordered]@{ record = "$record/validation-summary.json"; exactSha = $historicalSha; currentSha = "not-generated" }
     if ($null -ne $managed) {
         if ($null -eq $workload) { throw "Managed entry has no workload mapping: $entryPoint" }
-        $disposition = [ordered]@{ status = "managed"; manifestName = $managed.managedName; reason = "present in the reviewed 100-entry managed owner manifest" }
+        $disposition = [ordered]@{ status = "managed"; manifestName = $managed.managedName; reason = "present in the reviewed 109-entry managed owner manifest" }
         $unit = [ordered]@{ status = "covered"; test = $workload.Unit; workload = $workload.Name }
-        $cloud = [ordered]@{ status = "passed-historical"; workload = $workload.Cloud; record = "$record/validation-summary.json"; exactSha = $historicalSha; scope = "historical exact 0.x bytes; not current SHA" }
-        $negativeCovered = @("hiprtc-vector-add", "errors", "m8.5-kernel-occupancy", "module-global", "m8.4-explicit-graph", "m8.3-memory-pool", "m8.2-pitched-memory", "stream-event") -contains $workload.Name
+        if ($workload.Cloud -eq "not-tested") {
+            $cloud = [ordered]@{ status = "not-tested"; workload = $workload.Name; reason = "fresh exact-SHA Radeon Cloud functional evidence has not been collected" }
+            $functionalEvidence = [ordered]@{ record = "not-generated"; exactSha = "not-generated"; currentSha = "not-generated" }
+        } else {
+            $cloud = [ordered]@{ status = "passed-historical"; workload = $workload.Cloud; record = "$record/validation-summary.json"; exactSha = $historicalSha; scope = "historical exact 0.x bytes; not current SHA" }
+        }
+        $negativeCovered = @("hiprtc-vector-add", "hiprtc-program-linker-0.9.3", "errors", "m8.5-kernel-occupancy", "module-global", "m8.4-explicit-graph", "m8.3-memory-pool", "m8.2-pitched-memory", "stream-event") -contains $workload.Name
         if ($negativeCovered) { $negative = [ordered]@{ status = "covered"; test = $workload.Unit; workload = $workload.Name } } else { $negative = [ordered]@{ status = "not-tested" } }
         if (@("hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync") -contains $entryPoint) { $capability = [ordered]@{ status = "skipped"; reason = "skipped(device-count<2)" } } else { $capability = [ordered]@{ status = "available" } }
         $articleTopic = $workload.Topic
@@ -111,7 +118,7 @@ foreach ($function in $functions) {
         cloudFunctionCoverage = $cloud
         negativeCoverage = $negative
         capabilitySkip = $capability
-        evidenceRecord = [ordered]@{ record = "$record/validation-summary.json"; exactSha = $historicalSha; currentSha = "not-generated" }
+        evidenceRecord = $functionalEvidence
         articleTopic = $articleTopic
     })
 }
@@ -157,7 +164,8 @@ $markdown.AddRange([string[]]@(
 ))
 foreach ($workload in $workloads) {
     $mapped = $workload["Entries"].Count
-    $markdown.Add("| ``$($workload["Name"])`` ($mapped) | $($workload["Topic"]) | ``$($workload["Unit"])`` | ``$($workload["Cloud"])`` in ``$record`` |")
+    $cloudScope = if ($workload["Cloud"] -eq "not-tested") { "``not-tested``; fresh exact-SHA Radeon Cloud evidence required" } else { "``$($workload["Cloud"])`` in ``$record``" }
+    $markdown.Add("| ``$($workload["Name"])`` ($mapped) | $($workload["Topic"]) | ``$($workload["Unit"])`` | $cloudScope |")
 }
 $markdown.AddRange([string[]]@(
     "", "## Review boundaries", "",

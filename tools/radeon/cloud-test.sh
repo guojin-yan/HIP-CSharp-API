@@ -55,6 +55,8 @@ bash ./tools/radeon/env-report.sh | tee "${evidence_dir}/environment.txt"
 core_version="$(dotnet msbuild ./src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion)"
 core_version="${core_version//$'\r'/}"
 bash ./eng/build.sh Release "${core_version}" | tee "${evidence_dir}/managed-gate.txt"
+core_package="${repository_root}/artifacts/packages/JYPPX.ROCm.HIP.CSharp.API.${core_version}.nupkg"
+core_package_sha256="$(sha256sum "${core_package}" | awk '{print $1}')"
 pwsh -NoProfile -File ./eng/generate-interop.ps1 extract-headers \
   -HeaderRoot /opt/rocm/include \
   -Check \
@@ -126,8 +128,8 @@ if evidence["gitCommit"] != expected_commit:
     raise SystemExit("ABI evidence commit does not match the detached checkout")
 if evidence["normalizedManifestHash"].upper() != expected_manifest_hash:
     raise SystemExit("ABI evidence normalized manifest hash does not match the checkout")
-if evidence["schemaVersion"] != 7 or len(evidence.get("functions", [])) != 100:
-    raise SystemExit("ABI evidence must use schema 7 and include all 100 manifest functions")
+if evidence["schemaVersion"] != 7 or len(evidence.get("functions", [])) != 109:
+    raise SystemExit("ABI evidence must use schema 7 and include all 109 manifest functions")
 advanced = {
     "hipMallocManaged", "hipMemPrefetchAsync", "hipMemAdvise", "hipMallocAsync", "hipFreeAsync",
     "hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync",
@@ -158,6 +160,10 @@ managed_module_exports = {
     "hipModuleLaunchCooperativeKernel",
     "hipModuleGetGlobal",
 }
+managed_rtc_expansion = {
+    "hiprtcAddNameExpression", "hiprtcGetLoweredName", "hiprtcGetBitcodeSize", "hiprtcGetBitcode",
+    "hiprtcLinkCreate", "hiprtcLinkAddFile", "hiprtcLinkAddData", "hiprtcLinkComplete", "hiprtcLinkDestroy",
+}
 found = {item["entryPoint"] for item in evidence["functions"] if item["found"]}
 missing_advanced = sorted(advanced - found)
 if missing_advanced:
@@ -174,9 +180,12 @@ if missing_graph:
 missing_managed_module = sorted(managed_module_exports - found)
 if missing_managed_module:
     raise SystemExit("M8.5/M8.6 managed module exports are missing: " + ", ".join(missing_managed_module))
+missing_rtc_expansion = sorted(managed_rtc_expansion - found)
+if missing_rtc_expansion:
+    raise SystemExit("0.9.3 managed HIPRTC exports are missing: " + ", ".join(missing_rtc_expansion))
 if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
     raise SystemExit("ABI evidence must include both official header hashes")
-print("M8.6 ABI evidence schema and managed-owner exports passed")
+print("0.9.3 ABI evidence schema and 109 managed-owner exports passed")
 PY
 
 python3 - <<'PY'
@@ -207,7 +216,7 @@ if ! command -v pwsh >/dev/null 2>&1; then
   exit 1
 fi
 pwsh -NoProfile -File ./eng/verify-package.ps1 \
-  -PackagePath "${repository_root}/artifacts/packages/JYPPX.ROCm.HIP.CSharp.API.${core_version}.nupkg" \
+  -PackagePath "${core_package}" \
   -ExpectedVersion "${core_version}" \
   -ExpectedRepositoryCommit "${actual_commit}" \
   | tee "${evidence_dir}/package-audit.txt"
@@ -234,6 +243,26 @@ dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
   -c Release --no-build -- \
   --arch "${gpu_architecture}" \
   --negative-compile 2>&1 | tee "${evidence_dir}/negative-compile.txt"
+
+linker_length=4096
+linker_repeat=3
+dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
+  -c Release --no-build -- \
+  --arch "${gpu_architecture}" \
+  --length "${linker_length}" \
+  --repeat "${linker_repeat}" \
+  --program-linker-validation \
+  --expected-commit "${actual_commit}" \
+  --expected-package-sha256 "${core_package_sha256}" \
+  --environment official-host 2>&1 | tee "${evidence_dir}/hiprtc-program-linker.json"
+python3 ./tools/radeon/validate-hiprtc-program-linker.py \
+  "${evidence_dir}/hiprtc-program-linker.json" \
+  "${actual_commit}" \
+  "${core_package_sha256}" \
+  official-host \
+  "${gpu_architecture}" \
+  "${linker_length}" \
+  "${linker_repeat}"
 
 dotnet run --project ./samples/HipStreamEventVectorAdd/HipStreamEventVectorAdd.csproj \
   -c Release --no-build -- \

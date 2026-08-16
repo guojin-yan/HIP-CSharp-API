@@ -6,7 +6,7 @@ The single core project directly targets the following TFMs:
 
 This matrix is a build and package target, not a runtime or GPU support matrix. The package gate checks all assets in a local package and compiles clean consumers for `net46`, `netcoreapp3.1`, `net7.0`, and `net10.0`; it does not run those consumers.
 
-For the current `0.9.2` validation batch, `eng/verify-public-api.ps1` compares the committed versioned public API snapshot with every target assembly. All 15 TFMs must remain surface-identical, and the `0.9.2` snapshot must be semantically identical to the published `0.9.1` snapshot. The pack step also runs NuGet package validation.
+For the current `0.9.3` validation batch, `eng/verify-public-api.ps1` compares the reviewed additive snapshot with every target assembly. All 15 TFMs must remain surface-identical. The separately retained `0.9.2` snapshot is not rewritten. The pack step also runs NuGet package validation.
 
 `net46`, `net461`, `netcoreapp3.1`, `net5.0`, `net6.0`, and `net7.0` are end-of-support upstream. .NET Framework support also depends on the Windows lifecycle. Keep these targets only where compatibility with an existing application requires them, and apply the relevant security updates independently.
 

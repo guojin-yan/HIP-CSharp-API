@@ -4,7 +4,7 @@ using JYPPX.ROCm.HipSharp.Interop;
 namespace JYPPX.ROCm.HipSharp.Rtc;
 
 /// <summary>
-/// 提供 HIPRTC 版本查询和 program 创建 / Provides HIPRTC version queries and program creation.
+/// 提供 HIPRTC 版本查询、program 创建和 linker 创建 / Provides HIPRTC version queries, program creation, and linker creation.
 /// </summary>
 public sealed class HipRtc
 {
@@ -66,5 +66,23 @@ public sealed class HipRtc
         }
 
         return new HipRtcProgram(_nativeApi, program);
+    }
+
+    /// <summary>
+    /// 创建一个拥有原生 link state 的 HIPRTC linker / Creates a HIPRTC linker that owns its native link state.
+    /// </summary>
+    /// <returns>独立拥有 link state、输入副本和输出复制边界的 linker / A linker that independently owns its link state, input copies, and output-copy boundary.</returns>
+    /// <exception cref="HipRtcException">link state 创建失败 / Link-state creation fails.</exception>
+    /// <exception cref="InvalidOperationException">HIPRTC 成功但返回 null link state / HIPRTC succeeds but returns a null link state.</exception>
+    public HipRtcLinker CreateLinker()
+    {
+        HipRtcResult result = _nativeApi.LinkCreate(out IntPtr linkState);
+        HipRtcCall.ThrowIfFailed(_nativeApi, result, "hiprtcLinkCreate");
+        if (linkState == IntPtr.Zero)
+        {
+            throw new InvalidOperationException("hiprtcLinkCreate succeeded but returned a null link state.");
+        }
+
+        return new HipRtcLinker(_nativeApi, linkState);
     }
 }

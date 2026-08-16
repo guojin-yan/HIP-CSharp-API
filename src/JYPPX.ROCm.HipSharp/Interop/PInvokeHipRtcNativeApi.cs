@@ -50,6 +50,22 @@ internal sealed class PInvokeHipRtcNativeApi : IHipRtcNativeApi
         }
     }
 
+    public HipRtcResult AddNameExpression(IntPtr program, string nameExpression)
+    {
+        using (var expression = new Utf8NativeString(nameExpression, nameof(nameExpression)))
+        {
+            return HipNativeMethods.RtcAddNameExpression(program, expression.Pointer);
+        }
+    }
+
+    public HipRtcResult GetLoweredName(IntPtr program, string nameExpression, out IntPtr loweredName)
+    {
+        using (var expression = new Utf8NativeString(nameExpression, nameof(nameExpression)))
+        {
+            return HipNativeMethods.RtcGetLoweredName(program, expression.Pointer, out loweredName);
+        }
+    }
+
     public HipRtcResult GetProgramLogSize(IntPtr program, out UIntPtr logSize) =>
         HipNativeMethods.RtcGetProgramLogSize(program, out logSize);
 
@@ -58,4 +74,38 @@ internal sealed class PInvokeHipRtcNativeApi : IHipRtcNativeApi
     public HipRtcResult GetCodeSize(IntPtr program, out UIntPtr codeSize) => HipNativeMethods.RtcGetCodeSize(program, out codeSize);
 
     public HipRtcResult GetCode(IntPtr program, IntPtr code) => HipNativeMethods.RtcGetCode(program, code);
+
+    public HipRtcResult GetBitcodeSize(IntPtr program, out UIntPtr bitcodeSize) =>
+        HipNativeMethods.RtcGetBitcodeSize(program, out bitcodeSize);
+
+    public HipRtcResult GetBitcode(IntPtr program, IntPtr bitcode) => HipNativeMethods.RtcGetBitcode(program, bitcode);
+
+    public HipRtcResult LinkCreate(out IntPtr linkState) =>
+        HipNativeMethods.RtcLinkCreate(0, IntPtr.Zero, IntPtr.Zero, out linkState);
+
+    public HipRtcResult LinkAddFile(IntPtr linkState, HipRtcJitInputType inputType, string filePath)
+    {
+        using (var path = new Utf8NativeString(filePath, nameof(filePath)))
+        {
+            return HipNativeMethods.RtcLinkAddFile(linkState, (int)inputType, path.Pointer, 0, IntPtr.Zero, IntPtr.Zero);
+        }
+    }
+
+    public HipRtcResult LinkAddData(IntPtr linkState, HipRtcJitInputType inputType, IntPtr image, UIntPtr imageSize, string? name)
+    {
+        if (name is null)
+        {
+            return HipNativeMethods.RtcLinkAddData(linkState, (int)inputType, image, imageSize, IntPtr.Zero, 0, IntPtr.Zero, IntPtr.Zero);
+        }
+
+        using (var nativeName = new Utf8NativeString(name, nameof(name)))
+        {
+            return HipNativeMethods.RtcLinkAddData(linkState, (int)inputType, image, imageSize, nativeName.Pointer, 0, IntPtr.Zero, IntPtr.Zero);
+        }
+    }
+
+    public HipRtcResult LinkComplete(IntPtr linkState, out IntPtr codeObject, out UIntPtr codeObjectSize) =>
+        HipNativeMethods.RtcLinkComplete(linkState, out codeObject, out codeObjectSize);
+
+    public HipRtcResult LinkDestroy(IntPtr linkState) => HipNativeMethods.RtcLinkDestroy(linkState);
 }

@@ -42,7 +42,7 @@ The former public API snapshot is invalidated by this pre-release namespace deci
 
 The migration covers project paths and references, explicit namespaces and usings, generator templates and outputs, public API categories/snapshot, DocFX, samples, tests, package consumers, package validation suppressions, runtime manifests/schema/provenance/SBOM, and build/package/supply-chain scripts.
 
-Required gates are deterministic interop generation, 459 Runtime plus 18 HIPRTC low-level declarations, the 100-entry managed-owner manifest, all 15 target frameworks, public API parity, managed package content and clean consumers, runtime manifest/supply-chain static tests, Windows skeleton rejection tests, DocFX, and old-name residue scans. Historical or static evidence is never upgraded to current GPU execution evidence.
+Required gates are deterministic interop generation, 459 Runtime plus 18 HIPRTC low-level declarations, the current 109-entry managed-owner manifest, all 15 target frameworks, public API parity, managed package content and clean consumers, runtime manifest/supply-chain static tests, Windows skeleton rejection tests, DocFX, and old-name residue scans. Historical or static evidence is never upgraded to current GPU execution evidence.
 
 Changing the Linux runtime package ID created a new package identity even though its native allowlist and source hashes were unchanged. The renamed base manifest therefore remained `packEnabled=false` and `verified=false` until a hash-bound clean-SHA candidate passed newly Owner-authorized exact-package validation in M8.7. M8.8 enables final packaging only through the deterministic M8.7 receipt and protected-payload equivalence; newly built final bytes still require a separate authorized final-mode gate.
 

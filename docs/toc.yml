@@ -6,6 +6,8 @@
   items:
     - name: HIPRTC VectorAdd
       href: guides/hiprtc-vectoradd.md
+    - name: HIPRTC Program and Linker / HIPRTC Program 与 Linker
+      href: guides/hiprtc-program-linker.md
     - name: Stream/Event VectorAdd / 显式 Stream/Event VectorAdd
       href: guides/hip-stream-event-vectoradd.md
     - name: Advanced HIP APIs / HIP 高级 API
@@ -44,6 +46,8 @@
       href: design/migraphx-adapter-pending-lease.md
 - name: Releases / 版本
   items:
+    - name: 0.9.3 HIPRTC Program and Linker / HIPRTC Program 与 Linker
+      href: releases/0.9.3-hiprtc-program-linker.md
     - name: 0.9.2 Interface Ledger Validation / 逐接口账本验证
       href: releases/0.9.2-interface-ledger.md
     - name: 1.0.0 Linux Core Candidate / Linux Core 候选

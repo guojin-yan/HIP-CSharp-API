@@ -38,4 +38,6 @@ dotnet run --project samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj -c Release -
 
 Use `--negative-compile` to verify that an intentional syntax error produces `HipRtcException` with a non-empty `CompilationLog`.
 
+For `-fgpu-rdc` bitcode, C++ name lowering, and the separate linker owner, see [HIPRTC Program and Linker ownership](hiprtc-program-linker.md).
+
 The M2 gate passed this workflow on one authorized Radeon Cloud Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2.53211 / `gfx1100` instance for lengths `1`, `127`, `256`, `1000`, and `1048576`, each repeated 20 times. This is validation evidence for that environment, not a general support or performance claim.

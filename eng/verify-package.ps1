@@ -152,7 +152,57 @@ $frameworkReference
 </Project>
 "@
     [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Consumer.csproj"), $projectText)
-    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), "extern alias HipSharp;`n`nusing HipRuntime = HipSharp::JYPPX.ROCm.HipSharp.HipRuntime;`nusing HipModule = HipSharp::JYPPX.ROCm.HipSharp.Modules.HipModule;`nusing HipRtc = HipSharp::JYPPX.ROCm.HipSharp.Rtc.HipRtc;`nusing HipMemoryPool = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPool;`nusing HipMemoryPoolAccess = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolAccess;`nusing HipMemoryPoolOptions = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolOptions;`nusing HipPooledDeviceMemory = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipPooledDeviceMemory;`nusing HipStream = HipSharp::JYPPX.ROCm.HipSharp.Streams.HipStream;`n`ninternal static class Program { private static int Main() { return typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length + typeof(HipMemoryPool).Name.Length > 0 ? 0 : 1; } private static void CompilePoolWorkflow(HipRuntime runtime) { HipStream stream = runtime.CreateStream(); HipMemoryPool pool = runtime.CreateMemoryPool(new HipMemoryPoolOptions(runtime.GetCurrentDevice()) { ReleaseThresholdBytes = 64 }); pool.SetAccess(runtime.GetCurrentDevice(), HipMemoryPoolAccess.ReadWrite); HipPooledDeviceMemory memory = pool.AllocateAsync(16, stream); memory.CopyFromAsync(new byte[16]); stream.Synchronize(); memory.Dispose(); stream.Synchronize(); pool.TrimTo(0); pool.Dispose(); stream.Dispose(); } }`n")
+    $consumerProgram = @"
+extern alias HipSharp;
+
+using HipRuntime = HipSharp::JYPPX.ROCm.HipSharp.HipRuntime;
+using HipModule = HipSharp::JYPPX.ROCm.HipSharp.Modules.HipModule;
+using HipRtc = HipSharp::JYPPX.ROCm.HipSharp.Rtc.HipRtc;
+using HipRtcJitInputType = HipSharp::JYPPX.ROCm.HipSharp.Rtc.HipRtcJitInputType;
+using HipRtcLinker = HipSharp::JYPPX.ROCm.HipSharp.Rtc.HipRtcLinker;
+using HipRtcProgram = HipSharp::JYPPX.ROCm.HipSharp.Rtc.HipRtcProgram;
+using HipMemoryPool = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPool;
+using HipMemoryPoolAccess = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolAccess;
+using HipMemoryPoolOptions = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolOptions;
+using HipPooledDeviceMemory = HipSharp::JYPPX.ROCm.HipSharp.Memory.HipPooledDeviceMemory;
+using HipStream = HipSharp::JYPPX.ROCm.HipSharp.Streams.HipStream;
+
+internal static class Program
+{
+    private static int Main() =>
+        typeof(HipRuntime).Name.Length + typeof(HipModule).Name.Length + typeof(HipRtc).Name.Length + typeof(HipRtcLinker).Name.Length > 0 ? 0 : 1;
+
+    private static void CompileRtcWorkflow(HipRtc rtc)
+    {
+        HipRtcProgram program = rtc.CreateProgram("template<class T> __global__ void kernel(T*) {}");
+        program.AddNameExpression("kernel<int>");
+        byte[] bitcode = program.CompileToBitcode(new[] { "-fgpu-rdc" });
+        string loweredName = program.GetLoweredName("kernel<int>");
+        HipRtcLinker linker = rtc.CreateLinker();
+        linker.AddData(HipRtcJitInputType.LlvmBitcode, bitcode, "kernel.bc");
+        byte[] codeObject = linker.Complete();
+        linker.Dispose();
+        program.Dispose();
+        if (loweredName.Length == 0 || codeObject.Length == 0) throw new System.InvalidOperationException();
+    }
+
+    private static void CompilePoolWorkflow(HipRuntime runtime)
+    {
+        HipStream stream = runtime.CreateStream();
+        HipMemoryPool pool = runtime.CreateMemoryPool(new HipMemoryPoolOptions(runtime.GetCurrentDevice()) { ReleaseThresholdBytes = 64 });
+        pool.SetAccess(runtime.GetCurrentDevice(), HipMemoryPoolAccess.ReadWrite);
+        HipPooledDeviceMemory memory = pool.AllocateAsync(16, stream);
+        memory.CopyFromAsync(new byte[16]);
+        stream.Synchronize();
+        memory.Dispose();
+        stream.Synchronize();
+        pool.TrimTo(0);
+        pool.Dispose();
+        stream.Dispose();
+    }
+}
+"@
+    [System.IO.File]::WriteAllText((Join-Path $projectDirectory "Program.cs"), $consumerProgram)
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
@@ -186,7 +236,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "m8.11-linux-core-0.9.2-interface-ledger; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
+    runtimeAndGpuValidation = "core-0.9.3-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

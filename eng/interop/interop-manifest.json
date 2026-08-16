@@ -1879,6 +1879,181 @@
         { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
         { "declaration": "IntPtr code", "name": "code", "direction": "out", "ownership": "caller-buffer" }
       ]
+    },
+    {
+      "managedName": "RtcAddNameExpression",
+      "entryPoint": "hiprtcAddNameExpression",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "添加 HIPRTC name expression",
+      "summaryEn": "Adds a HIPRTC name expression",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr nameExpression", "name": "nameExpression", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "RtcGetLoweredName",
+      "entryPoint": "hiprtcGetLoweredName",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC lowered name",
+      "summaryEn": "Gets a HIPRTC lowered name",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr nameExpression", "name": "nameExpression", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "out IntPtr loweredName", "name": "loweredName", "direction": "out", "ownership": "borrowed-program" }
+      ]
+    },
+    {
+      "managedName": "RtcGetBitcodeSize",
+      "entryPoint": "hiprtcGetBitcodeSize",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC bitcode 大小",
+      "summaryEn": "Gets the HIPRTC bitcode size",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "out UIntPtr bitcodeSize", "name": "bitcodeSize", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcGetBitcode",
+      "entryPoint": "hiprtcGetBitcode",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "获取 HIPRTC bitcode",
+      "summaryEn": "Gets HIPRTC bitcode",
+      "parameters": [
+        { "declaration": "IntPtr program", "name": "program", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "IntPtr bitcode", "name": "bitcode", "direction": "out", "ownership": "caller-buffer" }
+      ]
+    },
+    {
+      "managedName": "RtcLinkCreate",
+      "entryPoint": "hiprtcLinkCreate",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "创建 HIPRTC link state",
+      "summaryEn": "Creates a HIPRTC link state",
+      "parameters": [
+        { "declaration": "uint optionCount", "name": "optionCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr options", "name": "options", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr optionValues", "name": "optionValues", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "out IntPtr linkState", "name": "linkState", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcLinkAddFile",
+      "entryPoint": "hiprtcLinkAddFile",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "向 HIPRTC link state 添加文件",
+      "summaryEn": "Adds a file to a HIPRTC link state",
+      "parameters": [
+        { "declaration": "IntPtr linkState", "name": "linkState", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "int inputType", "name": "inputType", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr filePath", "name": "filePath", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "uint optionCount", "name": "optionCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr options", "name": "options", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr optionValues", "name": "optionValues", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "RtcLinkAddData",
+      "entryPoint": "hiprtcLinkAddData",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "向 HIPRTC link state 添加内存数据",
+      "summaryEn": "Adds in-memory data to a HIPRTC link state",
+      "parameters": [
+        { "declaration": "IntPtr linkState", "name": "linkState", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "int inputType", "name": "inputType", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr image", "name": "image", "direction": "in", "ownership": "borrowed-link-state" },
+        { "declaration": "UIntPtr imageSize", "name": "imageSize", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr name", "name": "name", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "uint optionCount", "name": "optionCount", "direction": "in", "ownership": "value" },
+        { "declaration": "IntPtr options", "name": "options", "direction": "in", "ownership": "borrowed-call" },
+        { "declaration": "IntPtr optionValues", "name": "optionValues", "direction": "in", "ownership": "borrowed-call" }
+      ]
+    },
+    {
+      "managedName": "RtcLinkComplete",
+      "entryPoint": "hiprtcLinkComplete",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "完成 HIPRTC 链接并获取 state-owned 输出",
+      "summaryEn": "Completes HIPRTC linking and gets state-owned output",
+      "parameters": [
+        { "declaration": "IntPtr linkState", "name": "linkState", "direction": "in", "ownership": "borrowed" },
+        { "declaration": "out IntPtr codeObject", "name": "codeObject", "direction": "out", "ownership": "borrowed-link-state" },
+        { "declaration": "out UIntPtr codeObjectSize", "name": "codeObjectSize", "direction": "out", "ownership": "caller" }
+      ]
+    },
+    {
+      "managedName": "RtcLinkDestroy",
+      "entryPoint": "hiprtcLinkDestroy",
+      "library": "hiprtc",
+      "header": "hip/hiprtc.h",
+      "returnType": "HipRtcResult",
+      "returnOwnership": "value",
+      "minimumHipVersion": "1.0.0",
+      "platforms": [ "linux-x64", "win-x64" ],
+      "synchronous": true,
+      "optional": false,
+      "summaryZh": "销毁 HIPRTC link state",
+      "summaryEn": "Destroys a HIPRTC link state",
+      "parameters": [
+        { "declaration": "IntPtr linkState", "name": "linkState", "direction": "in", "ownership": "caller" }
+      ]
     }
   ]
 }

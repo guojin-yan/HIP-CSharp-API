@@ -15,6 +15,6 @@ The command reads `eng/interop/complete-api-model.json`, `eng/interop/interop-ma
 
 The JSONL is ordered by ordinal `library` and `entryPoint`. The project-quality test reruns the generator, checks byte determinism, validates model/manifest cross-references, and fails closed on missing fields, duplicate entries, invalid dispositions, or unsupported evidence statuses.
 
-`managed` rows map the existing 100 owner entries to concrete unit-test sources and historical combination workloads. Their `passed-historical` cloud status is bound to the exact 0.x SHA in the record and explicitly says it is not evidence for the current checkout. `managed-next`, `raw-only-reviewed`, and `deferred-capability` rows retain `not-tested` for function and negative coverage until a dedicated batch produces evidence. No row upgrades a symbol export into a function-level pass.
+`managed` rows map the 109 owner entries to concrete unit-test sources. The original 100 entries retain `passed-historical` cloud status bound to the exact historical 0.x SHA; the nine 0.9.3 HIPRTC additions remain `not-tested` until their own exact-SHA Radeon Cloud workload runs. `managed-next`, `raw-only-reviewed`, and `deferred-capability` rows also retain `not-tested` until a dedicated batch produces evidence. No row upgrades a symbol export into a function-level pass.
 
 Current state is `implemented-local / cloud-validation-open`; this ledger does not authorize a cloud connection, package publication, or `1.0.0` release.

@@ -17,6 +17,11 @@ public sealed class RepositoryQualityTests
     private const string ExpectedFrameworks = "net46;net461;net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0";
     private static readonly string[] LedgerDispositionStatuses = { "managed-next", "raw-only-reviewed", "deferred-capability" };
     private static readonly string[] LedgerExportStatuses = { "found-historical", "missing-reviewed" };
+    private static readonly string[] NewRtcEntries =
+    {
+        "hiprtcAddNameExpression", "hiprtcGetLoweredName", "hiprtcGetBitcodeSize", "hiprtcGetBitcode",
+        "hiprtcLinkCreate", "hiprtcLinkAddFile", "hiprtcLinkAddData", "hiprtcLinkComplete", "hiprtcLinkDestroy",
+    };
     private static readonly string RepositoryRoot = FindRepositoryRoot();
 
     [TestMethod]
@@ -38,7 +43,7 @@ public sealed class RepositoryQualityTests
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.9.2", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("0.9.3", versions.Descendants("HipSharpCoreVersion").Single().Value);
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -171,6 +176,8 @@ public sealed class RepositoryQualityTests
             "hipModuleLaunchKernel", "hiprtcVersion", "hiprtcGetErrorString", "hiprtcCreateProgram",
             "hiprtcDestroyProgram", "hiprtcCompileProgram", "hiprtcGetProgramLogSize", "hiprtcGetProgramLog",
             "hiprtcGetCodeSize", "hiprtcGetCode",
+            "hiprtcAddNameExpression", "hiprtcGetLoweredName", "hiprtcGetBitcodeSize", "hiprtcGetBitcode",
+            "hiprtcLinkCreate", "hiprtcLinkAddFile", "hiprtcLinkAddData", "hiprtcLinkComplete", "hiprtcLinkDestroy",
         };
         JsonElement functions = manifest.RootElement.GetProperty("functions");
         Assert.AreEqual(5, manifest.RootElement.GetProperty("schemaVersion").GetInt32());
@@ -183,15 +190,15 @@ public sealed class RepositoryQualityTests
             Regex.IsMatch(header.GetProperty("sha256").GetString()!, "^[0-9A-F]{64}$", RegexOptions.CultureInvariant)));
         Assert.IsTrue(verifiedHeaders.EnumerateArray().All(header =>
             header.GetProperty("source").GetString()!.Contains("/ROCm/HIP/", StringComparison.Ordinal)));
-        Assert.AreEqual(100, expectedEntryPoints.Length);
+        Assert.AreEqual(109, expectedEntryPoints.Length);
         Assert.AreEqual(expectedEntryPoints.Length, functions.GetArrayLength());
         CollectionAssert.AreEqual(
             expectedEntryPoints,
             functions.EnumerateArray().Select(function => function.GetProperty("entryPoint").GetString()).ToArray());
         Assert.AreEqual(60, functions.EnumerateArray().Count(function => function.GetProperty("optional").GetBoolean()));
-        Assert.AreEqual(40, functions.EnumerateArray().Count(function => !function.GetProperty("optional").GetBoolean()));
+        Assert.AreEqual(49, functions.EnumerateArray().Count(function => !function.GetProperty("optional").GetBoolean()));
         Assert.AreEqual(91, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "amdhip64"));
-        Assert.AreEqual(9, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
+        Assert.AreEqual(18, functions.EnumerateArray().Count(function => function.GetProperty("library").GetString() == "hiprtc"));
 
         string abiProbe = File.ReadAllText(Path.Combine(RepositoryRoot, "native", "abi-probe", "hip_abi_probe.cpp"));
         StringAssert.Contains(abiProbe, "static_cast<HipMallocAsyncSignature>(&hipMallocAsync)");
@@ -285,8 +292,9 @@ public sealed class RepositoryQualityTests
         Dictionary<string, string> managedLibraries = manifest.RootElement.GetProperty("functions").EnumerateArray()
             .ToDictionary(item => item.GetProperty("entryPoint").GetString()!, item => item.GetProperty("library").GetString()!, StringComparer.Ordinal);
         Assert.AreEqual(477, completeEntries.Count);
-        Assert.AreEqual(100, managedLibraries.Count);
+        Assert.AreEqual(109, managedLibraries.Count);
         Assert.IsTrue(managedLibraries.Keys.All(completeEntries.Contains), "Every managed manifest entry must exist in the complete model.");
+        var newRtcEntries = new HashSet<string>(NewRtcEntries, StringComparer.Ordinal);
 
         string[] lines = File.ReadAllLines(ledgerPath);
         Assert.AreEqual(477, lines.Length);
@@ -323,9 +331,18 @@ public sealed class RepositoryQualityTests
             {
                 Assert.AreEqual(managedLibraries[entryPoint], library);
                 Assert.AreEqual("covered", item.GetProperty("unitCoverage").GetProperty("status").GetString());
-                Assert.AreEqual("passed-historical", item.GetProperty("cloudFunctionCoverage").GetProperty("status").GetString());
-                Assert.AreEqual("63f33cf2061b6b7ed4b1865e2266bed0a1d707c8", item.GetProperty("cloudFunctionCoverage").GetProperty("exactSha").GetString());
-                StringAssert.Contains(item.GetProperty("cloudFunctionCoverage").GetProperty("scope").GetString()!, "not current SHA");
+                JsonElement cloudCoverage = item.GetProperty("cloudFunctionCoverage");
+                if (newRtcEntries.Contains(entryPoint))
+                {
+                    Assert.AreEqual("not-tested", cloudCoverage.GetProperty("status").GetString());
+                    StringAssert.Contains(cloudCoverage.GetProperty("reason").GetString()!, "exact-SHA");
+                }
+                else
+                {
+                    Assert.AreEqual("passed-historical", cloudCoverage.GetProperty("status").GetString());
+                    Assert.AreEqual("63f33cf2061b6b7ed4b1865e2266bed0a1d707c8", cloudCoverage.GetProperty("exactSha").GetString());
+                    StringAssert.Contains(cloudCoverage.GetProperty("scope").GetString()!, "not current SHA");
+                }
             }
             else
             {
@@ -349,8 +366,8 @@ public sealed class RepositoryQualityTests
         }
         CollectionAssert.AreEquivalent(completeEntries.ToArray(), seen.ToArray());
         Assert.AreEqual(1, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("cloudExport").GetProperty("status").GetString() == "missing-reviewed"));
-        Assert.AreEqual(100, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
-        Assert.AreEqual(377, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
+        Assert.AreEqual(109, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
+        Assert.AreEqual(368, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
     }
 
     [TestMethod]
@@ -608,7 +625,25 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(cloudGate, "--environment official-host");
         StringAssert.Contains(runtimeGate, "--environment package-only");
         StringAssert.Contains(runtimeGate, "make_multi_file_consumer managed-expansion HipManagedExpansionValidation");
-        StringAssert.Contains(cloudGate, "evidence[\"schemaVersion\"] != 7 or len(evidence.get(\"functions\", [])) != 100");
+        StringAssert.Contains(runtimeGate, "--program-linker-validation");
+        StringAssert.Contains(runtimeGate, "hiprtc-program-linker-run.json");
+        StringAssert.Contains(runtimeGate, "validate-hiprtc-program-linker.py");
+        StringAssert.Contains(cloudGate, "evidence[\"schemaVersion\"] != 7 or len(evidence.get(\"functions\", [])) != 109");
+        StringAssert.Contains(cloudGate, "0.9.3 managed HIPRTC exports are missing");
+        StringAssert.Contains(cloudGate, "--program-linker-validation");
+        StringAssert.Contains(cloudGate, "hiprtc-program-linker.json");
+        string radeonReadme = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "README.md"));
+        StringAssert.Contains(radeonReadme, "109 managed-manifest exports");
+        StringAssert.Contains(radeonReadme, "91 Runtime and 18 HIPRTC managed-manifest exports");
+        StringAssert.Contains(radeonReadme, "HIPRTC Program/Linker exact-package workload");
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "radeon", "validate-hiprtc-program-linker.py")));
+        string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipRtcVectorAdd", "Program.cs"));
+        StringAssert.Contains(rtcSample, "CompileToBitcode");
+        StringAssert.Contains(rtcSample, "GetLoweredName");
+        StringAssert.Contains(rtcSample, "HipRtcJitInputType.LlvmBitcode");
+        StringAssert.Contains(rtcSample, "AddFile");
+        StringAssert.Contains(rtcSample, "hiprtc-program-linker-0.9.3");
+        StringAssert.Contains(rtcSample, "performanceClaim = false");
         Assert.IsFalse(program.Contains("IntPtr", StringComparison.Ordinal));
         Assert.IsFalse(program.Contains("JYPPX.ROCm.HipSharp.LowLevel", StringComparison.Ordinal));
         Assert.IsFalse(program.Contains("DangerousGetHandle", StringComparison.Ordinal));
@@ -658,12 +693,15 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.2.txt");
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.3.txt");
         Assert.IsTrue(File.Exists(snapshot));
-        StringAssert.StartsWith(File.ReadAllText(snapshot), "# HipSharp public API snapshot schema 1");
-        string historicalSnapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.1.txt");
+        string currentSurface = File.ReadAllText(snapshot);
+        StringAssert.StartsWith(currentSurface, "# HipSharp public API snapshot schema 1");
+        StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Rtc.HipRtcLinker");
+        StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Rtc.HipRtcJitInputType");
+        string historicalSnapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.2.txt");
         Assert.IsTrue(File.Exists(historicalSnapshot));
-        Assert.AreEqual(File.ReadAllText(historicalSnapshot), File.ReadAllText(snapshot));
+        Assert.AreNotEqual(File.ReadAllText(historicalSnapshot), currentSurface);
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "public-api", "categories.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-public-api.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.ApiSurface", "Program.cs")));
@@ -678,6 +716,7 @@ public sealed class RepositoryQualityTests
             "T:JYPPX.ROCm.HipSharp.Memory.HipMemoryCopyKind",
             "T:JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolAccess",
             "T:JYPPX.ROCm.HipSharp.Modules.HipOccupancyFlags",
+            "T:JYPPX.ROCm.HipSharp.Rtc.HipRtcJitInputType",
             "T:JYPPX.ROCm.HipSharp.Rtc.HipRtcResult",
             "T:JYPPX.ROCm.HipSharp.Types.HipDeviceAttribute",
             "T:JYPPX.ROCm.HipSharp.Types.HipError",
@@ -692,7 +731,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "m8.11-linux-core-0.9.2-interface-ledger; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
+        StringAssert.Contains(packageVerifier, "core-0.9.3-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
         string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
         StringAssert.Contains(pairingGate, "21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799");

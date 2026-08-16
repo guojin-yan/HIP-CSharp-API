@@ -33,6 +33,12 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Rtc.HipRtcJitInputType</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:JYPPX.ROCm.HipSharp.Rtc.HipRtcResult</Target>
     <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
     <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>

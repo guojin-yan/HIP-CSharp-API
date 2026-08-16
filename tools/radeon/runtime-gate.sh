@@ -57,6 +57,7 @@ export UseSharedCompilation=false
 
 mkdir -p "${evidence_dir}"
 sha256sum "${core_package}" "${runtime_package}" | tee "${evidence_dir}/package-hashes.txt"
+core_package_sha256="$(sha256sum "${core_package}" | awk '{print $1}')"
 
 read_package_version() {
   python3 - "$1" "$2" <<'PY'
@@ -185,6 +186,24 @@ for case_name in device-info memory-copy; do
   (cd "${runtime_root}/${case_name}" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore 2>&1) | tee "${evidence_dir}/${case_name}-run.txt"
 done
 (cd "${runtime_root}/hiprtc-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --length 256 --repeat 20 2>&1) | tee "${evidence_dir}/hiprtc-vector-add-run.txt"
+linker_length=4096
+linker_repeat=3
+(cd "${runtime_root}/hiprtc-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- \
+  --arch "${gpu_architecture}" \
+  --length "${linker_length}" \
+  --repeat "${linker_repeat}" \
+  --program-linker-validation \
+  --expected-commit "${expected_commit}" \
+  --expected-package-sha256 "${core_package_sha256}" \
+  --environment package-only 2>&1) | tee "${evidence_dir}/hiprtc-program-linker-run.json"
+python3 "${repository_root}/tools/radeon/validate-hiprtc-program-linker.py" \
+  "${evidence_dir}/hiprtc-program-linker-run.json" \
+  "${expected_commit}" \
+  "${core_package_sha256}" \
+  package-only \
+  "${gpu_architecture}" \
+  "${linker_length}" \
+  "${linker_repeat}"
 (cd "${runtime_root}/stream-event-vector-add" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/stream-event-vector-add-run.txt"
 (cd "${runtime_root}/advanced-features" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --graph-launch-repeats 3 --lifecycle-repeats 100 2>&1) | tee "${evidence_dir}/advanced-features-run.txt"
 (cd "${runtime_root}/managed-expansion" && LD_DEBUG=libs dotnet run --configuration Release --no-build --no-restore -- --arch "${gpu_architecture}" --expected-commit "${expected_commit}" --environment package-only --graph-launch-repeats 3 2>&1) | tee "${evidence_dir}/managed-expansion-run.json"

@@ -65,12 +65,12 @@ Runtime/GPU数据证据。
 
 ## Evidence boundary / 证据边界
 
-`tools/radeon/cloud-test.sh` runs the workload on an official ROCm host after the 100-entry owner
+`tools/radeon/cloud-test.sh` runs the workload on an official ROCm host after the 109-entry owner
 symbol and schema-7 ABI gates. `tools/radeon/runtime-gate.sh` builds a sixth clean consumer from the
 same source and runs it in Ubuntu Base + PRoot with `/opt/rocm` hidden. Both gates parse the JSON and
 reject a stale commit, failed stage, missing managed negative, invalid order, or performance claim.
 
-`tools/radeon/cloud-test.sh` 在100-entry owner symbol与schema-7 ABI门禁后，于official ROCm host运行该
+`tools/radeon/cloud-test.sh` 在109-entry owner symbol与schema-7 ABI门禁后，于official ROCm host运行该
 工作负载。`tools/radeon/runtime-gate.sh` 从相同源码构建第六个clean consumer，并在隐藏`/opt/rocm`的
 Ubuntu Base + PRoot中运行。两条gate都会解析JSON，并拒绝过期commit、failed stage、缺失managed
 negative、顺序错误或performance claim。

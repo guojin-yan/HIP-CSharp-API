@@ -19,6 +19,10 @@ internal interface IHipRtcNativeApi
 
     public HipRtcResult CompileProgram(IntPtr program, IReadOnlyList<string> options);
 
+    public HipRtcResult AddNameExpression(IntPtr program, string nameExpression);
+
+    public HipRtcResult GetLoweredName(IntPtr program, string nameExpression, out IntPtr loweredName);
+
     public HipRtcResult GetProgramLogSize(IntPtr program, out UIntPtr logSize);
 
     public HipRtcResult GetProgramLog(IntPtr program, IntPtr log);
@@ -26,4 +30,18 @@ internal interface IHipRtcNativeApi
     public HipRtcResult GetCodeSize(IntPtr program, out UIntPtr codeSize);
 
     public HipRtcResult GetCode(IntPtr program, IntPtr code);
+
+    public HipRtcResult GetBitcodeSize(IntPtr program, out UIntPtr bitcodeSize);
+
+    public HipRtcResult GetBitcode(IntPtr program, IntPtr bitcode);
+
+    public HipRtcResult LinkCreate(out IntPtr linkState);
+
+    public HipRtcResult LinkAddFile(IntPtr linkState, HipRtcJitInputType inputType, string filePath);
+
+    public HipRtcResult LinkAddData(IntPtr linkState, HipRtcJitInputType inputType, IntPtr image, UIntPtr imageSize, string? name);
+
+    public HipRtcResult LinkComplete(IntPtr linkState, out IntPtr codeObject, out UIntPtr codeObjectSize);
+
+    public HipRtcResult LinkDestroy(IntPtr linkState);
 }

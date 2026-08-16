@@ -42,7 +42,7 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 
 Core `0.9.1` and the optional Linux Runtime `7.2.1` are published on nuget.org. Their repository-signed public bytes passed nuget.org-only static consumers and a fresh package-only Linux GPU/ABI gate on 2026-08-14. Core `0.9.0` remains immutable and unlisted with its known unintended `JYPPX.ROCm.HipSharp` assembly identity; do not adopt it.
 
-The source tree is validating an unpublished Core `0.9.2` interface-ledger batch with the same 68-type/1,002-member public surface as `0.9.1`. It tracks all 477 pinned HIP declarations without treating symbol scans as function tests. Windows AMD GPU validation and an explicit Owner release request are both required before any future `1.0.0`; this `0.9.2` work does not satisfy or bypass either condition.
+The source tree is validating an unpublished Core `0.9.3` HIPRTC Program/Linker expansion batch. It promotes nine pinned HIPRTC declarations into managed owners while keeping their cloud function status `not-tested` until fresh exact-SHA Radeon Cloud evidence exists. Windows AMD GPU validation and an explicit Owner release request are both required before any future `1.0.0`; this `0.9.3` work does not satisfy or bypass either condition.
 
 ## 🚀 Get Started In 30 Seconds
 
@@ -88,7 +88,7 @@ Applications using the managed package must still provide compatible native `amd
 
 | Package | Native baseline | Contents | State |
 | --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.1` published; `0.9.2` interface-ledger validation batch is unpublished and not release-authorized |
+| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.1` published; `0.9.3` HIPRTC expansion batch is unpublished and not release-authorized |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | `7.2.1` published and public-feed package-only validated; independently versioned from Core |
 | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
 
@@ -117,7 +117,7 @@ The Core project directly targets 15 frameworks:
 
 | Platform | Core build/package | GPU validation | Runtime package |
 | --- | --- | --- | --- |
-| Linux x64 | Yes | Public Core `0.9.1` + Runtime `7.2.1` passed the M8.9 nuget.org-only package GPU/ABI gate on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`; different `0.9.2` bytes require exact-SHA evidence | Published, receipt-verified Runtime `7.2.1`; optional to system ROCm |
+| Linux x64 | Yes | Public Core `0.9.1` + Runtime `7.2.1` passed the M8.9 nuget.org-only package GPU/ABI gate on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`; the new `0.9.3` bytes require their own exact-SHA evidence | Published, receipt-verified Runtime `7.2.1`; optional to system ROCm |
 | Windows x64 | Yes; loader and PE paths are statically audited | Not yet validated on an AMD GPU | Disabled 7.2.0 skeleton |
 
 Several older .NET targets are end-of-support upstream and exist only for package compatibility. The full distinctions between build compatibility, historical validation, and supported deployment are documented in [framework compatibility](docs/compatibility/frameworks.md) and [platform compatibility](docs/compatibility/platforms.md).
