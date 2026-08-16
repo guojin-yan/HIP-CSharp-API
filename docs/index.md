@@ -1,8 +1,8 @@
 # HipSharp API Documentation / API 文档
 
-HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.9.1` and optional Linux Runtime `7.2.1` are published and passed fresh nuget.org-only static plus package-only GPU/ABI validation. The source tree prepares an unpublished Linux Core `1.0.0` candidate with the same frozen public surface. That exact candidate still requires a new Owner-authorized GPU gate. Windows remains disabled/unverified/static-only.
+HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.9.1` and optional Linux Runtime `7.2.1` are published and passed fresh nuget.org-only static plus package-only GPU/ABI validation. The source tree validates an unpublished Core `0.9.2` interface-ledger batch with the same frozen public surface. Windows AMD GPU validation and an explicit Owner request remain mandatory before any future `1.0.0` release.
 
-HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已公开，并通过 fresh nuget.org-only 静态及 package-only GPU/ABI 验证。当前源码准备公开 surface 不变的 Linux Core `1.0.0` 未发布候选；该精确候选仍需新的 Owner-authorized GPU 门禁。Windows 保持 disabled/unverified/static-only。
+HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已公开，并通过 fresh nuget.org-only 静态及 package-only GPU/ABI 验证。当前源码验证公开 surface 不变的 Core `0.9.2` 逐接口账本批次。未来任何 `1.0.0` 仍必须同时取得 Windows AMD GPU 实机验证和 Owner 明确发布指令。
 
 ## Documentation / 文档
 
@@ -10,6 +10,7 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `
 - [Platform compatibility / 平台兼容性](compatibility/platforms.md)
 - [Historical 0.9.0 assembly incident / 0.9.0 程序集事故历史](releases/0.9.0-rc.md)
 - [0.9.1 assembly identity forward fix / 0.9.1 程序集 identity 修正](releases/0.9.1-forward-fix.md)
+- [0.9.2 interface ledger validation / 0.9.2 逐接口账本验证](releases/0.9.2-interface-ledger.md)
 - [1.0.0 candidate notes / 1.0.0 候选说明](releases/1.0.0.md)
 - [1.0.0 readiness matrix / 1.0.0 就绪矩阵](releases/1.0.0-readiness.md)
 - [M8.10 controlled cleanup / M8.10 受控清理](releases/1.0.0-cleanup.md)

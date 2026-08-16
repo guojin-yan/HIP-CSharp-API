@@ -15,6 +15,8 @@ namespace JYPPX.ROCm.HipSharp.ProjectQuality.Tests;
 public sealed class RepositoryQualityTests
 {
     private const string ExpectedFrameworks = "net46;net461;net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0";
+    private static readonly string[] LedgerDispositionStatuses = { "managed-next", "raw-only-reviewed", "deferred-capability" };
+    private static readonly string[] LedgerExportStatuses = { "found-historical", "missing-reviewed" };
     private static readonly string RepositoryRoot = FindRepositoryRoot();
 
     [TestMethod]
@@ -36,7 +38,7 @@ public sealed class RepositoryQualityTests
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("1.0.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("0.9.2", versions.Descendants("HipSharpCoreVersion").Single().Value);
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -252,6 +254,103 @@ public sealed class RepositoryQualityTests
         {
             AssertBuilt(framework);
         }
+    }
+
+    [TestMethod]
+    public void InterfaceCoverageLedgerIsDeterministicAndClosed()
+    {
+        string ledgerPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "interface-coverage.jsonl");
+        string summaryPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "interface-coverage.md");
+        string generatorPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "generate-interface-coverage.ps1");
+        string reviewPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "reviewed-classification.json");
+        Assert.IsTrue(File.Exists(ledgerPath));
+        Assert.IsTrue(File.Exists(summaryPath));
+        Assert.IsTrue(File.Exists(generatorPath));
+        Assert.IsTrue(File.Exists(reviewPath));
+
+        string before = File.ReadAllText(ledgerPath);
+        ProcessResult generated = RunProcess("pwsh", "-NoProfile", "-File", generatorPath);
+        Assert.AreEqual(0, generated.ExitCode, generated.Output);
+        Assert.AreEqual(before, File.ReadAllText(ledgerPath), "Ledger generation must be byte deterministic.");
+
+        using JsonDocument complete = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "complete-api-model.json")));
+        using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "interop-manifest.json")));
+        HashSet<string> completeEntries = complete.RootElement.GetProperty("runtimeFunctions").EnumerateArray()
+            .Concat(complete.RootElement.GetProperty("rtcFunctions").EnumerateArray())
+            .Select(item => item.GetProperty("entryPoint").GetString()!)
+            .ToHashSet(StringComparer.Ordinal);
+        Dictionary<string, string> completeLibraries = complete.RootElement.GetProperty("runtimeFunctions").EnumerateArray()
+            .Concat(complete.RootElement.GetProperty("rtcFunctions").EnumerateArray())
+            .ToDictionary(item => item.GetProperty("entryPoint").GetString()!, item => item.GetProperty("library").GetString()!, StringComparer.Ordinal);
+        Dictionary<string, string> managedLibraries = manifest.RootElement.GetProperty("functions").EnumerateArray()
+            .ToDictionary(item => item.GetProperty("entryPoint").GetString()!, item => item.GetProperty("library").GetString()!, StringComparer.Ordinal);
+        Assert.AreEqual(477, completeEntries.Count);
+        Assert.AreEqual(100, managedLibraries.Count);
+        Assert.IsTrue(managedLibraries.Keys.All(completeEntries.Contains), "Every managed manifest entry must exist in the complete model.");
+
+        string[] lines = File.ReadAllLines(ledgerPath);
+        Assert.AreEqual(477, lines.Length);
+        HashSet<string> seen = new(StringComparer.Ordinal);
+        string? previousKey = null;
+        string[] required =
+        {
+            "library", "entryPoint", "binding", "cloudExport", "abi", "managedDisposition",
+            "unitCoverage", "cloudFunctionCoverage", "negativeCoverage", "capabilitySkip",
+            "evidenceRecord", "articleTopic",
+        };
+        foreach (string line in lines)
+        {
+            using JsonDocument ledger = JsonDocument.Parse(line);
+            JsonElement item = ledger.RootElement;
+            foreach (string field in required)
+            {
+                Assert.IsTrue(item.TryGetProperty(field, out _), $"Missing required field {field}.");
+            }
+
+            string library = item.GetProperty("library").GetString()!;
+            string entryPoint = item.GetProperty("entryPoint").GetString()!;
+            Assert.IsTrue(completeEntries.Contains(entryPoint), $"Ledger entry is absent from complete model: {entryPoint}");
+            Assert.AreEqual(completeLibraries[entryPoint], library);
+            Assert.IsTrue(seen.Add(entryPoint), $"Duplicate ledger entry: {entryPoint}");
+            string key = library + "\0" + entryPoint;
+            Assert.IsTrue(previousKey is null || string.CompareOrdinal(previousKey, key) < 0, "Ledger order must be library then entryPoint.");
+            previousKey = key;
+
+            string disposition = item.GetProperty("managedDisposition").GetProperty("status").GetString()!;
+            bool managed = managedLibraries.ContainsKey(entryPoint);
+            Assert.AreEqual(managed, disposition == "managed", $"Manifest/disposition mismatch for {entryPoint}");
+            if (managed)
+            {
+                Assert.AreEqual(managedLibraries[entryPoint], library);
+                Assert.AreEqual("covered", item.GetProperty("unitCoverage").GetProperty("status").GetString());
+                Assert.AreEqual("passed-historical", item.GetProperty("cloudFunctionCoverage").GetProperty("status").GetString());
+                Assert.AreEqual("63f33cf2061b6b7ed4b1865e2266bed0a1d707c8", item.GetProperty("cloudFunctionCoverage").GetProperty("exactSha").GetString());
+                StringAssert.Contains(item.GetProperty("cloudFunctionCoverage").GetProperty("scope").GetString()!, "not current SHA");
+            }
+            else
+            {
+                CollectionAssert.Contains(LedgerDispositionStatuses, disposition);
+                Assert.IsFalse(string.IsNullOrWhiteSpace(item.GetProperty("managedDisposition").GetProperty("reviewRule").GetString()));
+                Assert.IsFalse(string.IsNullOrWhiteSpace(item.GetProperty("managedDisposition").GetProperty("reason").GetString()));
+                Assert.AreEqual("not-tested", item.GetProperty("unitCoverage").GetProperty("status").GetString());
+                Assert.AreEqual("not-tested", item.GetProperty("cloudFunctionCoverage").GetProperty("status").GetString());
+                Assert.AreEqual("not-tested", item.GetProperty("negativeCoverage").GetProperty("status").GetString());
+                Assert.IsFalse(string.IsNullOrWhiteSpace(item.GetProperty("capabilitySkip").GetProperty("reason").GetString()));
+            }
+
+            string exportStatus = item.GetProperty("cloudExport").GetProperty("status").GetString()!;
+            CollectionAssert.Contains(LedgerExportStatuses, exportStatus);
+            if (exportStatus == "missing-reviewed")
+            {
+                Assert.AreEqual("hipExternalMemoryGetMappedMipmappedArray", entryPoint);
+            }
+            Assert.IsTrue(item.GetProperty("abi").GetProperty("parameterCount").GetInt32() >= 0);
+            Assert.IsFalse(string.IsNullOrWhiteSpace(item.GetProperty("articleTopic").GetString()));
+        }
+        CollectionAssert.AreEquivalent(completeEntries.ToArray(), seen.ToArray());
+        Assert.AreEqual(1, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("cloudExport").GetProperty("status").GetString() == "missing-reviewed"));
+        Assert.AreEqual(100, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
+        Assert.AreEqual(377, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
     }
 
     [TestMethod]
@@ -559,7 +658,7 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.1.0.0.txt");
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.2.txt");
         Assert.IsTrue(File.Exists(snapshot));
         StringAssert.StartsWith(File.ReadAllText(snapshot), "# HipSharp public API snapshot schema 1");
         string historicalSnapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.1.txt");
@@ -593,7 +692,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "m8.10-linux-core-1.0.0-candidate; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
+        StringAssert.Contains(packageVerifier, "m8.11-linux-core-0.9.2-interface-ledger; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
         string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
         StringAssert.Contains(pairingGate, "21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799");

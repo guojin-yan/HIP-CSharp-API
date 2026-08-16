@@ -186,7 +186,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "m8.10-linux-core-1.0.0-candidate; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
+    runtimeAndGpuValidation = "m8.11-linux-core-0.9.2-interface-ledger; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

@@ -20,7 +20,7 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <EnablePackageValidation>true</EnablePackageValidation>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
-    <PackageReleaseNotes>Linux Core 1.0.0 candidate with the 0.9.1 public API frozen unchanged. Candidate bytes are unpublished and require fresh exact-package GPU validation plus separate Owner release authorization.</PackageReleaseNotes>
+    <PackageReleaseNotes>Core 0.9.2 interface-ledger validation batch with the 0.9.1 public API unchanged. Candidate bytes are unpublished, publishable=false, and releaseAuthorized=false.</PackageReleaseNotes>
     <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->

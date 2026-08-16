@@ -1,0 +1,53 @@
+{
+  "schemaVersion": 1,
+  "description": "Reviewed disposition rules for complete HIP 7.2.1 declarations not present in the managed owner manifest.",
+  "rules": [
+    {
+      "name": "deferred-external-interop",
+      "disposition": "deferred-capability",
+      "containsAny": ["External", "Graphics", "D3D", "GL", "EGL", "Vulkan", "Ipc", "Interop"],
+      "reason": "Requires an external graphics or interprocess resource capability that is not part of the current cloud contract."
+    },
+    {
+      "name": "deferred-callback-and-profiler",
+      "containsAny": ["Callback", "Profiler", "UserObject", "ProfilerStart", "ProfilerStop"],
+      "disposition": "deferred-capability",
+      "reason": "Callback or profiler ownership needs a dedicated lifetime and capability workload before managed exposure."
+    },
+    {
+      "name": "deferred-deprecated",
+      "containsAny": ["Deprecated", "deprecated", "Drv"],
+      "disposition": "deferred-capability",
+      "reason": "Deprecated or driver-layer overlap is intentionally outside the current managed ownership boundary."
+    },
+    {
+      "name": "managed-next-hiprtc",
+      "library": "hiprtc",
+      "disposition": "managed-next",
+      "reason": "HIPRTC linker, name-expression, or bitcode ownership is a planned independent 0.x batch."
+    },
+    {
+      "name": "managed-next-virtual-memory",
+      "containsAny": ["MemAddress", "MemCreate", "MemMap", "MemUnmap", "MemSetAccess", "MemGetAccess", "MemRelease", "MemExport", "MemImport", "MemRetainAllocationHandle"],
+      "disposition": "managed-next",
+      "reason": "Virtual-memory reservation, mapping, access, and release require an explicit owner and capability workload."
+    },
+    {
+      "name": "managed-next-array-texture-surface",
+      "containsAny": ["Array", "Texture", "Surface"],
+      "disposition": "managed-next",
+      "reason": "Array, texture, or surface descriptors need a reviewed layout and resource-lifetime workload."
+    },
+    {
+      "name": "managed-next-common-query",
+      "containsAny": ["StreamGet", "StreamWait", "EventGet", "DeviceGet", "DeviceTotalMem", "DeviceComputeCapability", "PointerGet", "PointerSet", "GetSymbol"],
+      "disposition": "managed-next",
+      "reason": "Common stream, event, device, or pointer queries are candidates after ownership and capability tests are added."
+    },
+    {
+      "name": "raw-only-reviewed-default",
+      "disposition": "raw-only-reviewed",
+      "reason": "Low-level binding is retained; no current managed owner or function-level cloud workload justifies promotion."
+    }
+  ]
+}
