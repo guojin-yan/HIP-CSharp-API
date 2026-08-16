@@ -14,6 +14,7 @@ public sealed class HipRtcProgram : IDisposable
     private readonly IHipRtcNativeApi _nativeApi;
     private readonly HipRtcProgramHandle _handle;
     private readonly object _sync = new();
+    private bool _compileSucceeded;
 
     internal HipRtcProgram(IHipRtcNativeApi nativeApi, IntPtr program)
     {
@@ -31,6 +32,7 @@ public sealed class HipRtcProgram : IDisposable
     /// <exception cref="ArgumentNullException">表达式为 null / The expression is <see langword="null"/>.</exception>
     /// <exception cref="ArgumentException">表达式为空、全空白或包含 null 字符 / The expression is empty, whitespace-only, or contains a null character.</exception>
     /// <exception cref="ObjectDisposedException">program 已释放 / The program has been released.</exception>
+    /// <exception cref="InvalidOperationException">program 已成功编译 / The program has already compiled successfully.</exception>
     /// <exception cref="HipRtcException">HIPRTC 拒绝表达式 / HIPRTC rejects the expression.</exception>
     public void AddNameExpression(string nameExpression)
     {
@@ -38,6 +40,11 @@ public sealed class HipRtcProgram : IDisposable
         lock (_sync)
         {
             ThrowIfDisposed();
+            if (_compileSucceeded)
+            {
+                throw new InvalidOperationException("Name expressions must be added before compilation.");
+            }
+
             HipRtcCall.ThrowIfFailed(
                 _nativeApi,
                 _nativeApi.AddNameExpression(_handle.DangerousGetHandle(), nameExpression),
@@ -100,6 +107,7 @@ public sealed class HipRtcProgram : IDisposable
                 HipRtcCall.ThrowIfFailed(_nativeApi, result, "hiprtcCompileProgram", failedLog);
             }
 
+            _compileSucceeded = true;
             string log = ReadLog(program);
             byte[] codeObject = ReadCode(program);
             return new HipRtcCompilation(codeObject, log, optionSnapshot);
@@ -129,6 +137,7 @@ public sealed class HipRtcProgram : IDisposable
                 HipRtcCall.ThrowIfFailed(_nativeApi, result, "hiprtcCompileProgram", failedLog);
             }
 
+            _compileSucceeded = true;
             byte[] bitcode = ReadBitcode(program);
             GC.KeepAlive(this);
             return bitcode;

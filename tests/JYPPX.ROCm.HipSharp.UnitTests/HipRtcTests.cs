@@ -138,6 +138,47 @@ public sealed class HipRtcTests
     }
 
     [TestMethod]
+    public void SuccessfulCompileRejectsNewNameExpressionsBeforeNativeCall()
+    {
+        using var native = new FakeHipRtcNativeApi();
+        using HipRtcProgram program = new HipRtc(native).CreateProgram("source");
+        program.AddNameExpression("kernel<float>");
+        int callsBeforeCompile = native.AddNameExpressionCallCount;
+
+        program.Compile();
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => program.AddNameExpression("kernel<double>"));
+        Assert.AreEqual(callsBeforeCompile, native.AddNameExpressionCallCount);
+    }
+
+    [TestMethod]
+    public void SuccessfulCompileToBitcodeRejectsNewNameExpressionsBeforeNativeCall()
+    {
+        using var native = new FakeHipRtcNativeApi();
+        using HipRtcProgram program = new HipRtc(native).CreateProgram("source");
+        int callsBeforeCompile = native.AddNameExpressionCallCount;
+
+        program.CompileToBitcode(BitcodeOptions);
+
+        Assert.ThrowsExactly<InvalidOperationException>(() => program.AddNameExpression("kernel<double>"));
+        Assert.AreEqual(callsBeforeCompile, native.AddNameExpressionCallCount);
+    }
+
+    [TestMethod]
+    public void FailedCompilationDoesNotCloseNameExpressionRegistration()
+    {
+        using var native = new FakeHipRtcNativeApi { CompileResult = HipRtcResult.Compilation };
+        using HipRtcProgram program = new HipRtc(native).CreateProgram("source");
+
+        Assert.ThrowsExactly<HipRtcException>(() => program.Compile());
+        int callsBeforeRegistration = native.AddNameExpressionCallCount;
+
+        program.AddNameExpression("kernel<double>");
+
+        Assert.AreEqual(callsBeforeRegistration + 1, native.AddNameExpressionCallCount);
+    }
+
+    [TestMethod]
     public void NameExpressionOperationsRejectInvalidDisposedAndNullNativeResults()
     {
         using var native = new FakeHipRtcNativeApi();

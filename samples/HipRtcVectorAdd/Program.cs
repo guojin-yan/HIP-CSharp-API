@@ -179,8 +179,7 @@ static int RunProgramLinkerValidation(HipRtc rtc, Options options, string source
             "-O2",
         });
         loweredName = program.GetLoweredName(nameExpression);
-        ExpectRtcResult(
-            HipRtcResult.NoNameExpressionsAfterCompilation,
+        ExpectException<InvalidOperationException>(
             () => program.AddNameExpression(postCompilationNameExpression),
             "name-expression-after-compile",
             negatives);

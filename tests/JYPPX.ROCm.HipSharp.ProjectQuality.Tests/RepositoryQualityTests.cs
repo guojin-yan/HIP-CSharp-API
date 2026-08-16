@@ -554,8 +554,9 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(rtcSample, "HipRtcResult.NameExpressionNotValid");
         StringAssert.Contains(rtcSample, "\"lowered-name-before-compile\"");
         StringAssert.Contains(rtcSample, "const string postCompilationNameExpression = \"VectorAddTemplate<double>\";");
-        StringAssert.Contains(rtcSample, "HipRtcResult.NoNameExpressionsAfterCompilation");
+        StringAssert.Contains(rtcSample, "ExpectException<InvalidOperationException>(");
         StringAssert.Contains(rtcSample, "() => program.AddNameExpression(postCompilationNameExpression)");
+        Assert.IsFalse(rtcSample.Contains("HipRtcResult.NoNameExpressionsAfterCompilation", StringComparison.Ordinal));
         Assert.IsFalse(rtcSample.Contains("() => program.AddNameExpression(nameExpression)", StringComparison.Ordinal));
 
         string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));

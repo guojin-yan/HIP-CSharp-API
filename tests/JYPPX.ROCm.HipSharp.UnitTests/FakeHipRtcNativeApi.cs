@@ -76,6 +76,8 @@ internal sealed class FakeHipRtcNativeApi : IHipRtcNativeApi, IDisposable
 
     internal int DestroyCount { get; private set; }
 
+    internal int AddNameExpressionCallCount { get; private set; }
+
     internal int LinkDestroyCount { get; private set; }
 
     internal HipRtcJitInputType LastLinkInputType { get; private set; }
@@ -133,6 +135,7 @@ internal sealed class FakeHipRtcNativeApi : IHipRtcNativeApi, IDisposable
 
     public HipRtcResult AddNameExpression(IntPtr program, string nameExpression)
     {
+        AddNameExpressionCallCount++;
         if (AddNameExpressionResult == HipRtcResult.Success)
         {
             NameExpressions.Add(nameExpression);
