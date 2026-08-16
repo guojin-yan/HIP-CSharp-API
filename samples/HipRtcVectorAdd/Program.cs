@@ -154,6 +154,7 @@ static int FindFailure(float[] a, float[] b, float[] actual)
 static int RunProgramLinkerValidation(HipRtc rtc, Options options, string source)
 {
     const string nameExpression = "VectorAddTemplate<float>";
+    const string postCompilationNameExpression = "VectorAddTemplate<double>";
     var negatives = new List<string>();
 
     using (HipRtcProgram beforeCompile = rtc.CreateProgram(source, "lowered-before-compile.hip"))
@@ -180,7 +181,7 @@ static int RunProgramLinkerValidation(HipRtc rtc, Options options, string source
         loweredName = program.GetLoweredName(nameExpression);
         ExpectRtcResult(
             HipRtcResult.NoNameExpressionsAfterCompilation,
-            () => program.AddNameExpression(nameExpression),
+            () => program.AddNameExpression(postCompilationNameExpression),
             "name-expression-after-compile",
             negatives);
     }

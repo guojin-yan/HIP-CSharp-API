@@ -553,6 +553,10 @@ public sealed class RepositoryQualityTests
         string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipRtcVectorAdd", "Program.cs"));
         StringAssert.Contains(rtcSample, "HipRtcResult.NameExpressionNotValid");
         StringAssert.Contains(rtcSample, "\"lowered-name-before-compile\"");
+        StringAssert.Contains(rtcSample, "const string postCompilationNameExpression = \"VectorAddTemplate<double>\";");
+        StringAssert.Contains(rtcSample, "HipRtcResult.NoNameExpressionsAfterCompilation");
+        StringAssert.Contains(rtcSample, "() => program.AddNameExpression(postCompilationNameExpression)");
+        Assert.IsFalse(rtcSample.Contains("() => program.AddNameExpression(nameExpression)", StringComparison.Ordinal));
 
         string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
         StringAssert.Contains(sample, "peer=passed(1->0");

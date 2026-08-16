@@ -31,9 +31,13 @@ HipKernel kernel = module.GetKernel(kernelName);
 
 ROCm 7.2.1 returns `HIPRTC_ERROR_NAME_EXPRESSION_NOT_VALID` when a registered expression is queried before compilation. The exact-SHA workload records that result as the `lowered-name-before-compile` lifecycle negative; it does not treat the failed lookup as a successful lowered-name result.
 
+The post-compilation lifecycle negative submits a different valid expression (`VectorAddTemplate<double>`) after compiling the registered `VectorAddTemplate<float>`. Re-submitting the already registered expression is not an adequate negative because ROCm 7.2.1 accepts that duplicate call.
+
 `AddNameExpression` 必须在编译前调用，`GetLoweredName` 必须在成功编译后调用。原生 lowered-name 指针归 program 所有；托管方法立即复制，因此返回的 `string` 在 `HipRtcProgram.Dispose` 后仍然有效。
 
 ROCm 7.2.1 在编译前查询已注册 expression 时返回 `HIPRTC_ERROR_NAME_EXPRESSION_NOT_VALID`。exact-SHA workload 将该结果记录为 `lowered-name-before-compile` 生命周期负测，不会把失败查询当作成功的 lowered-name 结果。
+
+编译后的生命周期负测会在已注册并编译 `VectorAddTemplate<float>` 后提交另一个有效 expression（`VectorAddTemplate<double>`）。重复提交已注册 expression 不是充分的负测，因为 ROCm 7.2.1 会接受该重复调用。
 
 `CompileToBitcode` returns a managed byte-array copy. AMD's linker accepts LLVM bitcode (`100`), bundled bitcode (`101`), bundled-bitcode archives (`102`), and SPIR-V (`103`). The first managed batch intentionally uses zero JIT options; the complete low-level API remains available for advanced `void**` option contracts.
 
