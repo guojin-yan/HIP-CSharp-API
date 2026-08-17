@@ -31,11 +31,25 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly Dictionary<(IntPtr Pool, int Device), HipMemoryPoolAccess> _poolAccess = new();
     private readonly Dictionary<IntPtr, IntPtr> _allocationPools = new();
     private readonly Dictionary<(IntPtr Module, string Name), (IntPtr Pointer, int Length)> _moduleGlobals = new();
+    private readonly HashSet<IntPtr> _virtualAddresses = new();
+    private readonly HashSet<IntPtr> _virtualAllocationHandles = new();
+    private readonly Dictionary<IntPtr, FakeArrayState> _arrays = new();
+    private readonly Dictionary<IntPtr, FakeMipmappedArrayState> _mipmappedArrays = new();
+    private readonly Dictionary<ulong, FakeTextureState> _textureObjects = new();
+    private readonly Dictionary<ulong, IntPtr> _surfaceObjects = new();
+    private readonly Dictionary<IntPtr, FakeTextureReferenceState> _textureReferences = new();
     private int _nextPool = 0x9000;
     private int _nextGraph = 0x7000;
     private int _nextGraphExec = 0x8000;
     private int _nextGraphNode = 0xB000;
     private int _nextModule = 0x2000;
+    private int _nextVirtualAddress = 0xC000;
+    private int _nextVirtualAllocationHandle = 0xD000;
+    private int _nextArray = 0xE100;
+    private int _nextMipmappedArray = 0xF100;
+    private ulong _nextTextureObject = 0x10100;
+    private ulong _nextSurfaceObject = 0x11100;
+    private int _nextTextureReference = 0x12100;
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -98,6 +112,16 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal HipError FreeResult { get; set; } = HipError.Success;
 
     internal HipError MemoryInfoResult { get; set; } = HipError.Success;
+
+    internal HipError ManagedNextResult { get; set; } = HipError.Success;
+
+    internal HipError ArrayTextureResult { get; set; } = HipError.Success;
+
+    internal HipError ArrayTextureReleaseResult { get; set; } = HipError.Success;
+
+    internal bool ReturnArrayHandleOnFailure { get; set; }
+
+    internal bool ReturnTextureObjectOnFailure { get; set; }
 
     internal HipError PitchedAllocationResult { get; set; } = HipError.Success;
 
@@ -227,6 +251,18 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal int FreeCount { get; private set; }
 
     internal int FreeCallCount { get; private set; }
+
+    internal int ArrayFreeCallCount { get; private set; }
+
+    internal int MipmappedArrayFreeCallCount { get; private set; }
+
+    internal int ArrayCopyCallCount { get; private set; }
+
+    internal int TextureObjectDestroyCount { get; private set; }
+
+    internal int SurfaceObjectDestroyCount { get; private set; }
+
+    internal int TextureUnbindCount { get; private set; }
 
     internal int SynchronizeCount { get; private set; }
 
@@ -463,11 +499,497 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return deviceId >= 0 && deviceId < 2 ? HipError.Success : HipError.InvalidDevice;
     }
 
+    public HipError DeviceComputeCapability(IntPtr major, IntPtr minor, int device)
+    {
+        if (device < 0 || device >= 2) return HipError.InvalidDevice;
+        if (ManagedNextResult == HipError.Success)
+        {
+            Marshal.WriteInt32(major, 9);
+            Marshal.WriteInt32(minor, 0);
+        }
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGet(IntPtr device, int ordinal)
+    {
+        if (ordinal < 0 || ordinal >= 2) return HipError.InvalidDevice;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(device, ordinal);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetByPCIBusId(IntPtr device, IntPtr pciBusId)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(device, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetCacheConfig(IntPtr cacheConfig)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(cacheConfig, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetGraphMemAttribute(int device, int attribute, IntPtr value)
+    {
+        if (device < 0 || device >= 2) return HipError.InvalidDevice;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt64(value, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetLimit(IntPtr value, int limit)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(value, new IntPtr(4096));
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetP2PAttribute(IntPtr value, int attribute, int sourceDevice, int destinationDevice)
+    {
+        if (sourceDevice < 0 || sourceDevice >= 2 || destinationDevice < 0 || destinationDevice >= 2) return HipError.InvalidDevice;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(value, 1);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetPCIBusId(IntPtr pciBusId, int length, int device)
+    {
+        if (device < 0 || device >= 2) return HipError.InvalidDevice;
+        if (length <= 0) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success)
+        {
+            byte[] value = System.Text.Encoding.ASCII.GetBytes("0000:00:00.0\0");
+            Marshal.Copy(value, 0, pciBusId, Math.Min(length, value.Length));
+        }
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetSharedMemConfig(IntPtr config)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(config, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetStreamPriorityRange(IntPtr leastPriority, IntPtr greatestPriority)
+    {
+        if (ManagedNextResult == HipError.Success)
+        {
+            Marshal.WriteInt32(leastPriority, 0);
+            Marshal.WriteInt32(greatestPriority, -1);
+        }
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceGetUuid(IntPtr uuid, int device)
+    {
+        if (device < 0 || device >= 2) return HipError.InvalidDevice;
+        if (ManagedNextResult == HipError.Success) Marshal.Copy(new byte[16], 0, uuid, 16);
+        return ManagedNextResult;
+    }
+
+    public HipError DeviceTotalMem(IntPtr bytes, int device)
+    {
+        if (device < 0 || device >= 2) return HipError.InvalidDevice;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(bytes, new IntPtr(8 * 1024 * 1024));
+        return ManagedNextResult;
+    }
+
+    public HipError GetSymbolAddress(IntPtr devicePointer, IntPtr symbol)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(devicePointer, new IntPtr(0x1234));
+        return ManagedNextResult;
+    }
+
+    public HipError GetSymbolSize(IntPtr size, IntPtr symbol)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(size, new IntPtr(128));
+        return ManagedNextResult;
+    }
+
+    public HipError PointerGetAttribute(IntPtr data, int attribute, IntPtr pointer)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt64(data, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError PointerGetAttributes(IntPtr attributes, IntPtr pointer)
+    {
+        if (ManagedNextResult == HipError.Success) Marshal.Copy(new byte[32], 0, attributes, 32);
+        return ManagedNextResult;
+    }
+
+    public HipError PointerSetAttribute(IntPtr value, int attribute, IntPtr pointer) => ManagedNextResult;
+
     public HipError MemGetInfo(out UIntPtr freeBytes, out UIntPtr totalBytes)
     {
         freeBytes = ToUIntPtr(FreeMemoryBytes);
         totalBytes = ToUIntPtr(TotalMemoryBytes);
         return MemoryInfoResult;
+    }
+
+    public HipError MemAddressFree(IntPtr address, UIntPtr size)
+    {
+        if (!_virtualAddresses.Contains(address)) return HipError.InvalidValue;
+        if (ManagedNextResult != HipError.Success) return ManagedNextResult;
+        _virtualAddresses.Remove(address);
+        return HipError.Success;
+    }
+
+    public HipError MemAddressReserve(IntPtr address, UIntPtr size, UIntPtr alignment, IntPtr requestedAddress, ulong flags)
+    {
+        if (size == UIntPtr.Zero) return HipError.InvalidValue;
+        if (ManagedNextResult != HipError.Success) return ManagedNextResult;
+        IntPtr reserved = requestedAddress == IntPtr.Zero ? new IntPtr(_nextVirtualAddress++) : requestedAddress;
+        if (!_virtualAddresses.Add(reserved)) return HipError.InvalidValue;
+        Marshal.WriteIntPtr(address, reserved);
+        return HipError.Success;
+    }
+
+    public HipError MemCreate(IntPtr handle, UIntPtr size, IntPtr properties, ulong flags)
+    {
+        if (size == UIntPtr.Zero) return HipError.InvalidValue;
+        if (ManagedNextResult != HipError.Success) return ManagedNextResult;
+        IntPtr allocation = new IntPtr(_nextVirtualAllocationHandle++);
+        _virtualAllocationHandles.Add(allocation);
+        Marshal.WriteIntPtr(handle, allocation);
+        return HipError.Success;
+    }
+
+    public HipError MemExportToShareableHandle(IntPtr shareableHandle, IntPtr handle, int handleType, ulong flags)
+    {
+        if (!_virtualAllocationHandles.Contains(handle)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(shareableHandle, new IntPtr(0xE000));
+        return ManagedNextResult;
+    }
+
+    public HipError MemGetAccess(IntPtr flags, IntPtr location, IntPtr address)
+    {
+        if (!_virtualAddresses.Contains(address)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt64(flags, 3);
+        return ManagedNextResult;
+    }
+
+    public HipError MemImportFromShareableHandle(IntPtr handle, IntPtr operatingSystemHandle, int handleType)
+    {
+        if (operatingSystemHandle == IntPtr.Zero) return HipError.InvalidValue;
+        IntPtr allocation = new IntPtr(_nextVirtualAllocationHandle++);
+        _virtualAllocationHandles.Add(allocation);
+        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(handle, allocation);
+        return ManagedNextResult;
+    }
+
+    public HipError MemMap(IntPtr address, UIntPtr size, UIntPtr offset, IntPtr handle, ulong flags)
+    {
+        if (!_virtualAddresses.Contains(address) || !_virtualAllocationHandles.Contains(handle)) return HipError.InvalidValue;
+        return ManagedNextResult;
+    }
+
+    public HipError MemMapArrayAsync(IntPtr mapInformation, uint count, IntPtr stream)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return ManagedNextResult;
+    }
+
+    public HipError MemRelease(IntPtr handle)
+    {
+        if (!_virtualAllocationHandles.Contains(handle)) return HipError.InvalidValue;
+        if (ManagedNextResult != HipError.Success) return ManagedNextResult;
+        _virtualAllocationHandles.Remove(handle);
+        return HipError.Success;
+    }
+
+    public HipError MemRetainAllocationHandle(IntPtr handle, IntPtr address)
+    {
+        if (!_virtualAddresses.Contains(address)) return HipError.InvalidValue;
+        if (ManagedNextResult != HipError.Success) return ManagedNextResult;
+        IntPtr allocation = new IntPtr(_nextVirtualAllocationHandle++);
+        _virtualAllocationHandles.Add(allocation);
+        Marshal.WriteIntPtr(handle, allocation);
+        return HipError.Success;
+    }
+
+    public HipError MemSetAccess(IntPtr address, UIntPtr size, IntPtr descriptors, UIntPtr count) =>
+        _virtualAddresses.Contains(address) ? ManagedNextResult : HipError.InvalidValue;
+
+    public HipError MemUnmap(IntPtr address, UIntPtr size) =>
+        _virtualAddresses.Contains(address) ? ManagedNextResult : HipError.InvalidValue;
+
+    public HipError Array3DCreate(IntPtr array, IntPtr descriptor)
+    {
+        HipArray3DDescriptorNative value = Marshal.PtrToStructure<HipArray3DDescriptorNative>(descriptor);
+        return CreateArray(array, FakeArrayState.FromDriver(value), true);
+    }
+
+    public HipError Array3DGetDescriptor(IntPtr descriptor, IntPtr array)
+    {
+        if (!_arrays.TryGetValue(array, out FakeArrayState? state)) return HipError.InvalidValue;
+        Marshal.StructureToPtr(state.Driver3DDescriptor, descriptor, false);
+        return ArrayTextureResult;
+    }
+
+    public HipError ArrayCreate(IntPtr array, IntPtr descriptor)
+    {
+        HipArrayDescriptorNative value = Marshal.PtrToStructure<HipArrayDescriptorNative>(descriptor);
+        return CreateArray(array, FakeArrayState.FromDriver(value), true);
+    }
+
+    public HipError ArrayDestroy(IntPtr array) => ReleaseArray(array);
+
+    public HipError ArrayGetDescriptor(IntPtr descriptor, IntPtr array)
+    {
+        if (!_arrays.TryGetValue(array, out FakeArrayState? state)) return HipError.InvalidValue;
+        Marshal.StructureToPtr(state.DriverDescriptor, descriptor, false);
+        return ArrayTextureResult;
+    }
+
+    public HipError ArrayGetInfo(IntPtr descriptor, IntPtr extent, IntPtr flags, IntPtr array)
+    {
+        if (!_arrays.TryGetValue(array, out FakeArrayState? state)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success)
+        {
+            Marshal.StructureToPtr(state.ChannelFormat, descriptor, false);
+            Marshal.StructureToPtr(new HipExtent(ToUIntPtr(state.Width), ToUIntPtr(state.Height), ToUIntPtr(state.Depth)), extent, false);
+            Marshal.WriteInt32(flags, unchecked((int)state.Flags));
+        }
+        return ArrayTextureResult;
+    }
+
+    public HipError BindTexture(IntPtr offset, IntPtr textureReference, IntPtr devicePointer, IntPtr descriptor, UIntPtr size)
+    {
+        if (!_textureReferences.TryGetValue(textureReference, out FakeTextureReferenceState? state) || !_allocations.ContainsKey(devicePointer)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success)
+        {
+            Marshal.WriteIntPtr(offset, IntPtr.Zero);
+            state.BoundPointer = devicePointer;
+            state.BoundArray = IntPtr.Zero;
+            state.BoundMipmappedArray = IntPtr.Zero;
+        }
+        return ArrayTextureResult;
+    }
+
+    public HipError BindTexture2D(IntPtr offset, IntPtr textureReference, IntPtr devicePointer, IntPtr descriptor, UIntPtr width, UIntPtr height, UIntPtr pitch) =>
+        BindTexture(offset, textureReference, devicePointer, descriptor, ToUIntPtr(checked(pitch.ToUInt64() * height.ToUInt64())));
+
+    public HipError BindTextureToArray(IntPtr textureReference, IntPtr array, IntPtr descriptor)
+    {
+        if (!_textureReferences.TryGetValue(textureReference, out FakeTextureReferenceState? state) || !_arrays.ContainsKey(array)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success)
+        {
+            state.BoundArray = array;
+            state.BoundMipmappedArray = IntPtr.Zero;
+            state.BoundPointer = IntPtr.Zero;
+        }
+        return ArrayTextureResult;
+    }
+
+    public HipError BindTextureToMipmappedArray(IntPtr textureReference, IntPtr mipmappedArray, IntPtr descriptor)
+    {
+        if (!_textureReferences.TryGetValue(textureReference, out FakeTextureReferenceState? state) || !_mipmappedArrays.ContainsKey(mipmappedArray)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success)
+        {
+            state.BoundMipmappedArray = mipmappedArray;
+            state.BoundArray = IntPtr.Zero;
+            state.BoundPointer = IntPtr.Zero;
+        }
+        return ArrayTextureResult;
+    }
+
+    public HipError CreateSurfaceObject(IntPtr surfaceObject, IntPtr resourceDescriptor)
+    {
+        HipResourceDescriptorNative resource = Marshal.PtrToStructure<HipResourceDescriptorNative>(resourceDescriptor);
+        if (resource.ResourceType != HipTextureResourceKind.Array || !_arrays.ContainsKey(resource.Resource.Handle)) return HipError.InvalidValue;
+        if (ArrayTextureResult != HipError.Success && !ReturnTextureObjectOnFailure) return ArrayTextureResult;
+        ulong handle = _nextSurfaceObject++;
+        _surfaceObjects.Add(handle, resource.Resource.Handle);
+        Marshal.WriteInt64(surfaceObject, unchecked((long)handle));
+        return ArrayTextureResult;
+    }
+
+    public HipError CreateTextureObject(IntPtr textureObject, IntPtr resourceDescriptor, IntPtr textureDescriptor, IntPtr resourceViewDescriptor)
+    {
+        HipResourceDescriptorNative resource = Marshal.PtrToStructure<HipResourceDescriptorNative>(resourceDescriptor);
+        if (!IsKnownTextureResource(resource)) return HipError.InvalidValue;
+        if (ArrayTextureResult != HipError.Success && !ReturnTextureObjectOnFailure) return ArrayTextureResult;
+        ulong handle = _nextTextureObject++;
+        var state = new FakeTextureState(
+            resource,
+            Marshal.PtrToStructure<HipTextureDescriptorNative>(textureDescriptor),
+            resourceViewDescriptor == IntPtr.Zero ? default : Marshal.PtrToStructure<HipResourceViewDescriptorNative>(resourceViewDescriptor));
+        _textureObjects.Add(handle, state);
+        Marshal.WriteInt64(textureObject, unchecked((long)handle));
+        return ArrayTextureResult;
+    }
+
+    public HipError DestroySurfaceObject(ulong surfaceObject)
+    {
+        if (!_surfaceObjects.ContainsKey(surfaceObject)) return HipError.InvalidValue;
+        if (ArrayTextureReleaseResult != HipError.Success) return ArrayTextureReleaseResult;
+        _surfaceObjects.Remove(surfaceObject);
+        SurfaceObjectDestroyCount++;
+        return HipError.Success;
+    }
+
+    public HipError DestroyTextureObject(ulong textureObject)
+    {
+        if (!_textureObjects.ContainsKey(textureObject)) return HipError.InvalidValue;
+        if (ArrayTextureReleaseResult != HipError.Success) return ArrayTextureReleaseResult;
+        _textureObjects.Remove(textureObject);
+        TextureObjectDestroyCount++;
+        return HipError.Success;
+    }
+
+    public HipError DeviceGetTexture1DLinearMaxWidth(IntPtr maxWidth, IntPtr descriptor, int device)
+    {
+        if (device < 0 || device >= 2) return HipError.InvalidDevice;
+        if (ArrayTextureResult == HipError.Success) Marshal.WriteIntPtr(maxWidth, new IntPtr(1 << 20));
+        return ArrayTextureResult;
+    }
+
+    public HipError FreeArray(IntPtr array) => ReleaseArray(array);
+
+    public HipError FreeMipmappedArray(IntPtr mipmappedArray) => ReleaseMipmappedArray(mipmappedArray);
+
+    public HipError GetMipmappedArrayLevel(IntPtr levelArray, IntPtr mipmappedArray, uint level) =>
+        GetMipmappedLevel(levelArray, mipmappedArray, level);
+
+    public HipError GetTextureAlignmentOffset(IntPtr offset, IntPtr textureReference)
+    {
+        if (!_textureReferences.ContainsKey(textureReference)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) Marshal.WriteIntPtr(offset, IntPtr.Zero);
+        return ArrayTextureResult;
+    }
+
+    public HipError GetTextureObjectResourceDesc(IntPtr resourceDescriptor, ulong textureObject)
+    {
+        if (!_textureObjects.TryGetValue(textureObject, out FakeTextureState? state)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) Marshal.StructureToPtr(state.Resource, resourceDescriptor, false);
+        return ArrayTextureResult;
+    }
+
+    public HipError GetTextureObjectResourceViewDesc(IntPtr resourceViewDescriptor, ulong textureObject)
+    {
+        if (!_textureObjects.TryGetValue(textureObject, out FakeTextureState? state)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) Marshal.StructureToPtr(state.ResourceView, resourceViewDescriptor, false);
+        return ArrayTextureResult;
+    }
+
+    public HipError GetTextureObjectTextureDesc(IntPtr textureDescriptor, ulong textureObject)
+    {
+        if (!_textureObjects.TryGetValue(textureObject, out FakeTextureState? state)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) Marshal.StructureToPtr(state.Texture, textureDescriptor, false);
+        return ArrayTextureResult;
+    }
+
+    public HipError GetTextureReference(IntPtr textureReference, IntPtr symbol)
+    {
+        if (symbol == IntPtr.Zero) return HipError.InvalidValue;
+        if (ArrayTextureResult != HipError.Success) return ArrayTextureResult;
+        IntPtr handle = new(_nextTextureReference++);
+        _textureReferences.Add(handle, new FakeTextureReferenceState());
+        Marshal.WriteIntPtr(textureReference, handle);
+        return HipError.Success;
+    }
+
+    public HipError Malloc3DArray(IntPtr array, IntPtr descriptor, HipExtent extent, uint flags)
+    {
+        HipChannelFormatDescriptor format = Marshal.PtrToStructure<HipChannelFormatDescriptor>(descriptor);
+        return CreateArray(array, FakeArrayState.FromRuntime(format, extent.Width.ToUInt64(), extent.Height.ToUInt64(), extent.Depth.ToUInt64(), (HipArrayFlags)flags), false);
+    }
+
+    public HipError MallocArray(IntPtr array, IntPtr descriptor, UIntPtr width, UIntPtr height, uint flags)
+    {
+        HipChannelFormatDescriptor format = Marshal.PtrToStructure<HipChannelFormatDescriptor>(descriptor);
+        return CreateArray(array, FakeArrayState.FromRuntime(format, width.ToUInt64(), height.ToUInt64(), 0, (HipArrayFlags)flags), false);
+    }
+
+    public HipError MallocMipmappedArray(IntPtr mipmappedArray, IntPtr descriptor, HipExtent extent, uint levels, uint flags)
+    {
+        HipChannelFormatDescriptor format = Marshal.PtrToStructure<HipChannelFormatDescriptor>(descriptor);
+        return CreateMipmappedArray(mipmappedArray, new FakeMipmappedArrayState(format, extent.Width.ToUInt64(), extent.Height.ToUInt64(), extent.Depth.ToUInt64(), levels, (HipArrayFlags)flags), false);
+    }
+
+    public HipError Memcpy2DArrayToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind) =>
+        RecordArrayCopy(_arrays.ContainsKey(destination) && _arrays.ContainsKey(source));
+
+    public HipError Memcpy2DFromArray(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind) =>
+        RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source));
+
+    public HipError Memcpy2DFromArrayAsync(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind, IntPtr stream) =>
+        RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source) && _streams.Contains(stream));
+
+    public HipError Memcpy2DToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind) =>
+        RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero);
+
+    public HipError Memcpy2DToArrayAsync(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind, IntPtr stream) =>
+        RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero && _streams.Contains(stream));
+
+    public HipError MemcpyFromArray(IntPtr destination, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr count, int kind) =>
+        RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source));
+
+    public HipError MemcpyToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr count, int kind) =>
+        RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero);
+
+    public HipError MipmappedArrayCreate(IntPtr mipmappedArray, IntPtr descriptor, uint levels)
+    {
+        HipArray3DDescriptorNative value = Marshal.PtrToStructure<HipArray3DDescriptorNative>(descriptor);
+        return CreateMipmappedArray(mipmappedArray, FakeMipmappedArrayState.FromDriver(value, levels), true);
+    }
+
+    public HipError MipmappedArrayDestroy(IntPtr mipmappedArray) => ReleaseMipmappedArray(mipmappedArray);
+
+    public HipError MipmappedArrayGetLevel(IntPtr levelArray, IntPtr mipmappedArray, uint level) =>
+        GetMipmappedLevel(levelArray, mipmappedArray, level);
+
+    public HipError TexObjectGetTextureDesc(IntPtr textureDescriptor, ulong textureObject)
+    {
+        if (!_textureObjects.TryGetValue(textureObject, out FakeTextureState? state)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success)
+        {
+            var value = new HipDriverTextureDescriptorNative
+            {
+                AddressModeX = state.Texture.AddressModeX,
+                AddressModeY = state.Texture.AddressModeY,
+                AddressModeZ = state.Texture.AddressModeZ,
+                FilterMode = state.Texture.FilterMode,
+                MaximumAnisotropy = state.Texture.MaximumAnisotropy,
+                MipmapFilterMode = state.Texture.MipmapFilterMode,
+                MipmapLevelBias = state.Texture.MipmapLevelBias,
+                MinimumMipmapLevelClamp = state.Texture.MinimumMipmapLevelClamp,
+                MaximumMipmapLevelClamp = state.Texture.MaximumMipmapLevelClamp,
+            };
+            Marshal.StructureToPtr(value, textureDescriptor, false);
+        }
+        return ArrayTextureResult;
+    }
+
+    public HipError TexRefGetArray(IntPtr array, IntPtr textureReference)
+    {
+        if (!_textureReferences.TryGetValue(textureReference, out FakeTextureReferenceState? state) || state.BoundArray == IntPtr.Zero) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) Marshal.WriteIntPtr(array, state.BoundArray);
+        return ArrayTextureResult;
+    }
+
+    public HipError TexRefGetMipMappedArray(IntPtr mipmappedArray, IntPtr textureReference)
+    {
+        if (!_textureReferences.TryGetValue(textureReference, out FakeTextureReferenceState? state) || state.BoundMipmappedArray == IntPtr.Zero) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) Marshal.WriteIntPtr(mipmappedArray, state.BoundMipmappedArray);
+        return ArrayTextureResult;
+    }
+
+    public HipError TexRefSetArray(IntPtr textureReference, IntPtr array, uint flags) =>
+        BindTextureToArray(textureReference, array, IntPtr.Zero);
+
+    public HipError TexRefSetMipmappedArray(IntPtr textureReference, IntPtr mipmappedArray, uint flags) =>
+        BindTextureToMipmappedArray(textureReference, mipmappedArray, IntPtr.Zero);
+
+    public HipError UnbindTexture(IntPtr textureReference)
+    {
+        if (!_textureReferences.TryGetValue(textureReference, out FakeTextureReferenceState? state)) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success)
+        {
+            state.BoundArray = IntPtr.Zero;
+            state.BoundMipmappedArray = IntPtr.Zero;
+            state.BoundPointer = IntPtr.Zero;
+            TextureUnbindCount++;
+        }
+        return ArrayTextureResult;
     }
 
     public HipError MallocPitch(out IntPtr pointer, out UIntPtr pitch, UIntPtr widthBytes, UIntPtr height)
@@ -1245,6 +1767,90 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return StreamQueryResult;
     }
 
+    public HipError ExtStreamGetCUMask(IntPtr stream, uint cuMaskSize, IntPtr cuMask)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success)
+        {
+            for (int index = 0; index < cuMaskSize; index++) Marshal.WriteInt32(cuMask, index * sizeof(uint), index == 0 ? 1 : 0);
+        }
+        return ManagedNextResult;
+    }
+
+    public HipError StreamGetAttribute(IntPtr stream, int attribute, IntPtr value)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.Copy(new byte[64], 0, value, 64);
+        return ManagedNextResult;
+    }
+
+    public HipError StreamGetCaptureInfo(IntPtr stream, IntPtr captureStatus, IntPtr identifier)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success)
+        {
+            Marshal.WriteInt32(captureStatus, _capturingStreams.Contains(stream) ? 1 : 0);
+            Marshal.WriteInt64(identifier, 0);
+        }
+        return ManagedNextResult;
+    }
+
+    public HipError StreamGetCaptureInfoV2(IntPtr stream, IntPtr captureStatus, IntPtr identifier, IntPtr graph, IntPtr dependencies, IntPtr dependencyCount)
+    {
+        HipError result = StreamGetCaptureInfo(stream, captureStatus, identifier);
+        if (result != HipError.Success) return result;
+        Marshal.WriteIntPtr(graph, IntPtr.Zero);
+        Marshal.WriteIntPtr(dependencies, IntPtr.Zero);
+        Marshal.WriteIntPtr(dependencyCount, IntPtr.Zero);
+        return result;
+    }
+
+    public HipError StreamGetDevice(IntPtr stream, IntPtr device)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(device, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError StreamGetFlags(IntPtr stream, IntPtr flags)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(flags, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError StreamGetId(IntPtr stream, IntPtr identifier)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt64(identifier, stream.ToInt64());
+        return ManagedNextResult;
+    }
+
+    public HipError StreamGetPriority(IntPtr stream, IntPtr priority)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(priority, 0);
+        return ManagedNextResult;
+    }
+
+    public HipError StreamWaitEvent(IntPtr stream, IntPtr eventHandle, uint flags)
+    {
+        if (!_streams.Contains(stream) || !_events.Contains(eventHandle)) return HipError.InvalidValue;
+        return ManagedNextResult;
+    }
+
+    public HipError StreamWaitValue32(IntPtr stream, IntPtr pointer, uint value, uint flags, uint mask)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return ManagedNextResult;
+    }
+
+    public HipError StreamWaitValue64(IntPtr stream, IntPtr pointer, ulong value, uint flags, ulong mask)
+    {
+        if (!_streams.Contains(stream)) return HipError.InvalidValue;
+        return ManagedNextResult;
+    }
+
     public HipError EventCreateWithFlags(out IntPtr eventHandle, uint flags)
     {
         eventHandle = new IntPtr(0x6000 + _events.Count + 1);
@@ -1437,7 +2043,90 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         _activeGraphAllocations.Clear();
         foreach ((IntPtr pointer, int _) in _moduleGlobals.Values) Marshal.FreeHGlobal(pointer);
         _moduleGlobals.Clear();
+        _arrays.Clear();
+        _mipmappedArrays.Clear();
+        _textureObjects.Clear();
+        _surfaceObjects.Clear();
+        _textureReferences.Clear();
     }
+
+    private HipError CreateArray(IntPtr output, FakeArrayState state, bool driverStyle)
+    {
+        if (ArrayTextureResult != HipError.Success && !ReturnArrayHandleOnFailure) return ArrayTextureResult;
+        IntPtr handle = new(_nextArray++);
+        state.DriverStyle = driverStyle;
+        _arrays.Add(handle, state);
+        Marshal.WriteIntPtr(output, handle);
+        return ArrayTextureResult;
+    }
+
+    private HipError ReleaseArray(IntPtr array)
+    {
+        if (!_arrays.ContainsKey(array)) return HipError.InvalidValue;
+        if (ArrayTextureReleaseResult != HipError.Success) return ArrayTextureReleaseResult;
+        _arrays.Remove(array);
+        ArrayFreeCallCount++;
+        return HipError.Success;
+    }
+
+    private HipError CreateMipmappedArray(IntPtr output, FakeMipmappedArrayState state, bool driverStyle)
+    {
+        if (state.LevelCount == 0) return HipError.InvalidValue;
+        if (ArrayTextureResult != HipError.Success && !ReturnArrayHandleOnFailure) return ArrayTextureResult;
+        IntPtr handle = new(_nextMipmappedArray++);
+        state.DriverStyle = driverStyle;
+        _mipmappedArrays.Add(handle, state);
+        Marshal.WriteIntPtr(output, handle);
+        return ArrayTextureResult;
+    }
+
+    private HipError ReleaseMipmappedArray(IntPtr mipmappedArray)
+    {
+        if (!_mipmappedArrays.TryGetValue(mipmappedArray, out FakeMipmappedArrayState? state)) return HipError.InvalidValue;
+        if (ArrayTextureReleaseResult != HipError.Success) return ArrayTextureReleaseResult;
+        foreach (IntPtr level in state.Levels.Values) _arrays.Remove(level);
+        _mipmappedArrays.Remove(mipmappedArray);
+        MipmappedArrayFreeCallCount++;
+        return HipError.Success;
+    }
+
+    private HipError GetMipmappedLevel(IntPtr output, IntPtr mipmappedArray, uint level)
+    {
+        if (!_mipmappedArrays.TryGetValue(mipmappedArray, out FakeMipmappedArrayState? state) || level >= state.LevelCount) return HipError.InvalidValue;
+        if (ArrayTextureResult != HipError.Success) return ArrayTextureResult;
+        if (!state.Levels.TryGetValue(level, out IntPtr handle))
+        {
+            handle = new IntPtr(_nextArray++);
+            state.Levels.Add(level, handle);
+            _arrays.Add(handle, FakeArrayState.FromRuntime(
+                state.ChannelFormat,
+                Scale(state.Width, level),
+                ScaleOptional(state.Height, level),
+                ScaleOptional(state.Depth, level),
+                state.Flags));
+        }
+        Marshal.WriteIntPtr(output, handle);
+        return HipError.Success;
+    }
+
+    private HipError RecordArrayCopy(bool valid)
+    {
+        if (!valid) return HipError.InvalidValue;
+        if (ArrayTextureResult == HipError.Success) ArrayCopyCallCount++;
+        return ArrayTextureResult;
+    }
+
+    private bool IsKnownTextureResource(HipResourceDescriptorNative resource) => resource.ResourceType switch
+    {
+        HipTextureResourceKind.Array => _arrays.ContainsKey(resource.Resource.Handle),
+        HipTextureResourceKind.MipmappedArray => _mipmappedArrays.ContainsKey(resource.Resource.Handle),
+        HipTextureResourceKind.Linear => _allocations.ContainsKey(resource.Resource.Handle),
+        HipTextureResourceKind.Pitch2D => _allocations.ContainsKey(resource.Resource.Handle),
+        _ => false,
+    };
+
+    private static ulong Scale(ulong value, uint level) => level >= 64 ? 1 : Math.Max(1UL, value >> (int)level);
+    private static ulong ScaleOptional(ulong value, uint level) => value == 0 ? 0 : Scale(value, level);
 
     private void RecordOccupancy(
         int blockSize,
@@ -1644,6 +2333,133 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         checked((int)position.X.ToUInt64()) +
         checked((int)position.Y.ToUInt64()) * pitch +
         checked((int)position.Z.ToUInt64()) * slicePitch);
+
+    private sealed class FakeArrayState
+    {
+        private FakeArrayState(HipChannelFormatDescriptor channelFormat, ulong width, ulong height, ulong depth, HipArrayFlags flags, HipArrayFormat driverFormat, uint channelCount)
+        {
+            ChannelFormat = channelFormat;
+            Width = width;
+            Height = height;
+            Depth = depth;
+            Flags = flags;
+            DriverDescriptor = new HipArrayDescriptorNative(ToUIntPtr(width), ToUIntPtr(height), driverFormat, channelCount);
+            Driver3DDescriptor = new HipArray3DDescriptorNative(ToUIntPtr(width), ToUIntPtr(height), ToUIntPtr(depth), driverFormat, channelCount, flags);
+        }
+
+        internal HipChannelFormatDescriptor ChannelFormat { get; }
+        internal ulong Width { get; }
+        internal ulong Height { get; }
+        internal ulong Depth { get; }
+        internal HipArrayFlags Flags { get; }
+        internal HipArrayDescriptorNative DriverDescriptor { get; }
+        internal HipArray3DDescriptorNative Driver3DDescriptor { get; }
+        internal bool DriverStyle { get; set; }
+
+        internal static FakeArrayState FromRuntime(HipChannelFormatDescriptor format, ulong width, ulong height, ulong depth, HipArrayFlags flags)
+        {
+            (HipArrayFormat driverFormat, uint channelCount) = ToDriverFormat(format);
+            return new FakeArrayState(format, width, height, depth, flags, driverFormat, channelCount);
+        }
+
+        internal static FakeArrayState FromDriver(HipArrayDescriptorNative descriptor)
+        {
+            HipChannelFormatDescriptor channel = ToChannelFormat(descriptor.Format, descriptor.ChannelCount);
+            return new FakeArrayState(channel, descriptor.Width.ToUInt64(), descriptor.Height.ToUInt64(), 0, HipArrayFlags.Default, descriptor.Format, descriptor.ChannelCount);
+        }
+
+        internal static FakeArrayState FromDriver(HipArray3DDescriptorNative descriptor)
+        {
+            HipChannelFormatDescriptor channel = ToChannelFormat(descriptor.Format, descriptor.ChannelCount);
+            return new FakeArrayState(channel, descriptor.Width.ToUInt64(), descriptor.Height.ToUInt64(), descriptor.Depth.ToUInt64(), descriptor.Flags, descriptor.Format, descriptor.ChannelCount);
+        }
+
+        internal static HipChannelFormatDescriptor ToChannelFormat(HipArrayFormat format, uint channels)
+        {
+            int bits;
+            HipChannelFormatKind kind;
+            switch (format)
+            {
+                case HipArrayFormat.UnsignedInt8: bits = 8; kind = HipChannelFormatKind.UnsignedInteger; break;
+                case HipArrayFormat.UnsignedInt16: bits = 16; kind = HipChannelFormatKind.UnsignedInteger; break;
+                case HipArrayFormat.UnsignedInt32: bits = 32; kind = HipChannelFormatKind.UnsignedInteger; break;
+                case HipArrayFormat.SignedInt8: bits = 8; kind = HipChannelFormatKind.SignedInteger; break;
+                case HipArrayFormat.SignedInt16: bits = 16; kind = HipChannelFormatKind.SignedInteger; break;
+                case HipArrayFormat.SignedInt32: bits = 32; kind = HipChannelFormatKind.SignedInteger; break;
+                case HipArrayFormat.Half: bits = 16; kind = HipChannelFormatKind.FloatingPoint; break;
+                case HipArrayFormat.FloatingPoint32: bits = 32; kind = HipChannelFormatKind.FloatingPoint; break;
+                default: throw new InvalidOperationException("Unsupported fake array format.");
+            }
+            return new HipChannelFormatDescriptor(bits, channels >= 2 ? bits : 0, channels >= 4 ? bits : 0, channels >= 4 ? bits : 0, kind);
+        }
+
+        private static (HipArrayFormat Format, uint Channels) ToDriverFormat(HipChannelFormatDescriptor format)
+        {
+            int bits = format.XBits;
+            uint channels = format.WBits != 0 ? 4U : format.YBits != 0 ? 2U : 1U;
+            HipArrayFormat result;
+            if (format.Kind == HipChannelFormatKind.UnsignedInteger)
+                result = bits == 8 ? HipArrayFormat.UnsignedInt8 : bits == 16 ? HipArrayFormat.UnsignedInt16 : HipArrayFormat.UnsignedInt32;
+            else if (format.Kind == HipChannelFormatKind.SignedInteger)
+                result = bits == 8 ? HipArrayFormat.SignedInt8 : bits == 16 ? HipArrayFormat.SignedInt16 : HipArrayFormat.SignedInt32;
+            else if (format.Kind == HipChannelFormatKind.FloatingPoint)
+                result = bits == 16 ? HipArrayFormat.Half : HipArrayFormat.FloatingPoint32;
+            else
+                throw new InvalidOperationException("Unsupported fake channel format.");
+            return (result, channels);
+        }
+    }
+
+    private sealed class FakeMipmappedArrayState
+    {
+        internal FakeMipmappedArrayState(HipChannelFormatDescriptor channelFormat, ulong width, ulong height, ulong depth, uint levelCount, HipArrayFlags flags)
+        {
+            ChannelFormat = channelFormat;
+            Width = width;
+            Height = height;
+            Depth = depth;
+            LevelCount = levelCount;
+            Flags = flags;
+        }
+
+        internal HipChannelFormatDescriptor ChannelFormat { get; }
+        internal ulong Width { get; }
+        internal ulong Height { get; }
+        internal ulong Depth { get; }
+        internal uint LevelCount { get; }
+        internal HipArrayFlags Flags { get; }
+        internal bool DriverStyle { get; set; }
+        internal Dictionary<uint, IntPtr> Levels { get; } = new();
+
+        internal static FakeMipmappedArrayState FromDriver(HipArray3DDescriptorNative descriptor, uint levels) => new(
+            FakeArrayState.ToChannelFormat(descriptor.Format, descriptor.ChannelCount),
+            descriptor.Width.ToUInt64(),
+            descriptor.Height.ToUInt64(),
+            descriptor.Depth.ToUInt64(),
+            levels,
+            descriptor.Flags);
+    }
+
+    private sealed class FakeTextureState
+    {
+        internal FakeTextureState(HipResourceDescriptorNative resource, HipTextureDescriptorNative texture, HipResourceViewDescriptorNative resourceView)
+        {
+            Resource = resource;
+            Texture = texture;
+            ResourceView = resourceView;
+        }
+
+        internal HipResourceDescriptorNative Resource { get; }
+        internal HipTextureDescriptorNative Texture { get; }
+        internal HipResourceViewDescriptorNative ResourceView { get; }
+    }
+
+    private sealed class FakeTextureReferenceState
+    {
+        internal IntPtr BoundPointer { get; set; }
+        internal IntPtr BoundArray { get; set; }
+        internal IntPtr BoundMipmappedArray { get; set; }
+    }
 
     private sealed class FakeGraphState
     {

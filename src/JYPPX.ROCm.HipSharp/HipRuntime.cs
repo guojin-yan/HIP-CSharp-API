@@ -15,7 +15,7 @@ namespace JYPPX.ROCm.HipSharp;
 /// <summary>
 /// 提供 HIP Runtime 初始化、版本、设备和基础内存操作 / Provides HIP Runtime initialization, version, device, and basic memory operations.
 /// </summary>
-public sealed class HipRuntime : IDisposable
+public sealed partial class HipRuntime : IDisposable
 {
     private readonly IHipNativeApi _nativeApi;
     private readonly object _memoryPoolScopeSync = new();

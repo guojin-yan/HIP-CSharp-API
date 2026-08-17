@@ -7,7 +7,7 @@ namespace JYPPX.ROCm.HipSharp;
 /// <summary>
 /// 表示可被设为当前设备的 HIP 设备 / Represents a HIP device that can be made current.
 /// </summary>
-public sealed class HipDevice
+public sealed partial class HipDevice
 {
     private readonly IHipNativeApi _nativeApi;
 

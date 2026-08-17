@@ -149,6 +149,7 @@ These samples validate correctness and ownership behavior; they are not benchmar
 | [HIPRTC VectorAdd](docs/guides/hiprtc-vectoradd.md) | Compile, load, launch, and verify a kernel |
 | [Streams and events](docs/guides/hip-stream-event-vectoradd.md) | Asynchronous ordering and lifecycle guide |
 | [Advanced APIs](docs/guides/advanced-apis.md) | Graphs, managed memory, stream-ordered allocation, and P2P |
+| [Arrays, textures, and surfaces](docs/guides/array-texture-surface.md) | Owned arrays, mipmaps, texture/surface objects, and legacy borrowed references |
 | [Linux runtime package](docs/guides/linux-runtime-package.md) | Provenance, dependency closure, and packaging boundary |
 | [Windows runtime audit](docs/guides/windows-runtime-static-audit.md) | Current static-only Windows state |
 | [API reference](docs/api/toc.yml) | Generated public API reference |

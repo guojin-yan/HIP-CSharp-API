@@ -45,7 +45,31 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipArrayFlags</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipArrayFormat</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipChannelFormatKind</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:JYPPX.ROCm.HipSharp.Types.HipDeviceAttribute</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipDeviceCacheConfig</Target>
     <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
     <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
   </Suppression>
@@ -69,7 +93,31 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipMemoryAccessFlags</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:JYPPX.ROCm.HipSharp.Types.HipMemoryAdvise</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipMemoryAllocationHandleType</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipResourceViewFormat</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipSharedMemoryConfig</Target>
     <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
     <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
   </Suppression>
@@ -81,7 +129,43 @@
   </Suppression>
   <Suppression>
     <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipStreamCaptureStatus</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
     <Target>T:JYPPX.ROCm.HipSharp.Types.HipStreamFlags</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipTextureFilterMode</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipTextureReadMode</Target>
+    <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
+    <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
+  </Suppression>
+  <Suppression>
+    <DiagnosticId>CP0008</DiagnosticId>
+    <Target>T:JYPPX.ROCm.HipSharp.Types.HipTextureResourceKind</Target>
     <Left>lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll</Left>
     <Right>lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll</Right>
   </Suppression>

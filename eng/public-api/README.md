@@ -1,6 +1,6 @@
 # Public API freeze
 
-`JYPPX.ROCm.HipSharp.0.9.3.txt` is the committed public API baseline for the current HIPRTC Program/Linker expansion batch. It is an explicitly reviewed additive change from the frozen and separately retained `0.9.2` snapshot. The assembly identity is `JYPPX.ROCm.HIP.CSharp.API`, while exported namespaces remain under `JYPPX.ROCm.HipSharp`. The snapshot records exported types and their declared public or protected constructors, methods, properties, events, and fields. Enum backing fields and framework-supplied enum interfaces are excluded; enum values are included.
+`JYPPX.ROCm.HipSharp.0.9.3.txt` is the committed public API baseline for the HIPRTC Program/Linker work plus the M8.13 managed-interface promotion. It is an explicitly reviewed additive change from the frozen and separately retained `0.9.2` snapshot. The M8.13 additions cover typed common queries, virtual-memory owners, arrays, mipmapped arrays, textures, surfaces, and borrowed legacy texture references. The assembly identity is `JYPPX.ROCm.HIP.CSharp.API`, while exported namespaces remain under `JYPPX.ROCm.HipSharp`. The snapshot records exported types and their declared public or protected constructors, methods, properties, events, and fields. Enum backing fields and framework-supplied enum interfaces are excluded; enum values are included.
 
 Run the compatibility gate after building Release:
 

@@ -13,6 +13,7 @@ $historicalSha = "63f33cf2061b6b7ed4b1865e2266bed0a1d707c8"
 $model = Get-Content -Raw -Encoding UTF8 (Join-Path $RepositoryRoot "eng/interop/complete-api-model.json") | ConvertFrom-Json
 $manifest = Get-Content -Raw -Encoding UTF8 (Join-Path $RepositoryRoot "eng/interop/interop-manifest.json") | ConvertFrom-Json
 $review = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot "reviewed-classification.json") | ConvertFrom-Json
+$managedInterfaceMap = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot "managed-interface-map.json") | ConvertFrom-Json
 
 $workloads = @(
     [ordered]@{ Name = "device-info"; Entries = @("hipInit", "hipRuntimeGetVersion", "hipDriverGetVersion", "hipGetDeviceCount", "hipGetDevice", "hipSetDevice", "hipDeviceGetName", "hipDeviceGetAttribute"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipRuntimeTests.cs"; Cloud = "official-host-device-info"; Topic = "device discovery and diagnostics" },
@@ -28,6 +29,16 @@ $workloads = @(
     [ordered]@{ Name = "module-global"; Entries = @("hipModuleGetGlobal"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipModuleGlobalTests.cs"; Cloud = "m8.6-module-globals"; Topic = "borrowed module-global views" },
     [ordered]@{ Name = "errors"; Entries = @("hipGetErrorName", "hipGetErrorString"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipRuntimeTests.cs"; Cloud = "negative-compile-and-error-diagnostics"; Topic = "error identity and diagnostic ownership" }
 )
+
+foreach ($group in $managedInterfaceMap.groups) {
+    $workloads += [ordered]@{
+        Name = [string]$group.name
+        Entries = @($group.entries)
+        Unit = [string]$group.unit
+        Cloud = [string]$group.cloud
+        Topic = [string]$group.topic
+    }
+}
 
 function Get-Workload([string]$EntryPoint) {
     foreach ($workload in $workloads) {
@@ -53,11 +64,23 @@ function Get-Rule([string]$EntryPoint, [string]$Library) {
 
 $managedByEntry = @{}
 foreach ($item in $manifest.functions) { $managedByEntry[$item.entryPoint] = $item }
+$promotedByEntry = @{}
+foreach ($group in $managedInterfaceMap.groups) {
+    foreach ($entryPoint in $group.entries) {
+        if ($managedByEntry.ContainsKey([string]$entryPoint)) { throw "Managed interface map duplicates ABI manifest entry: $entryPoint" }
+        if ($promotedByEntry.ContainsKey([string]$entryPoint)) { throw "Managed interface map contains duplicate entry: $entryPoint" }
+        $promotedByEntry[[string]$entryPoint] = $group
+    }
+}
+if ($promotedByEntry.Count -ne 82) { throw "Expected 82 promoted managed interfaces, found $($promotedByEntry.Count)" }
 $functions = @($model.runtimeFunctions) + @($model.rtcFunctions)
 $completeEntrySet = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($function in $functions) { [void]$completeEntrySet.Add([string]$function.entryPoint) }
 foreach ($managedEntryPoint in $managedByEntry.Keys) {
     if (-not $completeEntrySet.Contains([string]$managedEntryPoint)) { throw "Managed manifest entry is absent from complete model: $managedEntryPoint" }
+}
+foreach ($promotedEntryPoint in $promotedByEntry.Keys) {
+    if (-not $completeEntrySet.Contains([string]$promotedEntryPoint)) { throw "Managed interface map entry is absent from complete model: $promotedEntryPoint" }
 }
 $entries = [System.Collections.Generic.List[object]]::new()
 
@@ -65,11 +88,14 @@ foreach ($function in $functions) {
     $entryPoint = [string]$function.entryPoint
     $library = [string]$function.library
     $managed = $managedByEntry[$entryPoint]
+    $promotion = $promotedByEntry[$entryPoint]
     $workload = Get-Workload $entryPoint
     $functionalEvidence = [ordered]@{ record = "$record/validation-summary.json"; exactSha = $historicalSha; currentSha = "not-generated" }
-    if ($null -ne $managed) {
+    if ($null -ne $managed -or $null -ne $promotion) {
         if ($null -eq $workload) { throw "Managed entry has no workload mapping: $entryPoint" }
-        $disposition = [ordered]@{ status = "managed"; manifestName = $managed.managedName; reason = "present in the reviewed 109-entry managed owner manifest" }
+        $managedName = if ($null -ne $managed) { [string]$managed.managedName } else { [string]$function.managedName }
+        $managedSource = if ($null -ne $managed) { "abi-manifest" } else { "managed-interface-map" }
+        $disposition = [ordered]@{ status = "managed"; managedName = $managedName; source = $managedSource; reason = "present in a reviewed managed interface source" }
         $unit = [ordered]@{ status = "covered"; test = $workload.Unit; workload = $workload.Name }
         if ($workload.Cloud -eq "not-tested") {
             $cloud = [ordered]@{ status = "not-tested"; workload = $workload.Name; reason = "fresh exact-SHA Radeon Cloud functional evidence has not been collected" }
@@ -77,14 +103,14 @@ foreach ($function in $functions) {
         } else {
             $cloud = [ordered]@{ status = "passed-historical"; workload = $workload.Cloud; record = "$record/validation-summary.json"; exactSha = $historicalSha; scope = "historical exact 0.x bytes; not current SHA" }
         }
-        $negativeCovered = @("hiprtc-vector-add", "hiprtc-program-linker-0.9.3", "errors", "m8.5-kernel-occupancy", "module-global", "m8.4-explicit-graph", "m8.3-memory-pool", "m8.2-pitched-memory", "stream-event") -contains $workload.Name
+        $negativeCovered = @("hiprtc-vector-add", "hiprtc-program-linker-0.9.3", "errors", "m8.5-kernel-occupancy", "module-global", "m8.4-explicit-graph", "m8.3-memory-pool", "m8.2-pitched-memory", "stream-event", "m8.13-common-query", "m8.13-virtual-memory", "m8.13-array-texture-surface") -contains $workload.Name
         if ($negativeCovered) { $negative = [ordered]@{ status = "covered"; test = $workload.Unit; workload = $workload.Name } } else { $negative = [ordered]@{ status = "not-tested" } }
         if (@("hipDeviceCanAccessPeer", "hipDeviceEnablePeerAccess", "hipDeviceDisablePeerAccess", "hipMemcpyPeerAsync") -contains $entryPoint) { $capability = [ordered]@{ status = "skipped"; reason = "skipped(device-count<2)" } } else { $capability = [ordered]@{ status = "available" } }
         $articleTopic = $workload.Topic
-        $abiReturnType = $managed.returnType
-        $abiParameterCount = @($managed.parameters).Count
-        $binding = [ordered]@{ status = "generated-low-level+managed-owner"; managedName = $managed.managedName }
-        $minimumVersion = $managed.minimumHipVersion
+        $abiReturnType = if ($null -ne $managed) { $managed.returnType } else { $function.managedReturnType }
+        $abiParameterCount = if ($null -ne $managed) { @($managed.parameters).Count } else { @($function.parameters).Count }
+        $binding = [ordered]@{ status = "generated-low-level+managed-owner"; managedName = $managedName }
+        $minimumVersion = if ($null -ne $managed) { $managed.minimumHipVersion } else { "header-model" }
     } else {
         $rule = Get-Rule $entryPoint $library
         $disposition = [ordered]@{ status = $rule.disposition; reviewRule = $rule.name; reason = $rule.reason }
@@ -148,16 +174,19 @@ $markdownOutputPath = [System.IO.Path]::GetFullPath($OutputMarkdown)
 
 $counts = @{}
 foreach ($entry in $entries) { $status = $entry.managedDisposition.status; if (-not $counts.ContainsKey($status)) { $counts[$status] = 0 }; $counts[$status]++ }
+foreach ($status in @("managed", "managed-next", "raw-only-reviewed", "deferred-capability")) {
+    if (-not $counts.ContainsKey($status)) { $counts[$status] = 0 }
+}
 $cloudCounts = @{}
 foreach ($entry in $entries) { $status = $entry.cloudFunctionCoverage.status; if (-not $cloudCounts.ContainsKey($status)) { $cloudCounts[$status] = 0 }; $cloudCounts[$status]++ }
 $markdown = [System.Collections.Generic.List[string]]::new()
 $markdown.AddRange([string[]]@(
     "# Interface coverage ledger review", "",
-    "Generated from ``eng/interop/complete-api-model.json``, ``eng/interop/interop-manifest.json``, and ``reviewed-classification.json``.",
+    "Generated from ``eng/interop/complete-api-model.json``, ``eng/interop/interop-manifest.json``, ``managed-interface-map.json``, and ``reviewed-classification.json``.",
     "The ledger records evidence boundaries; a symbol export is not a function-level pass. Historical cloud evidence is bound to exact 0.x bytes and is not evidence for the current SHA.", "",
     "## Inventory", "",
     "- Total entries: $($entries.Count) (Runtime $(($entries | Where-Object library -eq 'amdhip64').Count), HIPRTC $(($entries | Where-Object library -eq 'hiprtc').Count)).",
-    "- Complete model: $(@($model.runtimeFunctions).Count + @($model.rtcFunctions).Count); managed owner manifest: $(@($manifest.functions).Count).",
+    "- Complete model: $(@($model.runtimeFunctions).Count + @($model.rtcFunctions).Count); managed interfaces: $(@($manifest.functions).Count + $promotedByEntry.Count) ($(@($manifest.functions).Count) ABI-manifest + $($promotedByEntry.Count) promoted).",
     "- Disposition: managed $($counts['managed']), managed-next $($counts['managed-next']), raw-only-reviewed $($counts['raw-only-reviewed']), deferred-capability $($counts['deferred-capability']).",
     "- Cloud function evidence: historical pass $($cloudCounts['passed-historical']), not-tested $($cloudCounts['not-tested']); export scan is tracked separately.", "",
     "## Managed workload mapping", "", "| Workload | Purpose | Unit source | Historical cloud scope |", "| --- | --- | --- | --- |"
@@ -169,7 +198,7 @@ foreach ($workload in $workloads) {
 }
 $markdown.AddRange([string[]]@(
     "", "## Review boundaries", "",
-    "- ``managed-next`` is a planned ownership batch, not an implementation or test result.",
+    "- ``managed-next`` is currently empty; future promotions still require reviewed ownership and capability workloads.",
     "- ``raw-only-reviewed`` retains the generated low-level declaration because no current managed contract is justified.",
     "- ``deferred-capability`` requires a capability-specific cloud workload before promotion.",
     "- All missing unit, function, or negative evidence is represented as ``not-tested``; no status is inferred from an entry-point name.",

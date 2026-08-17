@@ -220,7 +220,12 @@ static string FormatParameters(IEnumerable<ParameterInfo> parameters) => string.
     Type parameterType = parameter.ParameterType;
     string prefix = parameterType.IsByRef ? parameter.IsOut ? "out " : parameter.IsIn ? "in " : "ref " : string.Empty;
     if (parameterType.IsByRef) parameterType = parameterType.GetElementType()!;
-    string optional = parameter.HasDefaultValue ? "=" + FormatConstant(parameter.DefaultValue) : string.Empty;
+    object? defaultValue = parameter.HasDefaultValue ? parameter.DefaultValue : null;
+    if (parameterType == typeof(IntPtr) && defaultValue is null)
+    {
+        defaultValue = IntPtr.Zero;
+    }
+    string optional = parameter.HasDefaultValue ? "=" + FormatConstant(defaultValue) : string.Empty;
     return prefix + FormatType(parameterType) + " " + parameter.Name + optional;
 }));
 

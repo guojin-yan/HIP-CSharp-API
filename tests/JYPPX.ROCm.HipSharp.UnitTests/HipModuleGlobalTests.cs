@@ -398,16 +398,17 @@ public sealed class HipModuleGlobalTests
     }
 
     [TestMethod]
-    public void RuntimeCompilerSymbolApisAreNotPartOfManagedNativeBoundary()
+    public void SymbolCopyApisAreNotPartOfManagedNativeBoundary()
     {
         string[] forbidden =
         {
-            "GetSymbolAddress", "GetSymbolSize", "MemcpyFromSymbol", "MemcpyFromSymbolAsync",
-            "MemcpyToSymbol", "MemcpyToSymbolAsync",
+            "MemcpyFromSymbol", "MemcpyFromSymbolAsync", "MemcpyToSymbol", "MemcpyToSymbolAsync",
         };
         string[] managedBoundary = typeof(JYPPX.ROCm.HipSharp.Interop.IHipNativeApi)
             .GetMethods(BindingFlags.Public | BindingFlags.Instance)
             .Select(method => method.Name).ToArray();
         foreach (string name in forbidden) CollectionAssert.DoesNotContain(managedBoundary, name);
+        CollectionAssert.Contains(managedBoundary, "GetSymbolAddress");
+        CollectionAssert.Contains(managedBoundary, "GetSymbolSize");
     }
 }

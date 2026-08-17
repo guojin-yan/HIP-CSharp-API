@@ -102,6 +102,15 @@ public sealed class HipEvent : IDisposable
 
     internal IHipNativeApi NativeApi => _nativeApi;
 
+    internal IntPtr DangerousGetHandle()
+    {
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            return _handle.DangerousGetHandle();
+        }
+    }
+
     private void ThrowIfDisposed()
     {
         if (IsDisposed) throw new ObjectDisposedException(nameof(HipEvent));

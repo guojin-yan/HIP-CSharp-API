@@ -270,10 +270,12 @@ public sealed class RepositoryQualityTests
         string summaryPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "interface-coverage.md");
         string generatorPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "generate-interface-coverage.ps1");
         string reviewPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "reviewed-classification.json");
+        string managedInterfaceMapPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "managed-interface-map.json");
         Assert.IsTrue(File.Exists(ledgerPath));
         Assert.IsTrue(File.Exists(summaryPath));
         Assert.IsTrue(File.Exists(generatorPath));
         Assert.IsTrue(File.Exists(reviewPath));
+        Assert.IsTrue(File.Exists(managedInterfaceMapPath));
 
         string before = File.ReadAllText(ledgerPath);
         ProcessResult generated = RunProcess("pwsh", "-NoProfile", "-File", generatorPath);
@@ -282,6 +284,7 @@ public sealed class RepositoryQualityTests
 
         using JsonDocument complete = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "complete-api-model.json")));
         using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "interop-manifest.json")));
+        using JsonDocument managedInterfaceMap = JsonDocument.Parse(File.ReadAllText(managedInterfaceMapPath));
         HashSet<string> completeEntries = complete.RootElement.GetProperty("runtimeFunctions").EnumerateArray()
             .Concat(complete.RootElement.GetProperty("rtcFunctions").EnumerateArray())
             .Select(item => item.GetProperty("entryPoint").GetString()!)
@@ -291,10 +294,21 @@ public sealed class RepositoryQualityTests
             .ToDictionary(item => item.GetProperty("entryPoint").GetString()!, item => item.GetProperty("library").GetString()!, StringComparer.Ordinal);
         Dictionary<string, string> managedLibraries = manifest.RootElement.GetProperty("functions").EnumerateArray()
             .ToDictionary(item => item.GetProperty("entryPoint").GetString()!, item => item.GetProperty("library").GetString()!, StringComparer.Ordinal);
+        string[] promotedEntries = managedInterfaceMap.RootElement.GetProperty("groups").EnumerateArray()
+            .SelectMany(group => group.GetProperty("entries").EnumerateArray())
+            .Select(entry => entry.GetString()!)
+            .ToArray();
+        Assert.AreEqual(82, promotedEntries.Length);
+        Assert.AreEqual(82, promotedEntries.Distinct(StringComparer.Ordinal).Count());
+        foreach (string entryPoint in promotedEntries)
+        {
+            Assert.IsTrue(completeEntries.Contains(entryPoint), $"Promoted interface is absent from complete model: {entryPoint}");
+            managedLibraries.Add(entryPoint, completeLibraries[entryPoint]);
+        }
         Assert.AreEqual(477, completeEntries.Count);
-        Assert.AreEqual(109, managedLibraries.Count);
+        Assert.AreEqual(191, managedLibraries.Count);
         Assert.IsTrue(managedLibraries.Keys.All(completeEntries.Contains), "Every managed manifest entry must exist in the complete model.");
-        var newRtcEntries = new HashSet<string>(NewRtcEntries, StringComparer.Ordinal);
+        var unvalidatedManagedEntries = new HashSet<string>(NewRtcEntries.Concat(promotedEntries), StringComparer.Ordinal);
 
         string[] lines = File.ReadAllLines(ledgerPath);
         Assert.AreEqual(477, lines.Length);
@@ -332,7 +346,7 @@ public sealed class RepositoryQualityTests
                 Assert.AreEqual(managedLibraries[entryPoint], library);
                 Assert.AreEqual("covered", item.GetProperty("unitCoverage").GetProperty("status").GetString());
                 JsonElement cloudCoverage = item.GetProperty("cloudFunctionCoverage");
-                if (newRtcEntries.Contains(entryPoint))
+                if (unvalidatedManagedEntries.Contains(entryPoint))
                 {
                     Assert.AreEqual("not-tested", cloudCoverage.GetProperty("status").GetString());
                     StringAssert.Contains(cloudCoverage.GetProperty("reason").GetString()!, "exact-SHA");
@@ -366,8 +380,8 @@ public sealed class RepositoryQualityTests
         }
         CollectionAssert.AreEquivalent(completeEntries.ToArray(), seen.ToArray());
         Assert.AreEqual(1, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("cloudExport").GetProperty("status").GetString() == "missing-reviewed"));
-        Assert.AreEqual(109, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
-        Assert.AreEqual(368, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
+        Assert.AreEqual(191, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
+        Assert.AreEqual(286, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
     }
 
     [TestMethod]
@@ -752,6 +766,9 @@ public sealed class RepositoryQualityTests
         StringAssert.StartsWith(currentSurface, "# HipSharp public API snapshot schema 1");
         StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Rtc.HipRtcLinker");
         StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Rtc.HipRtcJitInputType");
+        StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Memory.HipVirtualMemoryReservation");
+        StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Textures.HipTextureObject");
+        StringAssert.Contains(currentSurface, "JYPPX.ROCm.HipSharp.Types.HipComputeCapability");
         string historicalSnapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.2.txt");
         Assert.IsTrue(File.Exists(historicalSnapshot));
         Assert.AreNotEqual(File.ReadAllText(historicalSnapshot), currentSurface);
@@ -771,13 +788,27 @@ public sealed class RepositoryQualityTests
             "T:JYPPX.ROCm.HipSharp.Modules.HipOccupancyFlags",
             "T:JYPPX.ROCm.HipSharp.Rtc.HipRtcJitInputType",
             "T:JYPPX.ROCm.HipSharp.Rtc.HipRtcResult",
+            "T:JYPPX.ROCm.HipSharp.Types.HipArrayFlags",
+            "T:JYPPX.ROCm.HipSharp.Types.HipArrayFormat",
+            "T:JYPPX.ROCm.HipSharp.Types.HipChannelFormatKind",
             "T:JYPPX.ROCm.HipSharp.Types.HipDeviceAttribute",
+            "T:JYPPX.ROCm.HipSharp.Types.HipDeviceCacheConfig",
             "T:JYPPX.ROCm.HipSharp.Types.HipError",
             "T:JYPPX.ROCm.HipSharp.Types.HipEventFlags",
             "T:JYPPX.ROCm.HipSharp.Types.HipManagedMemoryFlags",
+            "T:JYPPX.ROCm.HipSharp.Types.HipMemoryAccessFlags",
             "T:JYPPX.ROCm.HipSharp.Types.HipMemoryAdvise",
+            "T:JYPPX.ROCm.HipSharp.Types.HipMemoryAllocationHandleType",
+            "T:JYPPX.ROCm.HipSharp.Types.HipResourceViewFormat",
+            "T:JYPPX.ROCm.HipSharp.Types.HipSharedMemoryConfig",
             "T:JYPPX.ROCm.HipSharp.Types.HipStreamCaptureMode",
+            "T:JYPPX.ROCm.HipSharp.Types.HipStreamCaptureStatus",
             "T:JYPPX.ROCm.HipSharp.Types.HipStreamFlags",
+            "T:JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags",
+            "T:JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode",
+            "T:JYPPX.ROCm.HipSharp.Types.HipTextureFilterMode",
+            "T:JYPPX.ROCm.HipSharp.Types.HipTextureReadMode",
+            "T:JYPPX.ROCm.HipSharp.Types.HipTextureResourceKind",
         };
         CollectionAssert.AreEqual(expectedTargets, entries.Select(entry => entry.Element("Target")?.Value).ToArray());
         Assert.IsTrue(entries.All(entry => entry.Element("DiagnosticId")?.Value == "CP0008"));

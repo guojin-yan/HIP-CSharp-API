@@ -7,13 +7,13 @@ The package now contains two low-level entry-point surfaces generated from the p
 - `HipRuntimeNativeApi`: 459 public declarations from `hip/hip_runtime_api.h`, including the 11 HIP memory-pool exports kept low-level for raw ABI callers.
 - `HipRtcNativeApi`: 18 public declarations from `hip/hiprtc.h`, including name expressions, linker, and bitcode calls.
 
-The existing `HipRuntime` and `HipRtc` classes remain the preferred managed surface. They validate arguments, translate errors, and own streams, events, linear, pitched, and pooled allocations, explicit and captured graphs, programs, modules, borrowed module globals, and module kernel occupancy/cooperative launch. The managed manifest currently contains 91 Runtime and 9 HIPRTC entries; 368 Runtime and 9 HIPRTC declarations remain low-level-only. The complete low-level model remains 459 Runtime and 18 HIPRTC declarations.
+The existing `HipRuntime` and `HipRtc` classes remain the preferred managed surface. They validate arguments, translate errors, and own streams, events, linear, pitched, virtual, pooled, array, mipmapped-array, texture, and surface resources, explicit and captured graphs, programs, modules, borrowed module globals, and module kernel occupancy/cooperative launch. The reviewed managed surface covers 191 declarations: 109 ABI-manifest entries plus 82 high-level promotions. The remaining declarations are explicitly classified as 238 `raw-only-reviewed` and 48 `deferred-capability`; `managed-next` is empty. The complete low-level model remains 459 Runtime and 18 HIPRTC declarations.
 
-现有的 `HipRuntime` 与 `HipRtc` 仍是推荐的托管 API；它们负责参数检查、错误转换以及 stream、event、linear/pitched/pooled allocation、显式与捕获 graph、program、module、borrowed module global 和 module kernel occupancy/cooperative launch 的所有权。managed manifest 当前包含 91 个 Runtime 和 9 个 HIPRTC 入口；仍有 368 个 Runtime 和 9 个 HIPRTC 声明仅提供低层调用。完整低层 model 仍包含 459 个 Runtime 与 18 个 HIPRTC 声明。
+现有的 `HipRuntime` 与 `HipRtc` 仍是推荐的托管 API；它们负责参数检查、错误转换以及 stream、event、linear/pitched/virtual/pooled allocation、array、mipmapped array、texture、surface、显式与捕获 graph、program、module、borrowed module global 和 module kernel occupancy/cooperative launch 的所有权。经审查的 managed surface 覆盖 191 个声明：109 个 ABI manifest 入口加 82 个高层 promotion。其余声明明确分类为 238 个 `raw-only-reviewed` 和 48 个 `deferred-capability`，`managed-next` 已清零。完整低层 model 仍包含 459 个 Runtime 与 18 个 HIPRTC 声明。
 
-`hipModuleGetGlobal` is the only high-level module-symbol identity path. Compiler-symbol address/size/copy APIs, module texture/surface references, and linker calls remain low-level because their identities and ownership contracts differ.
+`hipModuleGetGlobal` remains the owning module-global identity path. Compiler-symbol address/size queries and legacy texture references now have explicit borrowed-pointer façades; they never claim ownership of the native symbol. Callback, profiler, external graphics/IPC, deprecated driver overlap outside this reviewed batch, and other unowned pointer-heavy calls remain low-level or deferred.
 
-`hipModuleGetGlobal` 是唯一的高层 module-symbol identity 路径。compiler-symbol address/size/copy API、module texture/surface reference 与 linker call 因 identity 和 ownership contract 不同而继续只保留低层。
+`hipModuleGetGlobal` 仍是拥有明确 module-global identity 的 owner 路径。compiler-symbol address/size query 与 legacy texture reference 现在提供显式 borrowed-pointer façade，但绝不取得 native symbol 所有权。callback、profiler、external graphics/IPC、本批范围外的 deprecated driver overlap 以及其他未建模的 pointer-heavy call 继续保留为 low-level 或 deferred。
 
 ## Raw ABI rules / 原生 ABI 规则
 

@@ -12,6 +12,8 @@
       href: guides/hip-stream-event-vectoradd.md
     - name: Advanced HIP APIs / HIP 高级 API
       href: guides/advanced-apis.md
+    - name: Arrays, Textures, and Surfaces / 数组、纹理与表面
+      href: guides/array-texture-surface.md
     - name: Explicit HIP Graphs / 显式 HIP Graph
       href: guides/explicit-graphs.md
     - name: Kernel Occupancy and Cooperative Launch / Kernel Occupancy 与 Cooperative Launch

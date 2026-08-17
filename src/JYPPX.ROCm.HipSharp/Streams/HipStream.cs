@@ -9,7 +9,7 @@ namespace JYPPX.ROCm.HipSharp.Streams;
 /// <summary>
 /// 拥有 HIP stream，并在同步或完成查询后释放异步 leases / Owns a HIP stream and releases async leases after synchronization or completion queries.
 /// </summary>
-public sealed class HipStream : IDisposable
+public sealed partial class HipStream : IDisposable
 {
     private readonly IHipNativeApi _nativeApi;
     private readonly HipStreamHandle _handle;

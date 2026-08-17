@@ -25,7 +25,149 @@ internal interface IHipNativeApi
 
     public HipError DeviceGetAttribute(out int value, HipDeviceAttribute attribute, int deviceId);
 
+    public HipError DeviceComputeCapability(IntPtr major, IntPtr minor, int device);
+
+    public HipError DeviceGet(IntPtr device, int ordinal);
+
+    public HipError DeviceGetByPCIBusId(IntPtr device, IntPtr pciBusId);
+
+    public HipError DeviceGetCacheConfig(IntPtr cacheConfig);
+
+    public HipError DeviceGetGraphMemAttribute(int device, int attribute, IntPtr value);
+
+    public HipError DeviceGetLimit(IntPtr value, int limit);
+
+    public HipError DeviceGetP2PAttribute(IntPtr value, int attribute, int sourceDevice, int destinationDevice);
+
+    public HipError DeviceGetPCIBusId(IntPtr pciBusId, int length, int device);
+
+    public HipError DeviceGetSharedMemConfig(IntPtr config);
+
+    public HipError DeviceGetStreamPriorityRange(IntPtr leastPriority, IntPtr greatestPriority);
+
+    public HipError DeviceGetUuid(IntPtr uuid, int device);
+
+    public HipError DeviceTotalMem(IntPtr bytes, int device);
+
+    public HipError GetSymbolAddress(IntPtr devicePointer, IntPtr symbol);
+
+    public HipError GetSymbolSize(IntPtr size, IntPtr symbol);
+
+    public HipError PointerGetAttribute(IntPtr data, int attribute, IntPtr pointer);
+
+    public HipError PointerGetAttributes(IntPtr attributes, IntPtr pointer);
+
+    public HipError PointerSetAttribute(IntPtr value, int attribute, IntPtr pointer);
+
     public HipError MemGetInfo(out UIntPtr freeBytes, out UIntPtr totalBytes);
+
+    public HipError MemAddressFree(IntPtr address, UIntPtr size);
+
+    public HipError MemAddressReserve(IntPtr address, UIntPtr size, UIntPtr alignment, IntPtr requestedAddress, ulong flags);
+
+    public HipError MemCreate(IntPtr handle, UIntPtr size, IntPtr properties, ulong flags);
+
+    public HipError MemExportToShareableHandle(IntPtr shareableHandle, IntPtr handle, int handleType, ulong flags);
+
+    public HipError MemGetAccess(IntPtr flags, IntPtr location, IntPtr address);
+
+    public HipError MemImportFromShareableHandle(IntPtr handle, IntPtr operatingSystemHandle, int handleType);
+
+    public HipError MemMap(IntPtr address, UIntPtr size, UIntPtr offset, IntPtr handle, ulong flags);
+
+    public HipError MemMapArrayAsync(IntPtr mapInformation, uint count, IntPtr stream);
+
+    public HipError MemRelease(IntPtr handle);
+
+    public HipError MemRetainAllocationHandle(IntPtr handle, IntPtr address);
+
+    public HipError MemSetAccess(IntPtr address, UIntPtr size, IntPtr descriptors, UIntPtr count);
+
+    public HipError MemUnmap(IntPtr address, UIntPtr size);
+
+    public HipError Array3DCreate(IntPtr array, IntPtr descriptor);
+
+    public HipError Array3DGetDescriptor(IntPtr descriptor, IntPtr array);
+
+    public HipError ArrayCreate(IntPtr array, IntPtr descriptor);
+
+    public HipError ArrayDestroy(IntPtr array);
+
+    public HipError ArrayGetDescriptor(IntPtr descriptor, IntPtr array);
+
+    public HipError ArrayGetInfo(IntPtr descriptor, IntPtr extent, IntPtr flags, IntPtr array);
+
+    public HipError BindTexture(IntPtr offset, IntPtr textureReference, IntPtr devicePointer, IntPtr descriptor, UIntPtr size);
+
+    public HipError BindTexture2D(IntPtr offset, IntPtr textureReference, IntPtr devicePointer, IntPtr descriptor, UIntPtr width, UIntPtr height, UIntPtr pitch);
+
+    public HipError BindTextureToArray(IntPtr textureReference, IntPtr array, IntPtr descriptor);
+
+    public HipError BindTextureToMipmappedArray(IntPtr textureReference, IntPtr mipmappedArray, IntPtr descriptor);
+
+    public HipError CreateSurfaceObject(IntPtr surfaceObject, IntPtr resourceDescriptor);
+
+    public HipError CreateTextureObject(IntPtr textureObject, IntPtr resourceDescriptor, IntPtr textureDescriptor, IntPtr resourceViewDescriptor);
+
+    public HipError DestroySurfaceObject(ulong surfaceObject);
+
+    public HipError DestroyTextureObject(ulong textureObject);
+
+    public HipError DeviceGetTexture1DLinearMaxWidth(IntPtr maxWidth, IntPtr descriptor, int device);
+
+    public HipError FreeArray(IntPtr array);
+
+    public HipError FreeMipmappedArray(IntPtr mipmappedArray);
+
+    public HipError GetMipmappedArrayLevel(IntPtr levelArray, IntPtr mipmappedArray, uint level);
+
+    public HipError GetTextureAlignmentOffset(IntPtr offset, IntPtr textureReference);
+
+    public HipError GetTextureObjectResourceDesc(IntPtr resourceDescriptor, ulong textureObject);
+
+    public HipError GetTextureObjectResourceViewDesc(IntPtr resourceViewDescriptor, ulong textureObject);
+
+    public HipError GetTextureObjectTextureDesc(IntPtr textureDescriptor, ulong textureObject);
+
+    public HipError GetTextureReference(IntPtr textureReference, IntPtr symbol);
+
+    public HipError Malloc3DArray(IntPtr array, IntPtr descriptor, HipExtent extent, uint flags);
+
+    public HipError MallocArray(IntPtr array, IntPtr descriptor, UIntPtr width, UIntPtr height, uint flags);
+
+    public HipError MallocMipmappedArray(IntPtr mipmappedArray, IntPtr descriptor, HipExtent extent, uint levels, uint flags);
+
+    public HipError Memcpy2DArrayToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind);
+
+    public HipError Memcpy2DFromArray(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind);
+
+    public HipError Memcpy2DFromArrayAsync(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind, IntPtr stream);
+
+    public HipError Memcpy2DToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind);
+
+    public HipError Memcpy2DToArrayAsync(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind, IntPtr stream);
+
+    public HipError MemcpyFromArray(IntPtr destination, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr count, int kind);
+
+    public HipError MemcpyToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr count, int kind);
+
+    public HipError MipmappedArrayCreate(IntPtr mipmappedArray, IntPtr descriptor, uint levels);
+
+    public HipError MipmappedArrayDestroy(IntPtr mipmappedArray);
+
+    public HipError MipmappedArrayGetLevel(IntPtr levelArray, IntPtr mipmappedArray, uint level);
+
+    public HipError TexObjectGetTextureDesc(IntPtr textureDescriptor, ulong textureObject);
+
+    public HipError TexRefGetArray(IntPtr array, IntPtr textureReference);
+
+    public HipError TexRefGetMipMappedArray(IntPtr mipmappedArray, IntPtr textureReference);
+
+    public HipError TexRefSetArray(IntPtr textureReference, IntPtr array, uint flags);
+
+    public HipError TexRefSetMipmappedArray(IntPtr textureReference, IntPtr mipmappedArray, uint flags);
+
+    public HipError UnbindTexture(IntPtr textureReference);
 
     public HipError MallocPitch(out IntPtr pointer, out UIntPtr pitch, UIntPtr widthBytes, UIntPtr height);
 
@@ -152,6 +294,28 @@ internal interface IHipNativeApi
     public HipError StreamSynchronize(IntPtr stream);
 
     public HipError StreamQuery(IntPtr stream);
+
+    public HipError ExtStreamGetCUMask(IntPtr stream, uint cuMaskSize, IntPtr cuMask);
+
+    public HipError StreamGetAttribute(IntPtr stream, int attribute, IntPtr value);
+
+    public HipError StreamGetCaptureInfo(IntPtr stream, IntPtr captureStatus, IntPtr identifier);
+
+    public HipError StreamGetCaptureInfoV2(IntPtr stream, IntPtr captureStatus, IntPtr identifier, IntPtr graph, IntPtr dependencies, IntPtr dependencyCount);
+
+    public HipError StreamGetDevice(IntPtr stream, IntPtr device);
+
+    public HipError StreamGetFlags(IntPtr stream, IntPtr flags);
+
+    public HipError StreamGetId(IntPtr stream, IntPtr identifier);
+
+    public HipError StreamGetPriority(IntPtr stream, IntPtr priority);
+
+    public HipError StreamWaitEvent(IntPtr stream, IntPtr eventHandle, uint flags);
+
+    public HipError StreamWaitValue32(IntPtr stream, IntPtr pointer, uint value, uint flags, uint mask);
+
+    public HipError StreamWaitValue64(IntPtr stream, IntPtr pointer, ulong value, uint flags, ulong mask);
 
     public HipError EventCreateWithFlags(out IntPtr eventHandle, uint flags);
 
