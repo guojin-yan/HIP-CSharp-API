@@ -260,6 +260,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal int ArrayCopyCallCount { get; private set; }
 
+    internal int Memcpy2DFromArrayCallCount { get; private set; }
+
+    internal int Memcpy2DToArrayCallCount { get; private set; }
+
+    internal int MemcpyFromArrayCallCount { get; private set; }
+
+    internal int MemcpyToArrayCallCount { get; private set; }
+
     internal int TextureObjectDestroyCount { get; private set; }
 
     internal int SurfaceObjectDestroyCount { get; private set; }
@@ -911,23 +919,35 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError Memcpy2DArrayToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind) =>
         RecordArrayCopy(_arrays.ContainsKey(destination) && _arrays.ContainsKey(source));
 
-    public HipError Memcpy2DFromArray(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind) =>
-        RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source));
+    public HipError Memcpy2DFromArray(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind)
+    {
+        Memcpy2DFromArrayCallCount++;
+        return RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source));
+    }
 
     public HipError Memcpy2DFromArrayAsync(IntPtr destination, UIntPtr destinationPitch, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr width, UIntPtr height, int kind, IntPtr stream) =>
         RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source) && _streams.Contains(stream));
 
-    public HipError Memcpy2DToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind) =>
-        RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero);
+    public HipError Memcpy2DToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind)
+    {
+        Memcpy2DToArrayCallCount++;
+        return RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero);
+    }
 
     public HipError Memcpy2DToArrayAsync(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr sourcePitch, UIntPtr width, UIntPtr height, int kind, IntPtr stream) =>
         RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero && _streams.Contains(stream));
 
-    public HipError MemcpyFromArray(IntPtr destination, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr count, int kind) =>
-        RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source));
+    public HipError MemcpyFromArray(IntPtr destination, IntPtr source, UIntPtr sourceX, UIntPtr sourceY, UIntPtr count, int kind)
+    {
+        MemcpyFromArrayCallCount++;
+        return RecordArrayCopy(destination != IntPtr.Zero && _arrays.ContainsKey(source));
+    }
 
-    public HipError MemcpyToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr count, int kind) =>
-        RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero);
+    public HipError MemcpyToArray(IntPtr destination, UIntPtr destinationX, UIntPtr destinationY, IntPtr source, UIntPtr count, int kind)
+    {
+        MemcpyToArrayCallCount++;
+        return RecordArrayCopy(_arrays.ContainsKey(destination) && source != IntPtr.Zero);
+    }
 
     public HipError MipmappedArrayCreate(IntPtr mipmappedArray, IntPtr descriptor, uint levels)
     {

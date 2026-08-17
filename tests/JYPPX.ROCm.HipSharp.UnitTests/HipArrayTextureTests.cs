@@ -42,6 +42,10 @@ public class HipArrayTextureTests
 
         array.CopyFrom(new byte[4], 2);
         array.CopyTo(new byte[4], 2);
+        Assert.AreEqual(1, native.Memcpy2DToArrayCallCount);
+        Assert.AreEqual(0, native.MemcpyToArrayCallCount);
+        Assert.AreEqual(1, native.Memcpy2DFromArrayCallCount);
+        Assert.AreEqual(0, native.MemcpyFromArrayCallCount);
         array.Copy2DFrom(new byte[16], 8, 2);
         array.Copy2DTo(new byte[16], 8, 2);
         array.Copy2DTo(destination, 8, 2);

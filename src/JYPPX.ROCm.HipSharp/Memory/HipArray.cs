@@ -109,13 +109,16 @@ public sealed class HipArray : IDisposable, IHipTextureResourceOwner
         try
         {
             IntPtr handle = AcquireHandle(out reference);
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemcpyToArray(
+            // ROCm 7.2.1 returns partial data from deprecated array copy APIs; one-row 2D copies are equivalent and reliable.
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.Memcpy2DToArray(
                 handle,
                 HipDeviceMemory.ToUIntPtr(destinationByteOffset, nameof(destinationByteOffset)),
                 HipDeviceMemory.ToUIntPtr(destinationRow, nameof(destinationRow)),
                 pinned.AddrOfPinnedObject(),
                 HipDeviceMemory.ToUIntPtr((ulong)source.LongLength, nameof(source)),
-                (int)HipMemoryCopyKind.HostToDevice), "hipMemcpyToArray");
+                HipDeviceMemory.ToUIntPtr((ulong)source.LongLength, nameof(source)),
+                new UIntPtr(1),
+                (int)HipMemoryCopyKind.HostToDevice), "hipMemcpy2DToArray");
         }
         finally
         {
@@ -135,13 +138,16 @@ public sealed class HipArray : IDisposable, IHipTextureResourceOwner
         try
         {
             IntPtr handle = AcquireHandle(out reference);
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemcpyFromArray(
+            // ROCm 7.2.1 returns partial data from deprecated array copy APIs; one-row 2D copies are equivalent and reliable.
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.Memcpy2DFromArray(
                 pinned.AddrOfPinnedObject(),
+                HipDeviceMemory.ToUIntPtr((ulong)destination.LongLength, nameof(destination)),
                 handle,
                 HipDeviceMemory.ToUIntPtr(sourceByteOffset, nameof(sourceByteOffset)),
                 HipDeviceMemory.ToUIntPtr(sourceRow, nameof(sourceRow)),
                 HipDeviceMemory.ToUIntPtr((ulong)destination.LongLength, nameof(destination)),
-                (int)HipMemoryCopyKind.DeviceToHost), "hipMemcpyFromArray");
+                new UIntPtr(1),
+                (int)HipMemoryCopyKind.DeviceToHost), "hipMemcpy2DFromArray");
         }
         finally
         {
