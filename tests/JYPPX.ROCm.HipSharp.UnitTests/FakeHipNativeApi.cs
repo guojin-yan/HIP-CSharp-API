@@ -248,6 +248,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal int LastSetDevice { get; private set; }
 
+    internal int DeviceGetCallCount { get; private set; }
+
     internal int FreeCount { get; private set; }
 
     internal int FreeCallCount { get; private set; }
@@ -512,6 +514,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError DeviceGet(IntPtr device, int ordinal)
     {
+        DeviceGetCallCount++;
         if (ordinal < 0 || ordinal >= 2) return HipError.InvalidDevice;
         if (ManagedNextResult == HipError.Success) Marshal.WriteInt32(device, ordinal);
         return ManagedNextResult;

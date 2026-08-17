@@ -16,6 +16,9 @@ public class HipManagedQueryTests
         var runtime = new HipRuntime(native);
         HipDevice device = runtime.GetDevice(0);
 
+        Assert.AreEqual(1, native.DeviceGetCallCount);
+        Assert.AreEqual(0, device.Ordinal);
+
         HipComputeCapability capability = device.GetComputeCapability();
         Assert.AreEqual(9, capability.Major);
         Assert.AreEqual(0, capability.Minor);

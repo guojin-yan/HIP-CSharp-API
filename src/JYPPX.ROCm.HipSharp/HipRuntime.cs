@@ -92,7 +92,7 @@ public sealed partial class HipRuntime : IDisposable
     /// <returns>设备对象 / The device object.</returns>
     /// <exception cref="ArgumentOutOfRangeException">设备序号为负数 / The device ordinal is negative.</exception>
     /// <exception cref="HipException">HIP 无法读取设备名称 / HIP cannot read the device name.</exception>
-    public HipDevice GetDevice(int ordinal)
+    public unsafe HipDevice GetDevice(int ordinal)
     {
         ThrowIfDisposed();
         if (ordinal < 0)
@@ -100,8 +100,15 @@ public sealed partial class HipRuntime : IDisposable
             throw new ArgumentOutOfRangeException(nameof(ordinal));
         }
 
-        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGetName(ordinal, out string name), "hipDeviceGetName");
-        return new HipDevice(_nativeApi, new HipDeviceInfo(ordinal, name));
+        int device = -1;
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGet((IntPtr)(&device), ordinal), "hipDeviceGet");
+        if (device < 0)
+        {
+            throw new InvalidOperationException("hipDeviceGet succeeded but returned a negative device identifier.");
+        }
+
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DeviceGetName(device, out string name), "hipDeviceGetName");
+        return new HipDevice(_nativeApi, new HipDeviceInfo(device, name));
     }
 
     /// <summary>
