@@ -1,5 +1,4 @@
 using System;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using JYPPX.ROCm.HipSharp.Interop;
 using JYPPX.ROCm.HipSharp.Streams;
@@ -272,7 +271,7 @@ internal sealed class HipVirtualAddressHandle : SafeHandle
 internal sealed class HipPhysicalMemoryHandle : SafeHandle
 {
     private readonly IHipNativeApi _nativeApi;
-    private readonly object _releaseSync = new();
+    private HipError _releaseError;
 
     internal HipPhysicalMemoryHandle(IHipNativeApi nativeApi, IntPtr handle) : base(IntPtr.Zero, true)
     {
@@ -282,29 +281,16 @@ internal sealed class HipPhysicalMemoryHandle : SafeHandle
 
     public override bool IsInvalid => handle == IntPtr.Zero;
 
-    [SuppressMessage("Usage", "CA1816", Justification = "The SafeHandle is released explicitly here; suppress its finalizer before the native release and restore it on failure.")]
     internal HipError ReleaseChecked()
     {
-        lock (_releaseSync)
-        {
-            if (IsClosed || IsInvalid) return HipError.Success;
-            GC.SuppressFinalize(this);
-            HipError error = _nativeApi.MemRelease(DangerousGetHandle());
-            if (error != HipError.Success) GC.ReRegisterForFinalize(this);
-            if (error == HipError.Success)
-            {
-                SetHandle(IntPtr.Zero);
-            }
-            return error;
-        }
+        if (IsClosed || IsInvalid) return HipError.Success;
+        Dispose();
+        return _releaseError;
     }
 
     protected override bool ReleaseHandle()
     {
-        lock (_releaseSync)
-        {
-            if (IsInvalid) return true;
-            return _nativeApi.MemRelease(handle) == HipError.Success;
-        }
+        _releaseError = _nativeApi.MemRelease(handle);
+        return _releaseError == HipError.Success;
     }
 }
