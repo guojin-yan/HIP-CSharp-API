@@ -1,5 +1,3 @@
-<h1 align="center">HIP CSharp API</h1>
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/images/readme/hero-light.svg">
@@ -21,7 +19,7 @@
 
 <p align="center"><a href="README.md">English</a> | <strong>简体中文</strong></p>
 
-# HIP CSharp API
+# ⚡ HIP CSharp API
 
 HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。单一 `JYPPX.ROCm.HIP.CSharp.API` 程序集公开 `JYPPX.ROCm.HipSharp` 命名空间，既包含适合常见 GPU 工作流的托管所有者 API，也包含面向原生 ABI 直接调用场景的生成式低层入口。
 
@@ -66,7 +64,7 @@ dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
 ```powershell
 git clone https://github.com/guojin-yan/HIP-CSharp-API.git
 cd HIP-CSharp-API
-dotnet run --project .\samples\DeviceInfo\DeviceInfo.csproj -c Release
+dotnet run --project .\samples\tutorials\01-RuntimeDevice\EnvironmentAndDevice\EnvironmentAndDevice.csproj -c Release
 ```
 
 核心托管 API 保持简洁：
@@ -154,18 +152,23 @@ Core 项目直接面向 15 个目标框架：
 
 ## 🧪 示例
 
-| 示例 | 内容 |
-| --- | --- |
-| [`DeviceInfo`](samples/DeviceInfo) | Runtime/驱动版本与设备枚举 |
-| [`MemoryCopy`](samples/MemoryCopy) | H2D、D2D 与 D2H 内存往返 |
-| [`HipRtcVectorAdd`](samples/HipRtcVectorAdd) | 内存中 HIPRTC 编译、模块加载、内核启动与 CPU 校验 |
-| [`HipStreamEventVectorAdd`](samples/HipStreamEventVectorAdd) | 异步复制、非阻塞 stream、event 与执行顺序 |
-| [`HipAdvancedFeatures`](samples/HipAdvancedFeatures) | stream-ordered allocation、graph replay、托管内存、生命周期压力测试与 P2P copy-or-skip |
+[案例学习路径](samples/README.zh-CN.md)按 HIP 功能模块组织，而不是按单个 API 调用堆叠。
+
+| 模块 | 入口案例 | 内容 |
+| --- | --- | --- |
+| Runtime/Device | [`EnvironmentAndDevice`](samples/tutorials/01-RuntimeDevice/EnvironmentAndDevice) | Runtime/Driver 版本与设备枚举 |
+| Memory | [`LinearMemoryCopy`](samples/tutorials/02-Memory/LinearMemoryCopy) | H2D、D2D 与 D2H 内存往返 |
+| Execution | [`StreamAndEvent`](samples/tutorials/03-Execution/StreamAndEvent) | 非阻塞 Stream、Event 与异步顺序 |
+| Kernel | [`HipRtcVectorAdd`](samples/tutorials/04-Kernel/HipRtcVectorAdd) | HIPRTC 编译、Module 加载、Kernel 启动与 CPU 校验 |
+| Graph | [`GraphCaptureReplay`](samples/tutorials/05-Graph/GraphCaptureReplay) | Stream capture、Graph 实例化与重放 |
+| Multi-device | [`PeerToPeerCopy`](samples/tutorials/06-MultiDevice/PeerToPeerCopy) | Capability-gated peer access 与 P2P copy |
+| Data objects | [`ArrayTextureSurface`](samples/tutorials/07-DataObjects/ArrayTextureSurface) | Array、Texture 与 Surface 所有权 |
+| Low-level | [`NativeAbiInterop`](samples/tutorials/90-LowLevel/NativeAbiInterop) | 面向专家的生成式 C ABI 直接调用 |
 
 GPU 示例要求显式提供真实目标架构，例如：
 
 ```powershell
-dotnet run --project .\samples\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
+dotnet run --project .\samples\tutorials\04-Kernel\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
 这些示例用于验证正确性与所有权行为，不是性能基准，也不作性能承诺。
@@ -234,19 +237,43 @@ HIP-CSharp-API/
 
 项目源码采用 [Apache License 2.0](LICENSE)。任何打包的 ROCm 组件都保留各自许可证与通知，本项目许可证不会替代其原始条款。
 
-## 📮 支持与联系
+## 📮 联系、社区与赞助
 
 - [GitHub Issues](https://github.com/guojin-yan/HIP-CSharp-API/issues)：错误报告与功能建议。
 - [GitHub Discussions](https://github.com/guojin-yan/HIP-CSharp-API/discussions)：使用交流。
 - QQ 群 `945057948`：社区讨论。
 
-## 📢 软件声明
+<p align="center">
+  <img src="docs/images/readme/personal-contact-banner-v7-sponsor-zh.png" width="100%" alt="开发者联系渠道、社区入口以及微信和支付宝赞助二维码">
+</p>
 
-- **AI 辅助开发：** 开发过程中使用了 AI 工具辅助生成、审查和优化部分代码与文档。
-- **安全意图：** 作者声明项目未故意嵌入后门、病毒、凭据窃取或其他恶意行为。
-- **测试边界：** 项目尚未覆盖所有操作系统、驱动、ROCm 版本、GPU 架构与工作负载；历史门禁通过不等于通用支持保证。
-- **用户责任：** 在生产、商业、工业、安全关键或任务关键场景使用前，应自行完成代码审查与代表性测试，并自行评估适用性、可靠性、许可证及部署风险。
+---
 
-第三方二进制、源码与资源仍由其各自所有者及许可证约束。
+## ⚠️ 软件声明与免责声明
+
+### 📜 1. 开源协议声明
+
+作者所有开源项目代码均遵循 **Apache License 2.0** 开源协议。
+
+*特别说明：本项目集成了若干第三方库。若任何第三方库的许可协议与 Apache 2.0 协议存在冲突或不一致，均以该第三方库的原始许可协议为准。本项目不包含也不代表这些第三方库的授权声明，使用前请务必阅读并遵守第三方库的相关许可。*
+
+### 🤖 2. 代码开发与质量说明
+
+- **AI 辅助开发**：本代码在开发过程中使用了人工智能（AI）辅助生成与优化，并非完全由人工逐行编写。
+- **安全性承诺**：**作者郑重声明，本代码中绝无任何有意设置的后门、病毒、木马或旨在破坏用户设备、窃取数据的恶意代码。**
+- **技术局限性**：受限于作者个人的技术水平与能力，代码中可能存在因逻辑不严谨、优化不足或经验欠缺导致的低级问题（例如但不限于内存泄漏、偶发崩溃、资源未释放等）。这些问题纯属能力不足所致，并非主观故意。
+- **测试范围**：由于作者精力有限，未对本软件进行全方位、覆盖所有边缘场景的完整测试。
+
+### 🚨 3. 免责声明（重要）
+
+**请在将本代码应用于任何实际项目（特别是商业、工业或关键任务环境）之前，务必进行详尽、严格的自行测试与验证。** 鉴于上述可能存在的代码缺陷及测试覆盖不足，**因使用本代码而导致的任何直接或间接损失（包括但不限于设备故障、数据丢失、系统瘫痪或利润损失等），本作者概不负责。** 一旦您开始使用本代码，即表示您已知晓上述风险并同意自行承担一切后果，相关问题与本作者无关。
+
+### 🔓 4. 代码开源范围
+
+本项目承诺核心逻辑代码完全开源，但上述提到的“第三方库”的二进制文件、源代码或相关资源不在本项目的开源义务范围内，请根据其各自的指引获取。
+
+### 🤝 5. 社区与反馈
+
+尽管存在上述不足，我们仍欢迎大家下载使用、提交 Issue 或参与测试，共同完善项目。如果您在使用过程中发现 Bug、内存溢出或有改进建议，欢迎通过项目主页提供的联系方式与作者取得联系，我们将尽力在有限的时间内提供协助。
 
 Copyright (c) 2026 Guojin Yan.

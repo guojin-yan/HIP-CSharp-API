@@ -1,4 +1,5 @@
 using System;
+using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using JYPPX.ROCm.HipSharp.Interop;
 using JYPPX.ROCm.HipSharp.Streams;
@@ -172,7 +173,6 @@ public sealed class HipPhysicalMemoryAllocation : IDisposable
             if (_mappingCount != 0) throw new InvalidOperationException("Dispose all virtual-memory mappings before releasing the physical allocation.");
             HipError error = _handle.ReleaseChecked();
             if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipMemRelease");
-            _handle.Dispose();
         }
     }
 
@@ -272,6 +272,7 @@ internal sealed class HipVirtualAddressHandle : SafeHandle
 internal sealed class HipPhysicalMemoryHandle : SafeHandle
 {
     private readonly IHipNativeApi _nativeApi;
+    private readonly object _releaseSync = new();
 
     internal HipPhysicalMemoryHandle(IHipNativeApi nativeApi, IntPtr handle) : base(IntPtr.Zero, true)
     {
@@ -281,13 +282,29 @@ internal sealed class HipPhysicalMemoryHandle : SafeHandle
 
     public override bool IsInvalid => handle == IntPtr.Zero;
 
+    [SuppressMessage("Usage", "CA1816", Justification = "The SafeHandle is released explicitly here; suppress its finalizer before the native release and restore it on failure.")]
     internal HipError ReleaseChecked()
     {
-        if (IsClosed || IsInvalid) return HipError.Success;
-        HipError error = _nativeApi.MemRelease(handle);
-        if (error == HipError.Success) SetHandleAsInvalid();
-        return error;
+        lock (_releaseSync)
+        {
+            if (IsClosed || IsInvalid) return HipError.Success;
+            GC.SuppressFinalize(this);
+            HipError error = _nativeApi.MemRelease(DangerousGetHandle());
+            if (error != HipError.Success) GC.ReRegisterForFinalize(this);
+            if (error == HipError.Success)
+            {
+                SetHandle(IntPtr.Zero);
+            }
+            return error;
+        }
     }
 
-    protected override bool ReleaseHandle() => _nativeApi.MemRelease(handle) == HipError.Success;
+    protected override bool ReleaseHandle()
+    {
+        lock (_releaseSync)
+        {
+            if (IsInvalid) return true;
+            return _nativeApi.MemRelease(handle) == HipError.Success;
+        }
+    }
 }

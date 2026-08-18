@@ -159,12 +159,12 @@ EOF
   dotnet build "${directory}/Consumer.csproj" --configuration Release --no-restore -p:RestorePackagesPath="${runtime_root}/packages" | tee "${evidence_dir}/${name}-build.txt"
 }
 
-make_consumer device-info DeviceInfo
-make_consumer memory-copy MemoryCopy
-make_consumer hiprtc-vector-add HipRtcVectorAdd
-make_consumer stream-event-vector-add HipStreamEventVectorAdd
-make_consumer advanced-features HipAdvancedFeatures
-make_multi_file_consumer managed-expansion HipManagedExpansionValidation
+make_consumer device-info tutorials/01-RuntimeDevice/EnvironmentAndDevice
+make_consumer memory-copy tutorials/02-Memory/LinearMemoryCopy
+make_consumer hiprtc-vector-add tutorials/04-Kernel/HipRtcVectorAdd
+make_consumer stream-event-vector-add tutorials/03-Execution/AsyncVectorAdd
+make_consumer advanced-features validation/AdvancedReliabilityStress
+make_multi_file_consumer managed-expansion validation/HipManagedExpansionValidation
 
 native_directory="$(find "${runtime_root}/stream-event-vector-add/bin/Release/net10.0" -type f -name 'libamdhip64.so' -printf '%h\n' -quit)"
 [[ -n "${native_directory}" ]] || { echo "NuGet native assets were not copied to the consumer output." >&2; exit 1; }

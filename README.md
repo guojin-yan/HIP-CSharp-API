@@ -1,5 +1,3 @@
-<h1 align="center">HIP CSharp API</h1>
-
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/hero-dark.svg">
   <source media="(prefers-color-scheme: light)" srcset="docs/images/readme/hero-light.svg">
@@ -21,7 +19,7 @@
 
 <p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-# HIP CSharp API
+# ⚡ HIP CSharp API
 
 HIP CSharp API provides direct .NET bindings for the AMD HIP Runtime and HIPRTC C APIs. The single `JYPPX.ROCm.HIP.CSharp.API` assembly exposes the `JYPPX.ROCm.HipSharp` namespace, combining ergonomic managed owners for common GPU workflows with generated low-level entry points for applications that need the native ABI directly.
 
@@ -66,7 +64,7 @@ To run from source, use the .NET 10 SDK selected by `global.json` and a machine 
 ```powershell
 git clone https://github.com/guojin-yan/HIP-CSharp-API.git
 cd HIP-CSharp-API
-dotnet run --project .\samples\DeviceInfo\DeviceInfo.csproj -c Release
+dotnet run --project .\samples\tutorials\01-RuntimeDevice\EnvironmentAndDevice\EnvironmentAndDevice.csproj -c Release
 ```
 
 The essential managed API is intentionally small:
@@ -154,18 +152,23 @@ Several older .NET targets are end-of-support upstream and exist only for packag
 
 ## 🧪 Examples
 
-| Sample | What it demonstrates |
-| --- | --- |
-| [`DeviceInfo`](samples/DeviceInfo) | Runtime/driver versions and device enumeration |
-| [`MemoryCopy`](samples/MemoryCopy) | H2D, D2D, and D2H memory round trip |
-| [`HipRtcVectorAdd`](samples/HipRtcVectorAdd) | In-memory HIPRTC compilation, module loading, kernel launch, and CPU verification |
-| [`HipStreamEventVectorAdd`](samples/HipStreamEventVectorAdd) | Asynchronous copies, non-blocking streams, events, and ordering |
-| [`HipAdvancedFeatures`](samples/HipAdvancedFeatures) | Stream-ordered allocation, graph replay, managed memory, lifecycle stress, and P2P copy-or-skip |
+The [sample learning path](samples/README.md) is organized by HIP capability instead of individual API calls.
+
+| Module | Entry sample | What it demonstrates |
+| --- | --- | --- |
+| Runtime/Device | [`EnvironmentAndDevice`](samples/tutorials/01-RuntimeDevice/EnvironmentAndDevice) | Runtime/driver versions and device enumeration |
+| Memory | [`LinearMemoryCopy`](samples/tutorials/02-Memory/LinearMemoryCopy) | H2D, D2D, and D2H memory round trip |
+| Execution | [`StreamAndEvent`](samples/tutorials/03-Execution/StreamAndEvent) | Non-blocking streams, events, and asynchronous ordering |
+| Kernel | [`HipRtcVectorAdd`](samples/tutorials/04-Kernel/HipRtcVectorAdd) | HIPRTC compilation, module loading, kernel launch, and CPU verification |
+| Graph | [`GraphCaptureReplay`](samples/tutorials/05-Graph/GraphCaptureReplay) | Stream capture, graph instantiation, and replay |
+| Multi-device | [`PeerToPeerCopy`](samples/tutorials/06-MultiDevice/PeerToPeerCopy) | Capability-gated peer access and P2P copy |
+| Data objects | [`ArrayTextureSurface`](samples/tutorials/07-DataObjects/ArrayTextureSurface) | Array, texture, and surface ownership |
+| Low-level | [`NativeAbiInterop`](samples/tutorials/90-LowLevel/NativeAbiInterop) | Direct generated C ABI access for experts |
 
 GPU samples require the actual target architecture. For example:
 
 ```powershell
-dotnet run --project .\samples\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
+dotnet run --project .\samples\tutorials\04-Kernel\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
 These samples validate correctness and ownership behavior; they are not benchmarks and make no performance claim.
@@ -235,19 +238,43 @@ This project builds on [AMD HIP](https://github.com/ROCm/HIP) and the wider ROCm
 
 The project source is licensed under the [Apache License 2.0](LICENSE). Any packaged ROCm components retain their own licenses and notices; the project license does not replace those terms.
 
-## 📮 Support And Contact
+## 📮 Contact, Community And Sponsorship
 
 - [GitHub Issues](https://github.com/guojin-yan/HIP-CSharp-API/issues) for bugs and feature requests.
 - [GitHub Discussions](https://github.com/guojin-yan/HIP-CSharp-API/discussions) for usage questions.
 - QQ group `945057948` for community discussion.
 
-## 📢 Software Notice
+<p align="center">
+  <img src="docs/images/readme/personal-contact-banner-v7-sponsor-en.png" width="100%" alt="Developer contact channels and WeChat and Alipay sponsorship QR codes">
+</p>
 
-- **AI-assisted development:** AI tools were used to help generate, review, and optimize parts of the code and documentation.
-- **Security intent:** the author states that the project contains no intentionally embedded backdoors, viruses, credential theft, or other malicious behavior.
-- **Testing limits:** the project has not been validated on every operating system, driver, ROCm version, GPU architecture, or workload. A passing historical gate is not a universal support guarantee.
-- **User responsibility:** perform independent review and representative testing before production, commercial, industrial, safety-critical, or mission-critical use. Users are responsible for evaluating fitness, reliability, licensing, and deployment risk.
+---
 
-Third-party binaries, source, and resources remain governed by their respective owners and licenses.
+## ⚠️ Software Notice And Disclaimer
+
+### 📜 1. Open-source License Notice
+
+All code in the author's open-source projects is licensed under the **Apache License 2.0**.
+
+*Special note: this project integrates several third-party libraries. If any third-party library license conflicts with or differs from Apache 2.0, that third party's original license prevails. This project neither includes nor represents the license notices for those third-party libraries; read and comply with their applicable licenses before use.*
+
+### 🤖 2. Code Development And Quality Notice
+
+- **AI-assisted development:** Artificial intelligence (AI) was used to help generate and optimize this code during development; it was not written entirely by hand, line by line.
+- **Security commitment:** **The author solemnly states that this code contains no intentionally installed backdoors, viruses, trojans, or malicious code intended to damage user devices or steal data.**
+- **Technical limitations:** Given the author's individual technical experience and capabilities, the code may contain basic issues caused by imprecise logic, insufficient optimization, or limited experience, including but not limited to memory leaks, intermittent crashes, or unreleased resources. Such issues are unintentional and stem from those limitations.
+- **Testing scope:** Because the author's time is limited, this software has not undergone complete testing across every edge case.
+
+### 🚨 3. Disclaimer (Important)
+
+**Before applying this code to any real project, especially a commercial, industrial, or mission-critical environment, perform thorough and rigorous independent testing and validation.** In view of the possible code defects and incomplete testing described above, **the author accepts no responsibility for any direct or indirect loss caused by using this code, including but not limited to device failure, data loss, system outage, or lost profits.** By using this code, you acknowledge these risks and agree to bear all resulting consequences yourself; related matters are not the author's responsibility.
+
+### 🔓 4. Scope Of Open Source
+
+This project makes its core logic fully open source. The binary files, source code, and related resources of the third-party libraries mentioned above are outside this project's open-source obligations; obtain them according to their respective instructions.
+
+### 🤝 5. Community And Feedback
+
+Despite these limitations, downloads, Issues, and testing contributions are welcome to help improve the project. If you encounter a bug, out-of-memory condition, or have an improvement suggestion, contact the author through the project homepage. Assistance will be provided to the best of the author's ability and available time.
 
 Copyright (c) 2026 Guojin Yan.

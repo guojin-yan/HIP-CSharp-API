@@ -1,11 +1,11 @@
 # Managed expansion validation / 高层托管扩展验证
 
-`samples/HipManagedExpansionValidation` is the real-GPU integration workload for the managed API
+`samples/validation/HipManagedExpansionValidation` is the real-GPU integration workload for the managed API
 families added in M8.2 through M8.6. It compiles a fixed HIPRTC module and executes pitched memory,
 memory-pool, explicit-graph, occupancy/cooperative-launch, and module-global paths through public
 managed APIs only.
 
-`samples/HipManagedExpansionValidation` 是 M8.2-M8.6 高层托管 API 家族的真实 GPU 集成工作负载。
+`samples/validation/HipManagedExpansionValidation` 是 M8.2-M8.6 高层托管 API 家族的真实 GPU 集成工作负载。
 它编译固定 HIPRTC module，只通过公开高层托管 API 执行 pitched memory、memory-pool、explicit graph、
 occupancy/cooperative launch 与 module-global 路径。
 
@@ -16,7 +16,7 @@ Use the architecture reported by `rocminfo` and bind the result to the exact cle
 使用 `rocminfo` 报告的架构，并把结果绑定到精确 clean commit：
 
 ```bash
-dotnet run --project samples/HipManagedExpansionValidation/HipManagedExpansionValidation.csproj \
+dotnet run --project samples/validation/HipManagedExpansionValidation/HipManagedExpansionValidation.csproj \
   -c Release --no-build -- \
   --arch gfx1100 \
   --expected-commit 0123456789abcdef0123456789abcdef01234567 \

@@ -7,11 +7,9 @@
     "JYPPX.ROCm.HipSharp.Loading"
   ],
   "sampleOnlyRoots": [
-    "samples/DeviceInfo",
-    "samples/MemoryCopy",
-    "samples/HipRtcVectorAdd",
-    "samples/HipStreamEventVectorAdd",
-    "samples/HipAdvancedFeatures"
+    "samples/tutorials",
+    "samples/consumers",
+    "samples/validation"
   ],
   "internalNamespacePrefixes": [
     "JYPPX.ROCm.HipSharp.Generated",

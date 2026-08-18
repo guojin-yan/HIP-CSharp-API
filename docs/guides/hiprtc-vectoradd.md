@@ -33,7 +33,7 @@ M2 只在 default stream 上启动。每个 `kernelParams` 槽位都指向保存
 Run the complete sample with the target architecture:
 
 ```bash
-dotnet run --project samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
+dotnet run --project samples/tutorials/04-Kernel/HipRtcVectorAdd/HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
 Use `--negative-compile` to verify that an intentional syntax error produces `HipRtcException` with a non-empty `CompilationLog`.

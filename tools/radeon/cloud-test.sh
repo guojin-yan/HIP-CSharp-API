@@ -221,8 +221,8 @@ pwsh -NoProfile -File ./eng/verify-package.ps1 \
   -ExpectedRepositoryCommit "${actual_commit}" \
   | tee "${evidence_dir}/package-audit.txt"
 
-dotnet run --project ./samples/DeviceInfo/DeviceInfo.csproj -c Release | tee "${evidence_dir}/device-info.txt"
-dotnet run --project ./samples/MemoryCopy/MemoryCopy.csproj -c Release | tee "${evidence_dir}/memory-copy.txt"
+dotnet run --project ./samples/tutorials/01-RuntimeDevice/EnvironmentAndDevice/EnvironmentAndDevice.csproj -c Release | tee "${evidence_dir}/device-info.txt"
+dotnet run --project ./samples/tutorials/02-Memory/LinearMemoryCopy/LinearMemoryCopy.csproj -c Release | tee "${evidence_dir}/memory-copy.txt"
 
 gpu_architecture="$(rocminfo | grep -Eo 'gfx[0-9]+' | sed -n '1p')"
 if [[ -z "${gpu_architecture}" ]]; then
@@ -232,21 +232,21 @@ fi
 
 : > "${evidence_dir}/vector-add.txt"
 for length in 1 127 256 1000 1048576; do
-  dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
+  dotnet run --project ./samples/tutorials/04-Kernel/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
     -c Release --no-build -- \
     --arch "${gpu_architecture}" \
     --length "${length}" \
     --repeat 20 2>&1 | tee -a "${evidence_dir}/vector-add.txt"
 done
 
-dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
+dotnet run --project ./samples/tutorials/04-Kernel/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
   -c Release --no-build -- \
   --arch "${gpu_architecture}" \
   --negative-compile 2>&1 | tee "${evidence_dir}/negative-compile.txt"
 
 linker_length=4096
 linker_repeat=3
-dotnet run --project ./samples/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
+dotnet run --project ./samples/tutorials/04-Kernel/HipRtcVectorAdd/HipRtcVectorAdd.csproj \
   -c Release --no-build -- \
   --arch "${gpu_architecture}" \
   --length "${linker_length}" \
@@ -264,18 +264,18 @@ python3 ./tools/radeon/validate-hiprtc-program-linker.py \
   "${linker_length}" \
   "${linker_repeat}"
 
-dotnet run --project ./samples/HipStreamEventVectorAdd/HipStreamEventVectorAdd.csproj \
+dotnet run --project ./samples/tutorials/03-Execution/AsyncVectorAdd/AsyncVectorAdd.csproj \
   -c Release --no-build -- \
   --arch "${gpu_architecture}" \
   --lifecycle-repeats 100 2>&1 | tee "${evidence_dir}/stream-event-vector-add.txt"
 
-dotnet run --project ./samples/HipAdvancedFeatures/HipAdvancedFeatures.csproj \
+dotnet run --project ./samples/validation/AdvancedReliabilityStress/AdvancedReliabilityStress.csproj \
   -c Release --no-build -- \
   --arch "${gpu_architecture}" \
   --graph-launch-repeats 3 \
   --lifecycle-repeats 100 2>&1 | tee "${evidence_dir}/advanced-features.txt"
 
-dotnet run --project ./samples/HipManagedExpansionValidation/HipManagedExpansionValidation.csproj \
+dotnet run --project ./samples/validation/HipManagedExpansionValidation/HipManagedExpansionValidation.csproj \
   -c Release --no-build -- \
   --arch "${gpu_architecture}" \
   --expected-commit "${actual_commit}" \

@@ -545,7 +545,7 @@ public sealed class RepositoryQualityTests
     public void IsolatedRuntimeGateIncludesTheM6AdvancedPackageConsumer()
     {
         string gate = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "runtime-gate.sh"));
-        StringAssert.Contains(gate, "make_consumer advanced-features HipAdvancedFeatures");
+        StringAssert.Contains(gate, "make_consumer advanced-features validation/AdvancedReliabilityStress");
         StringAssert.Contains(gate, "-RequireOptional");
         StringAssert.Contains(gate, "advanced-features-run.txt");
         StringAssert.Contains(gate, "advanced-features-stress-run.txt");
@@ -564,7 +564,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(verifier, "dotnet nuget verify --all");
         StringAssert.Contains(verifier, "repositorySignature = $repositorySignature");
 
-        string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipRtcVectorAdd", "Program.cs"));
+        string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "tutorials", "04-Kernel", "HipRtcVectorAdd", "Program.cs"));
         StringAssert.Contains(rtcSample, "HipRtcResult.NameExpressionNotValid");
         StringAssert.Contains(rtcSample, "\"lowered-name-before-compile\"");
         StringAssert.Contains(rtcSample, "const string postCompilationNameExpression = \"VectorAddTemplate<double>\";");
@@ -573,7 +573,7 @@ public sealed class RepositoryQualityTests
         Assert.IsFalse(rtcSample.Contains("HipRtcResult.NoNameExpressionsAfterCompilation", StringComparison.Ordinal));
         Assert.IsFalse(rtcSample.Contains("() => program.AddNameExpression(nameExpression)", StringComparison.Ordinal));
 
-        string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipAdvancedFeatures", "Program.cs"));
+        string sample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "validation", "AdvancedReliabilityStress", "Program.cs"));
         StringAssert.Contains(sample, "peer=passed(1->0");
         StringAssert.Contains(sample, "Peer-copy mismatch");
         StringAssert.Contains(sample, "stress=passed(rounds=");
@@ -646,7 +646,7 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void ManagedExpansionSampleAndBothLinuxGatesUseTheVersionedResultContract()
     {
-        string sampleDirectory = Path.Combine(RepositoryRoot, "samples", "HipManagedExpansionValidation");
+        string sampleDirectory = Path.Combine(RepositoryRoot, "samples", "validation", "HipManagedExpansionValidation");
         string program = File.ReadAllText(Path.Combine(sampleDirectory, "Program.cs"));
         string model = File.ReadAllText(Path.Combine(sampleDirectory, "ValidationResult.cs"));
         string project = File.ReadAllText(Path.Combine(sampleDirectory, "HipManagedExpansionValidation.csproj"));
@@ -691,7 +691,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(verifier, "--unknown-option");
         StringAssert.Contains(cloudGate, "--environment official-host");
         StringAssert.Contains(runtimeGate, "--environment package-only");
-        StringAssert.Contains(runtimeGate, "make_multi_file_consumer managed-expansion HipManagedExpansionValidation");
+        StringAssert.Contains(runtimeGate, "make_multi_file_consumer managed-expansion validation/HipManagedExpansionValidation");
         StringAssert.Contains(runtimeGate, "--program-linker-validation");
         StringAssert.Contains(runtimeGate, "hiprtc-program-linker-run.json");
         StringAssert.Contains(runtimeGate, "validate-hiprtc-program-linker.py");
@@ -704,7 +704,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(radeonReadme, "91 Runtime and 18 HIPRTC managed-manifest exports");
         StringAssert.Contains(radeonReadme, "HIPRTC Program/Linker exact-package workload");
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "tools", "radeon", "validate-hiprtc-program-linker.py")));
-        string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "HipRtcVectorAdd", "Program.cs"));
+        string rtcSample = File.ReadAllText(Path.Combine(RepositoryRoot, "samples", "tutorials", "04-Kernel", "HipRtcVectorAdd", "Program.cs"));
         StringAssert.Contains(rtcSample, "CompileToBitcode");
         StringAssert.Contains(rtcSample, "GetLoweredName");
         StringAssert.Contains(rtcSample, "HipRtcJitInputType.LlvmBitcode");

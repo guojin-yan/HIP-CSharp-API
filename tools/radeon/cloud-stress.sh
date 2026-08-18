@@ -83,13 +83,13 @@ export DOTNET_CLI_USE_MSBUILD_SERVER=0
 export MSBUILDDISABLENODEREUSE=1
 export UseSharedCompilation=false
 
-sample_assembly="${repository_root}/samples/HipAdvancedFeatures/bin/Release/net10.0/HipAdvancedFeatures.dll"
+sample_assembly="${repository_root}/samples/validation/AdvancedReliabilityStress/bin/Release/net10.0/AdvancedReliabilityStress.dll"
 if [[ ! -f "${sample_assembly}" ]]; then
   echo "The Release sample is not built. Run cloud-test.sh or eng/build.sh first." >&2
   exit 1
 fi
 
-dotnet run --project "${repository_root}/samples/HipAdvancedFeatures/HipAdvancedFeatures.csproj" \
+dotnet run --project "${repository_root}/samples/validation/AdvancedReliabilityStress/AdvancedReliabilityStress.csproj" \
   --configuration Release --no-build --no-restore \
   -p:UseSharedCompilation=false -- \
   --arch "${gpu_architecture}" \

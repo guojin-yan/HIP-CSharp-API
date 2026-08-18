@@ -9,7 +9,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-$sampleRoot = Join-Path $repositoryRoot "samples/HipManagedExpansionValidation"
+$sampleRoot = Join-Path $repositoryRoot "samples/validation/HipManagedExpansionValidation"
 $project = Join-Path $sampleRoot "HipManagedExpansionValidation.csproj"
 $program = Join-Path $sampleRoot "Program.cs"
 $resultModel = Join-Path $sampleRoot "ValidationResult.cs"

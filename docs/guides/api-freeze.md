@@ -14,7 +14,7 @@ The `1.0.0` candidate freezes the exported surface recorded in `eng/public-api/J
 | --- | --- |
 | Formal | Public runtime, device, memory, stream/event, module/kernel, HIPRTC, peer, graph, value, enum, and exception types under `JYPPX.ROCm.HipSharp` |
 | Diagnostic | Public loader attempts, diagnostics, and load exception under `JYPPX.ROCm.HipSharp.Loading`; stable for 0.9 but not the primary compute API |
-| Sample-only | Types compiled only from the six projects under `samples/`; they are not core package API. The M8.7 validation result model is sample-only and does not change the frozen Core surface. |
+| Sample-only | Types compiled only from projects under `samples/tutorials`, `samples/consumers`, or `samples/validation`; they are not core package API. The M8.7 validation result model is sample-only and does not change the frozen Core surface. |
 | Internal | All non-exported implementation types, including generated interop, native handles, leases, and native boundaries |
 
 The frozen `1.0.0` namespace surface remains 68 exported types and 1,002 members across all 15 TFMs. M8.9 exercised the immutable public `0.9.1` bytes. That evidence is a regression baseline only; the version and package bytes change for `1.0.0`, so the exact candidate requires fresh validation even though the namespace surface is unchanged.
