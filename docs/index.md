@@ -12,6 +12,7 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `
 - [0.9.1 assembly identity forward fix / 0.9.1 程序集 identity 修正](releases/0.9.1-forward-fix.md)
 - [0.9.2 interface ledger validation / 0.9.2 逐接口账本验证](releases/0.9.2-interface-ledger.md)
 - [0.9.3 HIPRTC Program and Linker / 0.9.3 HIPRTC Program 与 Linker](releases/0.9.3-hiprtc-program-linker.md)
+- [0.9.3 known limitations / 0.9.3 已知限制](releases/0.9.3-known-limitations.md)
 - [1.0.0 candidate notes / 1.0.0 候选说明](releases/1.0.0.md)
 - [1.0.0 readiness matrix / 1.0.0 就绪矩阵](releases/1.0.0-readiness.md)
 - [M8.10 controlled cleanup / M8.10 受控清理](releases/1.0.0-cleanup.md)

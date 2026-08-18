@@ -47,7 +47,7 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 
 Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已在 nuget.org 公开。其 repository-signed 公开字节已于 2026-08-14 通过 nuget.org-only 静态消费者和 fresh package-only Linux GPU/ABI 门禁。Core `0.9.0` 因错误的 `JYPPX.ROCm.HipSharp` 程序集 identity 保持不可变且已 unlist，请勿采用。
 
-当前源码正在验证未发布的 Core `0.9.3` HIPRTC Program/Linker 扩展批次。它把固定模型中的 9 个 HIPRTC 声明提升为托管 owner；在取得新 exact-SHA Radeon Cloud 证据前，这 9 项的云端功能状态仍为 `not-tested`。未来任何 `1.0.0` 都必须同时满足 Windows AMD GPU 实机验证和 Owner 明确发布指令；本次 `0.9.3` 工作不能替代或绕过任一条件。
+当前源码正在验证未发布的 Core `0.9.3` HIPRTC Program/Linker 扩展批次。它把固定模型中的 9 个 HIPRTC 声明提升为托管 owner；精确的 `ec44bf5` 包门禁已经通过，但当前包字节仍需绑定自身 exact-SHA 云端复验。固定 ROCm 7.2.1 runtime 另有已记录的上游 `hipMemRetainAllocationHandle` 引用计数缺陷，详见 [0.9.3 已知限制](docs/releases/0.9.3-known-limitations.md)。未来任何 `1.0.0` 都必须同时满足 Windows AMD GPU 实机验证和 Owner 明确发布指令；本次 `0.9.3` 工作不能替代或绕过任一条件。
 
 ## 🚀 30 秒开始
 

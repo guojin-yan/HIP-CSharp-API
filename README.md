@@ -47,7 +47,7 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 
 Core `0.9.1` and the optional Linux Runtime `7.2.1` are published on nuget.org. Their repository-signed public bytes passed nuget.org-only static consumers and a fresh package-only Linux GPU/ABI gate on 2026-08-14. Core `0.9.0` remains immutable and unlisted with its known unintended `JYPPX.ROCm.HipSharp` assembly identity; do not adopt it.
 
-The source tree is validating an unpublished Core `0.9.3` HIPRTC Program/Linker expansion batch. It promotes nine pinned HIPRTC declarations into managed owners while keeping their cloud function status `not-tested` until fresh exact-SHA Radeon Cloud evidence exists. Windows AMD GPU validation and an explicit Owner release request are both required before any future `1.0.0`; this `0.9.3` work does not satisfy or bypass either condition.
+The source tree is validating an unpublished Core `0.9.3` HIPRTC Program/Linker expansion batch. It promotes nine pinned HIPRTC declarations into managed owners; the exact `ec44bf5` package gate passed, while the current package bytes require their own exact-SHA cloud run. The pinned ROCm 7.2.1 runtime also has a documented upstream `hipMemRetainAllocationHandle` reference-counting defect; see the [0.9.3 known limitations](docs/releases/0.9.3-known-limitations.md). Windows AMD GPU validation and an explicit Owner release request are both required before any future `1.0.0`; this `0.9.3` work does not satisfy or bypass either condition.
 
 ## 🚀 Get Started In 30 Seconds
 
