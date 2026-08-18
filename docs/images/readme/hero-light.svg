@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="300" viewBox="0 0 1200 300" role="img" aria-labelledby="hero-title hero-desc">
+  <title id="hero-title">HIP CSharp API</title>
+  <desc id="hero-desc">Direct AMD HIP and HIPRTC bindings for C# and .NET, illustrated as a managed call flowing into GPU work.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-30%" width="140%" height="160%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#17305f" flood-opacity="0.12"/>
+    </filter>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#edf4ff"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="1200" height="300" rx="24" fill="#f4f8ff"/>
+  <path d="M0 246H1200" stroke="#dbe7f6" stroke-width="2"/>
+  <path d="M660 30V270" stroke="#dbe7f6" stroke-width="2"/>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <text x="64" y="54" fill="#2867c7" font-size="13" font-weight="700" letter-spacing="0">AMD GPU  |  C# / .NET</text>
+    <text x="60" y="112" fill="#172033" font-size="48" font-weight="800" letter-spacing="0">HIP CSharp API</text>
+    <text x="64" y="146" fill="#526073" font-size="18" font-weight="500">Direct HIP Runtime and HIPRTC bindings for .NET</text>
+
+    <rect x="64" y="183" width="500" height="48" rx="12" fill="#172033"/>
+    <circle cx="88" cy="207" r="5" fill="#5bd1be"/>
+    <text x="106" y="213" fill="#f4f8ff" font-size="16" font-weight="600">dotnet add package JYPPX.ROCm.HIP.CSharp.API</text>
+    <text x="64" y="265" fill="#6b778c" font-size="12" font-weight="600">Managed ownership  |  native ABI access  |  visible runtime loading</text>
+
+    <g filter="url(#shadow)">
+      <rect x="714" y="38" width="428" height="205" rx="20" fill="url(#panel)" stroke="#c9daf2" stroke-width="2"/>
+    </g>
+    <text x="746" y="70" fill="#526073" font-size="12" font-weight="700" letter-spacing="0">ONE CALL | GPU WORK</text>
+
+    <g transform="translate(746 99)">
+      <rect width="104" height="91" rx="14" fill="#e7effc" stroke="#a7c4ec" stroke-width="2"/>
+      <rect x="18" y="18" width="68" height="18" rx="9" fill="#2867c7"/>
+      <text x="52" y="31" text-anchor="middle" fill="#ffffff" font-size="11" font-weight="800">C#</text>
+      <path d="M22 54h58M22 67h42" stroke="#6c8fbe" stroke-width="4" stroke-linecap="round"/>
+      <text x="52" y="82" text-anchor="middle" fill="#526073" font-size="10" font-weight="700">managed</text>
+    </g>
+
+    <path d="M865 145H906" stroke="#2bb9a8" stroke-width="8" stroke-linecap="round"/>
+    <path d="M893 133l16 12-16 12" fill="none" stroke="#2bb9a8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <rect x="873" y="105" width="96" height="30" rx="15" fill="#e1f7f3" stroke="#9bded4"/>
+    <text x="921" y="125" text-anchor="middle" fill="#177b70" font-size="11" font-weight="800">HIP C ABI</text>
+
+    <g transform="translate(982 89)">
+      <rect x="0" y="0" width="130" height="113" rx="16" fill="#183c73"/>
+      <path d="M-10 24h10M-10 48h10M-10 72h10M-10 96h10M130 24h10M130 48h10M130 72h10M130 96h10" stroke="#2867c7" stroke-width="4" stroke-linecap="round"/>
+      <path d="M18 20h94v73H18z" fill="#245baf"/>
+      <g fill="#5bd1be">
+        <rect x="28" y="31" width="16" height="13" rx="3"/><rect x="49" y="31" width="16" height="13" rx="3"/><rect x="70" y="31" width="16" height="13" rx="3"/><rect x="91" y="31" width="12" height="13" rx="3"/>
+        <rect x="28" y="50" width="16" height="13" rx="3"/><rect x="49" y="50" width="16" height="13" rx="3" fill="#f2b84b"/><rect x="70" y="50" width="16" height="13" rx="3"/><rect x="91" y="50" width="12" height="13" rx="3"/>
+        <rect x="28" y="69" width="16" height="13" rx="3"/><rect x="49" y="69" width="16" height="13" rx="3"/><rect x="70" y="69" width="16" height="13" rx="3"/><rect x="91" y="69" width="12" height="13" rx="3"/>
+      </g>
+      <text x="65" y="108" text-anchor="middle" fill="#d7e6ff" font-size="10" font-weight="800" letter-spacing="0">GPU</text>
+    </g>
+    <text x="982" y="228" fill="#526073" font-size="11" font-weight="700">work arrives | result returns</text>
+  </g>
+</svg>

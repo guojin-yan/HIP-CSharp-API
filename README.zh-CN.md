@@ -1,5 +1,11 @@
 <h1 align="center">HIP CSharp API</h1>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/readme/hero-light.svg">
+  <img alt="HIP CSharp API — 面向 .NET 的 HIP Runtime 与 HIPRTC 直接绑定" src="docs/images/readme/hero-light.svg">
+</picture>
+
 <p align="center">
   面向 C# 与 .NET 的 AMD HIP Runtime 和 HIPRTC 直接绑定，同时提供托管资源所有者与完整生成式低层 C ABI。
 </p>
@@ -7,7 +13,8 @@
 <p align="center">
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml"><img src="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/guojin-yan/HIP-CSharp-API.svg" alt="许可证" /></a>
-  <a href="#-当前状态已发布预览版--10-候选"><img src="https://img.shields.io/badge/status-1.0%20candidate-2563eb" alt="1.0 候选" /></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API"><img src="https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API?label=NuGet" alt="NuGet 版本" /></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API"><img src="https://img.shields.io/nuget/dt/JYPPX.ROCm.HIP.CSharp.API?label=downloads" alt="NuGet 下载量" /></a>
   <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-net46%20to%20net10.0-512BD4" alt=".NET 目标框架" /></a>
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/HIP-CSharp-API?style=flat&amp;label=Stars" alt="GitHub stars" /></a>
 </p>
@@ -86,13 +93,36 @@ foreach (HipDevice device in runtime.GetDevices())
 
 ## 📦 包结构
 
-| 包 | 原生基线 | 内容 | 状态 |
-| --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | 不适用 | 托管 `JYPPX.ROCm.HIP.CSharp.API` 程序集并公开 `JYPPX.ROCm.HipSharp` 命名空间，另含 XML 文档、包 README、logo 与许可证 | `0.9.1` 已公开；`0.9.3` HIPRTC 扩展批次尚未发布且未获发布授权 |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | 已审计的 Linux x64 ROCm 用户态闭包、许可证、来源记录、SBOM 与 promotion receipt | `7.2.1` 已公开并通过 public-feed package-only 验证；版本与 Core 独立 |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | 无原生 inventory | 已禁用的静态审计骨架，不是可用运行时包 |
+| 包 | 内容 |
+| --- | --- |
+| <code>JYPPX.ROCm.HIP.CSharp.API</code> | 面向已声明 .NET 目标框架的托管 HIP Runtime 与 HIPRTC C# API |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | 可选的、已审计的 ROCm 7.2.1 Linux x64 用户态运行时闭包 |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | 已禁用的 Windows 运行时骨架，不含原生 inventory，不是可用运行时包 |
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。
+
+## 🌐 公开包与 Release 资产
+
+已发布的 Core 与 Linux Runtime 包位于 NuGet.org，下表版本使用实时 NuGet.org 徽章。仓库存在公开的 `v0.9.1` GitHub Release，但其中没有上传 Release 资产。
+
+| 包 | 版本 | NuGet.org | 用途 |
+| --- | --- | --- | --- |
+| <code>JYPPX.ROCm.HIP.CSharp.API</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | [包页面](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | Core 托管 HIP Runtime 与 HIPRTC API |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | [包页面](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | 可选的、已审计的 Linux x64 ROCm 用户态运行时闭包 |
+
+| 发布渠道 | 链接 | 资产 |
+| --- | --- | --- |
+| GitHub Release | [v0.9.1](https://github.com/guojin-yan/HIP-CSharp-API/releases/tag/v0.9.1) | 未上传 Release 资产 |
+| NuGet.org | [包搜索](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | 已发布的 Core 与 Linux Runtime 包 |
+
+### 🧩 Runtime 包矩阵
+
+下表列出全部 Runtime 包项目。已发布包的版本列使用实时 NuGet.org 徽章；Windows 包保持无原生 inventory 的已禁用静态审计骨架，NuGet.org 上不存在该包。
+
+| 包 ID | 版本 | RID | 原生基线 | 发布状态 |
+| --- | --- | --- | --- | --- |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | <code>linux-x64</code> | ROCm 7.2.1 用户态闭包 | 已发布到 NuGet.org |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | 未发布 | <code>win-x64</code> | HIP SDK 7.2.0 骨架 | 已禁用；无原生 inventory |
 
 ## 🧩 API 范围
 

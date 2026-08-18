@@ -1,5 +1,11 @@
 <h1 align="center">HIP CSharp API</h1>
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/images/readme/hero-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="docs/images/readme/hero-light.svg">
+  <img alt="HIP CSharp API - direct HIP Runtime and HIPRTC bindings for .NET" src="docs/images/readme/hero-light.svg">
+</picture>
+
 <p align="center">
   Direct AMD HIP Runtime and HIPRTC bindings for C# and .NET, with managed resource owners and a complete generated low-level C ABI.
 </p>
@@ -7,7 +13,8 @@
 <p align="center">
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml"><img src="https://github.com/guojin-yan/HIP-CSharp-API/actions/workflows/ci.yml/badge.svg?branch=main" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/github/license/guojin-yan/HIP-CSharp-API.svg" alt="License" /></a>
-  <a href="#-current-status-published-preview--10-candidate"><img src="https://img.shields.io/badge/status-1.0%20candidate-2563eb" alt="1.0 candidate" /></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API"><img src="https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API?label=NuGet" alt="NuGet version" /></a>
+  <a href="https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API"><img src="https://img.shields.io/nuget/dt/JYPPX.ROCm.HIP.CSharp.API?label=downloads" alt="NuGet downloads" /></a>
   <a href="docs/compatibility/frameworks.md"><img src="https://img.shields.io/badge/.NET-net46%20to%20net10.0-512BD4" alt=".NET target frameworks" /></a>
   <a href="https://github.com/guojin-yan/HIP-CSharp-API/stargazers"><img src="https://img.shields.io/github/stars/guojin-yan/HIP-CSharp-API?style=flat&amp;label=Stars" alt="GitHub stars" /></a>
 </p>
@@ -86,13 +93,36 @@ Applications using the managed package must still provide compatible native `amd
 
 ## 📦 Package Layout
 
-| Package | Native baseline | Contents | State |
-| --- | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | N/A | Managed `JYPPX.ROCm.HIP.CSharp.API` assembly exposing `JYPPX.ROCm.HipSharp`, XML docs, package README, logo, and license | `0.9.1` published; `0.9.3` HIPRTC expansion batch is unpublished and not release-authorized |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` | ROCm `7.2.1` | Audited Linux x64 ROCm user-mode closure, licenses, provenance, SBOM, and promotion receipt | `7.2.1` published and public-feed package-only validated; independently versioned from Core |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | HIP SDK `7.2.0` | No native inventory | Disabled static-audit skeleton; not a usable runtime package |
+| Package | Contents |
+| --- | --- |
+| <code>JYPPX.ROCm.HIP.CSharp.API</code> | Managed HIP Runtime and HIPRTC C# API across the declared .NET target frameworks |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | Optional audited ROCm 7.2.1 Linux x64 user-mode runtime closure |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | Disabled Windows runtime skeleton with no native inventory; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
+
+## 🌐 Public Packages And Release Assets
+
+The published Core and Linux Runtime packages are available on NuGet.org. Package versions below are live NuGet.org badges. The repository has a public `v0.9.1` GitHub Release, but it has no uploaded release assets.
+
+| Package | Version | NuGet.org | Purpose |
+| --- | --- | --- | --- |
+| <code>JYPPX.ROCm.HIP.CSharp.API</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | [Gallery](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | Core managed HIP Runtime and HIPRTC API |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | [Gallery](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | Optional audited Linux x64 ROCm user-mode runtime closure |
+
+| Release channel | Link | Assets |
+| --- | --- | --- |
+| GitHub Release | [v0.9.1](https://github.com/guojin-yan/HIP-CSharp-API/releases/tag/v0.9.1) | No uploaded release assets |
+| NuGet.org | [Package search](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | Published Core and Linux Runtime packages |
+
+### 🧩 Runtime package matrix
+
+Every Runtime package project is listed below. The Version column uses a live NuGet.org badge when that package is published. The Windows package remains an inventory-empty, disabled static-audit skeleton and has no NuGet.org package.
+
+| Package ID | Version | RID | Native baseline | Publication state |
+| --- | --- | --- | --- | --- |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | <code>linux-x64</code> | ROCm 7.2.1 user-mode closure | Published on NuGet.org |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | Not published | <code>win-x64</code> | HIP SDK 7.2.0 skeleton | Disabled; no native inventory |
 
 ## 🧩 API Surface
 
