@@ -250,6 +250,14 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal int DeviceGetCallCount { get; private set; }
 
+    internal int LastDeviceGetPciBusIdLength { get; private set; }
+
+    internal int LastDeviceGetPciBusIdDevice { get; private set; } = -1;
+
+    internal IntPtr LastDeviceTotalMemOutput { get; private set; }
+
+    internal int LastDeviceTotalMemDevice { get; private set; } = -1;
+
     internal int FreeCount { get; private set; }
 
     internal int FreeCallCount { get; private set; }
@@ -313,6 +321,26 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal IntPtr LastMemcpyStream { get; private set; }
 
     internal int StreamDestroyCount { get; private set; }
+
+    internal int StreamWaitValue32CallCount { get; private set; }
+
+    internal IntPtr LastStreamWaitValue32Pointer { get; private set; }
+
+    internal uint LastStreamWaitValue32Value { get; private set; }
+
+    internal uint LastStreamWaitValue32Flags { get; private set; }
+
+    internal uint LastStreamWaitValue32Mask { get; private set; }
+
+    internal int StreamWaitValue64CallCount { get; private set; }
+
+    internal IntPtr LastStreamWaitValue64Pointer { get; private set; }
+
+    internal ulong LastStreamWaitValue64Value { get; private set; }
+
+    internal uint LastStreamWaitValue64Flags { get; private set; }
+
+    internal ulong LastStreamWaitValue64Mask { get; private set; }
 
     internal int EventDestroyCount { get; private set; }
 
@@ -562,6 +590,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError DeviceGetPCIBusId(IntPtr pciBusId, int length, int device)
     {
+        LastDeviceGetPciBusIdLength = length;
+        LastDeviceGetPciBusIdDevice = device;
         if (device < 0 || device >= 2) return HipError.InvalidDevice;
         if (length <= 0) return HipError.InvalidValue;
         if (ManagedNextResult == HipError.Success)
@@ -597,6 +627,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError DeviceTotalMem(IntPtr bytes, int device)
     {
+        LastDeviceTotalMemOutput = bytes;
+        LastDeviceTotalMemDevice = device;
         if (device < 0 || device >= 2) return HipError.InvalidDevice;
         if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(bytes, new IntPtr(8 * 1024 * 1024));
         return ManagedNextResult;
@@ -1864,12 +1896,22 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError StreamWaitValue32(IntPtr stream, IntPtr pointer, uint value, uint flags, uint mask)
     {
+        StreamWaitValue32CallCount++;
+        LastStreamWaitValue32Pointer = pointer;
+        LastStreamWaitValue32Value = value;
+        LastStreamWaitValue32Flags = flags;
+        LastStreamWaitValue32Mask = mask;
         if (!_streams.Contains(stream)) return HipError.InvalidValue;
         return ManagedNextResult;
     }
 
     public HipError StreamWaitValue64(IntPtr stream, IntPtr pointer, ulong value, uint flags, ulong mask)
     {
+        StreamWaitValue64CallCount++;
+        LastStreamWaitValue64Pointer = pointer;
+        LastStreamWaitValue64Value = value;
+        LastStreamWaitValue64Flags = flags;
+        LastStreamWaitValue64Mask = mask;
         if (!_streams.Contains(stream)) return HipError.InvalidValue;
         return ManagedNextResult;
     }

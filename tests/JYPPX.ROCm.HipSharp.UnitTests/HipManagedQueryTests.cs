@@ -23,8 +23,12 @@ public class HipManagedQueryTests
         Assert.AreEqual(9, capability.Major);
         Assert.AreEqual(0, capability.Minor);
         Assert.AreEqual("0000:00:00.0", device.GetPciBusId());
+        Assert.AreEqual(256, native.LastDeviceGetPciBusIdLength);
+        Assert.AreEqual(device.Ordinal, native.LastDeviceGetPciBusIdDevice);
         Assert.AreEqual(new string('0', 32), device.GetUuid().ToString());
         Assert.AreEqual(8UL * 1024UL * 1024UL, device.GetTotalMemory());
+        Assert.AreNotEqual(IntPtr.Zero, native.LastDeviceTotalMemOutput);
+        Assert.AreEqual(device.Ordinal, native.LastDeviceTotalMemDevice);
         Assert.AreEqual(HipDeviceCacheConfig.Default, runtime.GetDeviceCacheConfig());
         Assert.AreEqual(HipSharedMemoryConfig.DefaultBankSize, runtime.GetDeviceSharedMemoryConfig());
         Assert.AreEqual(4096UL, runtime.GetDeviceLimit(0));
@@ -95,6 +99,19 @@ public class HipManagedQueryTests
         Assert.AreEqual(0, stream.GetAttribute(0).IntegerValue);
 
         stream.Wait(eventToWaitFor);
+        IntPtr signalAddress = new(0x1234);
+        stream.WaitValue32(signalAddress, 0x10203040, HipStreamWaitValueFlags.GreaterOrEqual, 0x00FFFFFF);
+        stream.WaitValue64(signalAddress, 0x0102030405060708UL, HipStreamWaitValueFlags.And, 0x00FFFFFFFFFFFFFFUL);
+        Assert.AreEqual(1, native.StreamWaitValue32CallCount);
+        Assert.AreEqual(signalAddress, native.LastStreamWaitValue32Pointer);
+        Assert.AreEqual(0x10203040U, native.LastStreamWaitValue32Value);
+        Assert.AreEqual((uint)HipStreamWaitValueFlags.GreaterOrEqual, native.LastStreamWaitValue32Flags);
+        Assert.AreEqual(0x00FFFFFFU, native.LastStreamWaitValue32Mask);
+        Assert.AreEqual(1, native.StreamWaitValue64CallCount);
+        Assert.AreEqual(signalAddress, native.LastStreamWaitValue64Pointer);
+        Assert.AreEqual(0x0102030405060708UL, native.LastStreamWaitValue64Value);
+        Assert.AreEqual((uint)HipStreamWaitValueFlags.And, native.LastStreamWaitValue64Flags);
+        Assert.AreEqual(0x00FFFFFFFFFFFFFFUL, native.LastStreamWaitValue64Mask);
         Assert.ThrowsExactly<ArgumentException>(() => stream.WaitValue32(IntPtr.Zero, 0));
         Assert.ThrowsExactly<ArgumentException>(() => stream.WaitValue64(IntPtr.Zero, 0));
     }
