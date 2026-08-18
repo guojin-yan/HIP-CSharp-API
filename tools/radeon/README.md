@@ -1,6 +1,31 @@
-# Radeon Cloud validation
+# Radeon Cloud tools
 
-These scripts are execution helpers, not stored validation evidence. Use them only after the Owner authorizes the current Radeon Cloud instance and a clean detached checkout of an exact commit is available.
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
+
+These scripts support two separate workflows on an Owner-authorized Radeon Cloud instance.
+
+## Quick product experience
+
+Run the platform-independent [`HeatDiffusion`](../../samples/showcases/HeatDiffusion) showcase from
+the repository root. The runner is kept beside the showcase code:
+
+```bash
+bash ./samples/showcases/HeatDiffusion/run-heat-diffusion.sh
+```
+
+The helper detects the GPU architecture, reuses any installed .NET 10 or later SDK and bootstraps only
+when no compatible SDK is available, builds the
+sample, and writes `summary.json` plus `heatmap.bmp` below `artifacts/heat-diffusion/`. It does not
+require a detached checkout and does not create release-validation evidence. See the sample's
+[Radeon Cloud walkthrough](../../samples/showcases/HeatDiffusion/README.md#run-on-radeon-cloud) for
+the complete source walkthrough, profiles, artifact retrieval, and result interpretation. The previous
+`tools/radeon/run-heat-diffusion.sh` path remains as a compatibility wrapper for existing notes.
+
+## Validation gates
+
+The remaining scripts are execution helpers, not stored validation evidence. Use them only after the
+Owner authorizes the current Radeon Cloud instance and a clean detached checkout of an exact commit
+is available.
 
 From the repository root:
 

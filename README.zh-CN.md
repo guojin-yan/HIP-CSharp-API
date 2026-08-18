@@ -164,6 +164,7 @@ Core 项目直接面向 15 个目标框架：
 | Multi-device | [`PeerToPeerCopy`](samples/tutorials/06-MultiDevice/PeerToPeerCopy) | Capability-gated peer access 与 P2P copy |
 | Data objects | [`ArrayTextureSurface`](samples/tutorials/07-DataObjects/ArrayTextureSurface) | Array、Texture 与 Surface 所有权 |
 | Low-level | [`NativeAbiInterop`](samples/tutorials/90-LowLevel/NativeAbiInterop) | 面向专家的生成式 C ABI 直接调用 |
+| 综合案例 | [`HeatDiffusion`](samples/showcases/HeatDiffusion/README.zh-CN.md) | 使用 HIPRTC、Stream、Event 和 Graph 重放完成 CPU/GPU 热扩散模拟、校验与 BMP 热力图输出 |
 
 GPU 示例要求显式提供真实目标架构，例如：
 
@@ -171,7 +172,9 @@ GPU 示例要求显式提供真实目标架构，例如：
 dotnet run --project .\samples\tutorials\04-Kernel\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
-这些示例用于验证正确性与所有权行为，不是性能基准，也不作性能承诺。
+教程示例用于验证正确性与所有权行为，不是性能基准，也不作性能承诺。独立的 `HeatDiffusion`
+综合案例输出仅适用于当前进程运行的 CPU/GPU 测量结果，并提供单独的
+[Radeon Cloud 使用教程](samples/showcases/HeatDiffusion/README.zh-CN.md#在-radeon-cloud-运行)。
 
 ## 📚 文档入口
 

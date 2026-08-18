@@ -164,6 +164,7 @@ The [sample learning path](samples/README.md) is organized by HIP capability ins
 | Multi-device | [`PeerToPeerCopy`](samples/tutorials/06-MultiDevice/PeerToPeerCopy) | Capability-gated peer access and P2P copy |
 | Data objects | [`ArrayTextureSurface`](samples/tutorials/07-DataObjects/ArrayTextureSurface) | Array, texture, and surface ownership |
 | Low-level | [`NativeAbiInterop`](samples/tutorials/90-LowLevel/NativeAbiInterop) | Direct generated C ABI access for experts |
+| Integrated showcase | [`HeatDiffusion`](samples/showcases/HeatDiffusion) | CPU/GPU heat simulation using HIPRTC, streams, events, graph replay, validation, and a BMP heatmap |
 
 GPU samples require the actual target architecture. For example:
 
@@ -171,7 +172,7 @@ GPU samples require the actual target architecture. For example:
 dotnet run --project .\samples\tutorials\04-Kernel\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
-These samples validate correctness and ownership behavior; they are not benchmarks and make no performance claim.
+Tutorial samples validate correctness and ownership behavior; they are not benchmarks and make no performance claim. The separate `HeatDiffusion` showcase reports CPU/GPU measurements scoped to the current process run and includes a dedicated [Radeon Cloud walkthrough](samples/showcases/HeatDiffusion/README.md#run-on-radeon-cloud).
 
 ## 📚 Documentation
 

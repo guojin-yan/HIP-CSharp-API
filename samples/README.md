@@ -1,13 +1,15 @@
-# Samples / 案例
+# Samples
 
-The samples are organized by HIP capability family. Follow the numbered modules in order when
-learning the API. The `validation` directory contains GPU and package gate workloads and is not part
-of the beginner tutorial path.
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-案例按 HIP 功能模块组织。学习时建议按编号依次进入；`validation` 目录只包含 GPU、Runtime 和包
-门禁工作负载，不属于初学者教程主线。
+The tutorial samples are organized by HIP capability family. Follow the numbered modules in order
+when learning the API. `showcases` combines multiple modules into complete workloads, while
+`validation` contains GPU and package gates that are not part of the beginner tutorial path.
 
-## Recommended path / 推荐路径
+Every sample uses an explicit `Program.Main(string[] args)` entry point. Argument parsing, controlled
+`Skipped` results, and process exit codes are kept in that method.
+
+## Recommended path
 
 | Module | Focus | Entry point |
 | --- | --- | --- |
@@ -20,6 +22,12 @@ of the beginner tutorial path.
 | 07 Data objects | Arrays, textures, and surfaces | [`ArrayTextureSurface`](tutorials/07-DataObjects/ArrayTextureSurface) |
 | 90 Low-level | Generated C ABI for expert use | [`NativeAbiInterop`](tutorials/90-LowLevel/NativeAbiInterop) |
 
+## Integrated showcase
+
+| Showcase | Workload | Entry point |
+| --- | --- | --- |
+| HeatDiffusion | CPU/GPU two-dimensional heat simulation with per-run measurements and a BMP heatmap | [`HeatDiffusion`](showcases/HeatDiffusion) |
+
 All GPU cases require a compatible AMD driver and HIP Runtime. Cases that depend on optional runtime
-or device capabilities report a controlled `Skipped` result. These programs are correctness examples,
-not performance benchmarks.
+or device capabilities report a controlled `Skipped` result. Tutorial cases are correctness examples,
+not performance benchmarks. `HeatDiffusion` separately reports measurements scoped to the current run.

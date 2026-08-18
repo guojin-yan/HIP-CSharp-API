@@ -1,7 +1,14 @@
-# Samples / 案例
+# 案例
 
-案例按 HIP 功能模块组织。学习时建议按编号依次进入；`validation` 目录只包含 GPU、Runtime 和包
-门禁工作负载，不属于初学者教程主线。
+<p align="center"><a href="README.md">English</a> | <strong>简体中文</strong></p>
+
+教程案例按 HIP 功能模块组织，学习时建议按编号依次进入；`showcases` 将多个模块组合成完整任务；
+`validation` 只包含 GPU、Runtime 和包门禁工作负载，不属于初学者教程主线。
+
+所有案例均使用显式 `Program.Main(string[] args)` 入口；参数解析、受控 `Skipped` 结果和进程退出码
+均由该方法负责。
+
+## 推荐学习路径
 
 | 模块 | 内容 | 入口 |
 | --- | --- | --- |
@@ -14,5 +21,12 @@
 | 07 Data objects | Array、Texture 和 Surface | [`ArrayTextureSurface`](tutorials/07-DataObjects/ArrayTextureSurface) |
 | 90 Low-level | 面向专家的生成式 C ABI | [`NativeAbiInterop`](tutorials/90-LowLevel/NativeAbiInterop) |
 
+## 综合案例
+
+| 案例 | 工作负载 | 入口 |
+| --- | --- | --- |
+| HeatDiffusion | CPU/GPU 二维热扩散模拟、当前会话性能测量和 BMP 热力图 | [`HeatDiffusion`](showcases/HeatDiffusion/README.zh-CN.md) |
+
 所有 GPU 案例都需要兼容的 AMD 驱动和 HIP Runtime。依赖可选 Runtime 或设备能力的案例会输出
-受控 `Skipped`，这些程序用于正确性演示，不是性能基准。
+受控 `Skipped`。教程案例用于正确性演示，不是性能基准；`HeatDiffusion` 单独输出仅适用于当前
+会话的 CPU/GPU 测量结果。
