@@ -172,6 +172,7 @@ public sealed class HipPhysicalMemoryAllocation : IDisposable
             if (_mappingCount != 0) throw new InvalidOperationException("Dispose all virtual-memory mappings before releasing the physical allocation.");
             HipError error = _handle.ReleaseChecked();
             if (error != HipError.Success) HipCall.ThrowIfFailed(_nativeApi, error, "hipMemRelease");
+            _handle.Dispose();
         }
     }
 
@@ -271,7 +272,6 @@ internal sealed class HipVirtualAddressHandle : SafeHandle
 internal sealed class HipPhysicalMemoryHandle : SafeHandle
 {
     private readonly IHipNativeApi _nativeApi;
-    private HipError _releaseError;
 
     internal HipPhysicalMemoryHandle(IHipNativeApi nativeApi, IntPtr handle) : base(IntPtr.Zero, true)
     {
@@ -284,13 +284,10 @@ internal sealed class HipPhysicalMemoryHandle : SafeHandle
     internal HipError ReleaseChecked()
     {
         if (IsClosed || IsInvalid) return HipError.Success;
-        Dispose();
-        return _releaseError;
+        HipError error = _nativeApi.MemRelease(handle);
+        if (error == HipError.Success) SetHandleAsInvalid();
+        return error;
     }
 
-    protected override bool ReleaseHandle()
-    {
-        _releaseError = _nativeApi.MemRelease(handle);
-        return _releaseError == HipError.Success;
-    }
+    protected override bool ReleaseHandle() => _nativeApi.MemRelease(handle) == HipError.Success;
 }

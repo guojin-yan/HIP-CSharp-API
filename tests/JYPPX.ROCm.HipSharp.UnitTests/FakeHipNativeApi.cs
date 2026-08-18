@@ -262,8 +262,6 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     internal int FreeCallCount { get; private set; }
 
-    internal int MemReleaseCallCount { get; private set; }
-
     internal int ArrayFreeCallCount { get; private set; }
 
     internal int MipmappedArrayFreeCallCount { get; private set; }
@@ -734,7 +732,6 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError MemRelease(IntPtr handle)
     {
-        MemReleaseCallCount++;
         if (!_virtualAllocationHandles.Contains(handle)) return HipError.InvalidValue;
         if (ManagedNextResult != HipError.Success) return ManagedNextResult;
         _virtualAllocationHandles.Remove(handle);

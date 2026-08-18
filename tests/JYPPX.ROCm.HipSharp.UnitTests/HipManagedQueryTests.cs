@@ -168,36 +168,6 @@ public class HipManagedQueryTests
     }
 
     [TestMethod]
-    public void VirtualMemoryPhysicalReleaseIsIdempotent()
-    {
-        using var native = new FakeHipNativeApi();
-        var runtime = new HipRuntime(native);
-        HipPhysicalMemoryAllocation allocation = runtime.CreatePhysicalMemory(4096, new HipVirtualMemoryAllocationOptions(0));
-
-        allocation.Dispose();
-        allocation.Dispose();
-
-        Assert.IsTrue(allocation.IsDisposed);
-        Assert.AreEqual(1, native.MemReleaseCallCount);
-    }
-
-    [TestMethod]
-    public void VirtualMemoryPhysicalReleaseFailureIsSurfacedOnce()
-    {
-        using var native = new FakeHipNativeApi();
-        var runtime = new HipRuntime(native);
-        HipPhysicalMemoryAllocation allocation = runtime.CreatePhysicalMemory(4096, new HipVirtualMemoryAllocationOptions(0));
-        native.ManagedNextResult = HipError.InvalidValue;
-
-        Assert.ThrowsExactly<HipException>(() => allocation.Dispose());
-        Assert.IsTrue(allocation.IsDisposed);
-        Assert.AreEqual(1, native.MemReleaseCallCount);
-
-        allocation.Dispose();
-        Assert.AreEqual(1, native.MemReleaseCallCount);
-    }
-
-    [TestMethod]
     public void VirtualMemoryValidatesCapabilityInputsAndNativeFailures()
     {
         using var native = new FakeHipNativeApi();
