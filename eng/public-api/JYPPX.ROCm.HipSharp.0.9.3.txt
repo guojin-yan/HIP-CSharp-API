@@ -170,9 +170,10 @@ F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamCaptureStatus JYPPX.ROC
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamFlags JYPPX.ROCm.HipSharp.Types.HipStreamFlags.Default=0
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamFlags JYPPX.ROCm.HipSharp.Types.HipStreamFlags.NonBlocking=1
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.And=2
-F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.Equal=0
-F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.GreaterOrEqual=1
+F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.Equal=1
+F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.GreaterOrEqual=0
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.NoMemoryBarrier=4
+F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags JYPPX.ROCm.HipSharp.Types.HipStreamWaitValueFlags.Nor=3
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode.Border=3
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode.Clamp=1
 F|formal|public const|JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode JYPPX.ROCm.HipSharp.Types.HipTextureAddressMode.Mirror=2
