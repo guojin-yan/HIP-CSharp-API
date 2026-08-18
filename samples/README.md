@@ -6,6 +6,8 @@ The tutorial samples are organized by HIP capability family. Follow the numbered
 when learning the API. `showcases` combines multiple modules into complete workloads, while
 `validation` contains GPU and package gates that are not part of the beginner tutorial path.
 
+For a complete cloud-reproducible tutorial matrix, start with [`tutorials/README.md`](tutorials/README.md).
+
 Every sample uses an explicit `Program.Main(string[] args)` entry point. Argument parsing, controlled
 `Skipped` results, and process exit codes are kept in that method.
 
@@ -27,6 +29,7 @@ Every sample uses an explicit `Program.Main(string[] args)` entry point. Argumen
 | Showcase | Workload | Entry point |
 | --- | --- | --- |
 | HeatDiffusion | CPU/GPU two-dimensional heat simulation with per-run measurements and a BMP heatmap | [`HeatDiffusion`](showcases/HeatDiffusion) |
+| VisualInspection | OpenCV CPU reference and HIPRTC AMD GPU defect-mask pipeline with PNG/JSON/CSV evidence | [`VisualInspection`](showcases/VisualInspection) |
 
 All GPU cases require a compatible AMD driver and HIP Runtime. Cases that depend on optional runtime
 or device capabilities report a controlled `Skipped` result. Tutorial cases are correctness examples,

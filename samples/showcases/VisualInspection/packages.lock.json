@@ -1,0 +1,55 @@
+{
+  "version": 2,
+  "dependencies": {
+    "net10.0": {
+      "JYPPX.OpenCV.CSharp.API": {
+        "type": "Direct",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "j1QxEejIrat0Wt7bVlTEyWld4LlM6lxkERDPMX23opdTgXDH5LMOYSwcjKR4jq4/+NCH7cTf7SUrabNe0UZQVQ=="
+      },
+      "JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini": {
+        "type": "Direct",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "s9IwrJhZhbFBqrnugMlL2Vak/lqZn9/Dho2yh1q353IZ/lV20dvP2eX0h6EoUFxsTIhBSSA5CBab71kAqtWJeg=="
+      },
+      "JYPPX.ROCm.HIP.CSharp.API": {
+        "type": "Project"
+      }
+    },
+    "net10.0/ubuntu.24.04-x64": {
+      "JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini": {
+        "type": "Direct",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "s9IwrJhZhbFBqrnugMlL2Vak/lqZn9/Dho2yh1q353IZ/lV20dvP2eX0h6EoUFxsTIhBSSA5CBab71kAqtWJeg=="
+      }
+    },
+    "net8.0": {
+      "JYPPX.OpenCV.CSharp.API": {
+        "type": "Direct",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "j1QxEejIrat0Wt7bVlTEyWld4LlM6lxkERDPMX23opdTgXDH5LMOYSwcjKR4jq4/+NCH7cTf7SUrabNe0UZQVQ=="
+      },
+      "JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini": {
+        "type": "Direct",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "s9IwrJhZhbFBqrnugMlL2Vak/lqZn9/Dho2yh1q353IZ/lV20dvP2eX0h6EoUFxsTIhBSSA5CBab71kAqtWJeg=="
+      },
+      "JYPPX.ROCm.HIP.CSharp.API": {
+        "type": "Project"
+      }
+    },
+    "net8.0/ubuntu.24.04-x64": {
+      "JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini": {
+        "type": "Direct",
+        "requested": "[5.0.0, )",
+        "resolved": "5.0.0",
+        "contentHash": "s9IwrJhZhbFBqrnugMlL2Vak/lqZn9/Dho2yh1q353IZ/lV20dvP2eX0h6EoUFxsTIhBSSA5CBab71kAqtWJeg=="
+      }
+    }
+  }
+}

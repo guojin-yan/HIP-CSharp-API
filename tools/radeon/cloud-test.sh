@@ -182,10 +182,10 @@ if missing_managed_module:
     raise SystemExit("M8.5/M8.6 managed module exports are missing: " + ", ".join(missing_managed_module))
 missing_rtc_expansion = sorted(managed_rtc_expansion - found)
 if missing_rtc_expansion:
-    raise SystemExit("0.9.3 managed HIPRTC exports are missing: " + ", ".join(missing_rtc_expansion))
+    raise SystemExit("0.10.0 managed HIPRTC exports are missing: " + ", ".join(missing_rtc_expansion))
 if len(evidence["headers"]) != 2 or any(len(item.get("sha256", "")) != 64 for item in evidence["headers"]):
     raise SystemExit("ABI evidence must include both official header hashes")
-print("0.9.3 ABI evidence schema and 109 managed-owner exports passed")
+print("0.10.0 ABI evidence schema and 109 managed-owner exports passed")
 PY
 
 python3 - <<'PY'

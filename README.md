@@ -45,16 +45,16 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 
 ## 📢 Current Status: Published Preview / 0.x Validation
 
-Core `0.9.1` and the optional Linux Runtime `7.2.1` are published on nuget.org. Their repository-signed public bytes passed nuget.org-only static consumers and a fresh package-only Linux GPU/ABI gate on 2026-08-14. Core `0.9.0` remains immutable and unlisted with its known unintended `JYPPX.ROCm.HipSharp` assembly identity; do not adopt it.
+Core `0.10.0` and the optional Linux Runtime `7.2.1` are published on nuget.org. The exact Core package passed the official-host and isolated package-only Linux GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`. Core `0.9.0` remains immutable and unlisted with its known unintended `JYPPX.ROCm.HipSharp` assembly identity; do not adopt it.
 
-The source tree is validating an unpublished Core `0.9.3` HIPRTC Program/Linker expansion batch. It promotes nine pinned HIPRTC declarations into managed owners; the exact `ec44bf5` package gate passed, while the current package bytes require their own exact-SHA cloud run. The pinned ROCm 7.2.1 runtime also has a documented upstream `hipMemRetainAllocationHandle` reference-counting defect; see the [0.9.3 known limitations](docs/releases/0.9.3-known-limitations.md). Windows AMD GPU validation and an explicit Owner release request are both required before any future `1.0.0`; this `0.9.3` work does not satisfy or bypass either condition.
+Core `0.10.0` includes the HIPRTC Program/Linker managed expansion and the updated runnable tutorial and showcase set. The pinned ROCm 7.2.1 runtime retains a documented upstream `hipMemRetainAllocationHandle` reference-counting defect; see the [0.10.0 release notes](docs/releases/0.10.0.md). Windows AMD GPU validation remains mandatory before any future `1.0.0` release; this `0.10.0` work does not satisfy or bypass that condition.
 
 ## 🚀 Get Started In 30 Seconds
 
 Install the published managed Core and choose either a compatible system ROCm installation or the optional published Linux Runtime package:
 
 ```powershell
-dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.9.1
+dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.10.0
 # Optional on Ubuntu 24.04 x64:
 dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
 ```
@@ -101,7 +101,7 @@ The Core package is dependency-free and never installs a GPU driver. Runtime pac
 
 ## 🌐 Public Packages And Release Assets
 
-The published Core and Linux Runtime packages are available on NuGet.org. Package versions below are live NuGet.org badges. The repository has a public `v0.9.1` GitHub Release, but it has no uploaded release assets.
+The published Core and Linux Runtime packages are available on NuGet.org. Package versions below are live NuGet.org badges. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
 
 | Package | Version | NuGet.org | Purpose |
 | --- | --- | --- | --- |
@@ -110,7 +110,7 @@ The published Core and Linux Runtime packages are available on NuGet.org. Packag
 
 | Release channel | Link | Assets |
 | --- | --- | --- |
-| GitHub Release | [v0.9.1](https://github.com/guojin-yan/HIP-CSharp-API/releases/tag/v0.9.1) | No uploaded release assets |
+| Git tag | [v0.10.0](https://github.com/guojin-yan/HIP-CSharp-API/tree/v0.10.0) | No uploaded release assets |
 | NuGet.org | [Package search](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | Published Core and Linux Runtime packages |
 
 ### 🧩 Runtime package matrix
@@ -145,7 +145,7 @@ The Core project directly targets 15 frameworks:
 
 | Platform | Core build/package | GPU validation | Runtime package |
 | --- | --- | --- | --- |
-| Linux x64 | Yes | Public Core `0.9.1` + Runtime `7.2.1` passed the M8.9 nuget.org-only package GPU/ABI gate on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`; the new `0.9.3` bytes require their own exact-SHA evidence | Published, receipt-verified Runtime `7.2.1`; optional to system ROCm |
+| Linux x64 | Yes | Core `0.10.0` + Runtime `7.2.1` passed exact-package official-host and isolated package-only GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` | Published, receipt-verified Runtime `7.2.1`; optional to system ROCm |
 | Windows x64 | Yes; loader and PE paths are statically audited | Not yet validated on an AMD GPU | Disabled 7.2.0 skeleton |
 
 Several older .NET targets are end-of-support upstream and exist only for package compatibility. The full distinctions between build compatibility, historical validation, and supported deployment are documented in [framework compatibility](docs/compatibility/frameworks.md) and [platform compatibility](docs/compatibility/platforms.md).
@@ -153,6 +153,8 @@ Several older .NET targets are end-of-support upstream and exist only for packag
 ## 🧪 Examples
 
 The [sample learning path](samples/README.md) is organized by HIP capability instead of individual API calls.
+For the complete cloud-reproducible matrix, including retained logs and Windows reproduction notes, see
+the [tutorial verification guide](samples/tutorials/README.md).
 
 | Module | Entry sample | What it demonstrates |
 | --- | --- | --- |
@@ -165,6 +167,7 @@ The [sample learning path](samples/README.md) is organized by HIP capability ins
 | Data objects | [`ArrayTextureSurface`](samples/tutorials/07-DataObjects/ArrayTextureSurface) | Array, texture, and surface ownership |
 | Low-level | [`NativeAbiInterop`](samples/tutorials/90-LowLevel/NativeAbiInterop) | Direct generated C ABI access for experts |
 | Integrated showcase | [`HeatDiffusion`](samples/showcases/HeatDiffusion) | CPU/GPU heat simulation using HIPRTC, streams, events, graph replay, validation, and a BMP heatmap |
+| Integrated showcase | [`VisualInspection`](samples/showcases/VisualInspection) | OpenCV CPU image pipeline paired with an AMD GPU HIPRTC defect-mask kernel, PNG masks, and JSON/CSV evidence |
 
 GPU samples require the actual target architecture. For example:
 
@@ -172,7 +175,7 @@ GPU samples require the actual target architecture. For example:
 dotnet run --project .\samples\tutorials\04-Kernel\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
-Tutorial samples validate correctness and ownership behavior; they are not benchmarks and make no performance claim. The separate `HeatDiffusion` showcase reports CPU/GPU measurements scoped to the current process run and includes a dedicated [Radeon Cloud walkthrough](samples/showcases/HeatDiffusion/README.md#run-on-radeon-cloud).
+Tutorial samples validate correctness and ownership behavior; they are not benchmarks and make no performance claim. The separate `HeatDiffusion` and `VisualInspection` showcases report CPU/GPU measurements scoped to the current process run and include dedicated [HeatDiffusion Radeon Cloud](samples/showcases/HeatDiffusion/README.md) and [VisualInspection Radeon Cloud](samples/showcases/VisualInspection/README.md) walkthroughs.
 
 ## 📚 Documentation
 
@@ -229,7 +232,7 @@ HIP-CSharp-API/
 
 ## 🤝 Contributing
 
-Issues and pull requests are welcome. Before changing the public API, native declarations, ownership behavior, package identity, or runtime payload, read [CONTRIBUTING.md](CONTRIBUTING.md) and the [API-freeze guide](docs/guides/api-freeze.md). Security reports should follow [SECURITY.md](SECURITY.md) rather than a public issue.
+Issues and pull requests are welcome. Before changing the public API, native declarations, ownership behavior, package identity, or runtime payload, read [CONTRIBUTING.md](CONTRIBUTING.md) and the [API-freeze guide](docs/guides/api-freeze.md). Security reports should follow [SECURITY.md](SECURITY.md) rather than a public issue. Chinese readers can use the [中文贡献指南](CONTRIBUTING.zh-CN.md).
 
 ## 🙏 Acknowledgments
 

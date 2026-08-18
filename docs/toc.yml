@@ -48,6 +48,8 @@
       href: design/migraphx-adapter-pending-lease.md
 - name: Releases / 版本
   items:
+    - name: 0.10.0 Release / 发布说明
+      href: releases/0.10.0.md
     - name: 0.9.3 HIPRTC Program and Linker / HIPRTC Program 与 Linker
       href: releases/0.9.3-hiprtc-program-linker.md
     - name: 0.9.2 Interface Ledger Validation / 逐接口账本验证

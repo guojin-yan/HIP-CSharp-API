@@ -1,9 +1,31 @@
 # Execution
 
-Learn stream submission, event completion, asynchronous copies, and the lifetime rules for resources
-used by pending work.
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-学习 Stream 提交、Event 完成、异步复制，以及 pending work 所引用资源的生命周期规则。
+Learn stream submission, event completion, asynchronous copies, and pending-work lifetime rules.
 
-- [`StreamAndEvent`](StreamAndEvent)
-- [`AsyncVectorAdd`](AsyncVectorAdd)
+## Recommended Order
+
+- [AsyncVectorAdd](./AsyncVectorAdd/README.md)
+- [StreamAndEvent](./StreamAndEvent/README.md)
+
+## Reproduce on Radeon Cloud
+
+From the repository root, run the complete tutorial matrix:
+
+```bash
+bash ./samples/tutorials/run-cloud-verification.sh
+```
+
+The retained Radeon Cloud evidence is [`20260818-161709-tutorials`](../../../../Radeon_Cloud/records/20260818-161709-tutorials).
+Read the individual case README for the exact command, expected output, and per-case log.
+
+## Windows Scope
+
+Windows build and GPU execution have not been validated. The individual case guides contain best-effort
+PowerShell commands, but actual HIP Runtime/driver compatibility must be verified separately.
+
+## Next Step
+
+Start with the first case above and keep the deterministic correctness check enabled before moving to the
+next capability.

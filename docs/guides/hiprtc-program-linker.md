@@ -1,8 +1,8 @@
 # HIPRTC Program and Linker ownership / HIPRTC Program 与 Linker 所有权
 
-Core `0.9.3` adds managed access to HIPRTC name expressions, LLVM bitcode, and the HIPRTC linker. These APIs are additive to the existing `HipRtcProgram.Compile` code-object path.
+Core `0.10.0` adds managed access to HIPRTC name expressions, LLVM bitcode, and the HIPRTC linker. These APIs are additive to the existing `HipRtcProgram.Compile` code-object path.
 
-Core `0.9.3` 新增 HIPRTC name expression、LLVM bitcode 与 HIPRTC linker 的托管入口。这些 API 是对现有 `HipRtcProgram.Compile` code-object 路径的增量扩展。
+Core `0.10.0` 新增 HIPRTC name expression、LLVM bitcode 与 HIPRTC linker 的托管入口。这些 API 是对现有 `HipRtcProgram.Compile` code-object 路径的增量扩展。
 
 ```csharp
 var rtc = new HipRtc();
@@ -49,9 +49,9 @@ ROCm 7.2.1 可能同时接受编译后的 duplicate 与 distinct `hiprtcAddNameE
 
 ## Exact-SHA cloud workload / Exact-SHA 云 workload
 
-The 0.9.3 cloud workload is deterministic and must run from a clean detached checkout of the candidate SHA using the exact audited package hash. It performs both `AddData` and `AddFile` linker paths from the same `-fgpu-rdc` bitcode, loads each linked code object as a module, launches the lowered templated kernel, and compares every GPU result with the CPU reference. Evidence must record the candidate SHA, package SHA-256, GPU architecture, lowered name, bitcode/code-object sizes and hashes, comparison count, and disposal outcomes.
+The 0.10.0 cloud workload is deterministic and must run from a clean detached checkout of the candidate SHA using the exact audited package hash. It performs both `AddData` and `AddFile` linker paths from the same `-fgpu-rdc` bitcode, loads each linked code object as a module, launches the lowered templated kernel, and compares every GPU result with the CPU reference. Evidence must record the candidate SHA, package SHA-256, GPU architecture, lowered name, bitcode/code-object sizes and hashes, comparison count, and disposal outcomes.
 
-0.9.3 云 workload 必须从候选 SHA 的 clean detached checkout 运行，并使用精确审计包哈希。它从同一份 `-fgpu-rdc` bitcode 分别执行 `AddData` 与 `AddFile` linker 路径，把两个链接结果加载为 module，启动 lowered template kernel，并逐项比较 CPU/GPU 结果。证据必须记录候选 SHA、包 SHA-256、GPU 架构、lowered name、bitcode/code-object 大小与哈希、比较次数和 disposal 结果。
+0.10.0 云 workload 必须从候选 SHA 的 clean detached checkout 运行，并使用精确审计包哈希。它从同一份 `-fgpu-rdc` bitcode 分别执行 `AddData` 与 `AddFile` linker 路径，把两个链接结果加载为 module，启动 lowered template kernel，并逐项比较 CPU/GPU 结果。证据必须记录候选 SHA、包 SHA-256、GPU 架构、lowered name、bitcode/code-object 大小与哈希、比较次数和 disposal 结果。
 
 Required negatives are: invalid/empty managed inputs, lowered-name lookup before compilation, name-expression addition after compilation, missing linker file, addition and completion after successful completion, use after disposal, and exactly-once/double-dispose behavior. A symbol scan is not a functional pass. Until this workload runs against the new SHA, all nine promoted ledger entries remain `cloudFunctionCoverage=not-tested`, `publishable=false`, and `releaseAuthorized=false`.
 

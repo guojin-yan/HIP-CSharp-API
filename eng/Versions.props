@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <HipSharpCoreVersion>0.9.3</HipSharpCoreVersion>
+    <HipSharpCoreVersion>0.10.0</HipSharpCoreVersion>
     <HipSharpLinuxRuntimeVersion>7.2.1</HipSharpLinuxRuntimeVersion>
     <HipSharpWindowsRuntimeVersion>7.2.0</HipSharpWindowsRuntimeVersion>
   </PropertyGroup>

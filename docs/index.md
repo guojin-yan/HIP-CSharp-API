@@ -1,8 +1,8 @@
 # HipSharp API Documentation / API 文档
 
-HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.9.1` and optional Linux Runtime `7.2.1` are published and passed fresh nuget.org-only static plus package-only GPU/ABI validation. The source tree validates an unpublished Core `0.9.3` HIPRTC Program/Linker expansion whose nine new functions still require exact-SHA cloud evidence. Windows AMD GPU validation and an explicit Owner request remain mandatory before any future `1.0.0` release.
+HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.10.0` and optional Linux Runtime `7.2.1` are published. The exact Core package is validated through official-host and isolated package-only GPU/ABI gates. Windows AMD GPU validation remains mandatory before any future `1.0.0` release.
 
-HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已公开，并通过 fresh nuget.org-only 静态及 package-only GPU/ABI 验证。当前源码验证未发布的 Core `0.9.3` HIPRTC Program/Linker 扩展，9 个新函数仍需 exact-SHA 云证据。未来任何 `1.0.0` 仍必须同时取得 Windows AMD GPU 实机验证和 Owner 明确发布指令。
+HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.10.0` 与可选 Linux Runtime `7.2.1` 已公开。精确 Core 包已通过官方宿主和隔离 package-only GPU/ABI 门禁。未来任何 `1.0.0` 仍必须取得 Windows AMD GPU 实机验证。
 
 ## Documentation / 文档
 
@@ -11,8 +11,9 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `
 - [Historical 0.9.0 assembly incident / 0.9.0 程序集事故历史](releases/0.9.0-rc.md)
 - [0.9.1 assembly identity forward fix / 0.9.1 程序集 identity 修正](releases/0.9.1-forward-fix.md)
 - [0.9.2 interface ledger validation / 0.9.2 逐接口账本验证](releases/0.9.2-interface-ledger.md)
-- [0.9.3 HIPRTC Program and Linker / 0.9.3 HIPRTC Program 与 Linker](releases/0.9.3-hiprtc-program-linker.md)
-- [0.9.3 known limitations / 0.9.3 已知限制](releases/0.9.3-known-limitations.md)
+- [0.10.0 release / 0.10.0 发布说明](releases/0.10.0.md)
+- [0.9.3 HIPRTC Program and Linker history / 0.9.3 HIPRTC Program 与 Linker 历史](releases/0.9.3-hiprtc-program-linker.md)
+- [ROCm 7.2.1 known limitation / ROCm 7.2.1 已知限制](releases/0.9.3-known-limitations.md)
 - [1.0.0 candidate notes / 1.0.0 候选说明](releases/1.0.0.md)
 - [1.0.0 readiness matrix / 1.0.0 就绪矩阵](releases/1.0.0-readiness.md)
 - [M8.10 controlled cleanup / M8.10 受控清理](releases/1.0.0-cleanup.md)

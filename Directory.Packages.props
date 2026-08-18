@@ -9,5 +9,7 @@
     <PackageVersion Include="MSTest.TestAdapter" Version="4.3.3" />
     <PackageVersion Include="MSTest.TestFramework" Version="4.3.3" />
     <PackageVersion Include="JYPPX.ROCm.HIP.CSharp.API" Version="0.9.1" />
+    <PackageVersion Include="JYPPX.OpenCV.CSharp.API" Version="5.0.0" />
+    <PackageVersion Include="JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini" Version="5.0.0" />
   </ItemGroup>
 </Project>

@@ -17,7 +17,7 @@ with open(result_path, encoding="utf-8") as stream:
     lines = [
         line.strip()
         for line in stream
-        if line.strip().startswith("{") and '"workload":"hiprtc-program-linker-0.9.3"' in line
+        if line.strip().startswith("{") and '"workload":"hiprtc-program-linker-0.10.0"' in line
     ]
 
 if len(lines) != 1:

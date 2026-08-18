@@ -45,16 +45,16 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 
 ## 📢 当前状态：已发布预览版 / 0.x 验证
 
-Core `0.9.1` 与可选 Linux Runtime `7.2.1` 已在 nuget.org 公开。其 repository-signed 公开字节已于 2026-08-14 通过 nuget.org-only 静态消费者和 fresh package-only Linux GPU/ABI 门禁。Core `0.9.0` 因错误的 `JYPPX.ROCm.HipSharp` 程序集 identity 保持不可变且已 unlist，请勿采用。
+Core `0.10.0` 与可选 Linux Runtime `7.2.1` 已在 nuget.org 公开。精确的 Core 包已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过官方宿主和隔离 package-only Linux GPU/ABI 门禁。Core `0.9.0` 因错误的 `JYPPX.ROCm.HipSharp` 程序集 identity 保持不可变且已 unlist，请勿采用。
 
-当前源码正在验证未发布的 Core `0.9.3` HIPRTC Program/Linker 扩展批次。它把固定模型中的 9 个 HIPRTC 声明提升为托管 owner；精确的 `ec44bf5` 包门禁已经通过，但当前包字节仍需绑定自身 exact-SHA 云端复验。固定 ROCm 7.2.1 runtime 另有已记录的上游 `hipMemRetainAllocationHandle` 引用计数缺陷，详见 [0.9.3 已知限制](docs/releases/0.9.3-known-limitations.md)。未来任何 `1.0.0` 都必须同时满足 Windows AMD GPU 实机验证和 Owner 明确发布指令；本次 `0.9.3` 工作不能替代或绕过任一条件。
+Core `0.10.0` 包含 HIPRTC Program/Linker 托管扩展，以及更新后的可运行教程与综合案例。固定 ROCm 7.2.1 runtime 仍有已记录的上游 `hipMemRetainAllocationHandle` 引用计数缺陷，详见 [0.10.0 发布说明](docs/releases/0.10.0.md)。未来任何 `1.0.0` 仍必须满足 Windows AMD GPU 实机验证；本次 `0.10.0` 工作不能替代或绕过该条件。
 
 ## 🚀 30 秒开始
 
 安装已公开的托管 Core，并选择兼容的 system ROCm 或可选的 Linux Runtime 包：
 
 ```powershell
-dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.9.1
+dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.10.0
 # Ubuntu 24.04 x64 可选：
 dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
 ```
@@ -101,7 +101,7 @@ Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部�
 
 ## 🌐 公开包与 Release 资产
 
-已发布的 Core 与 Linux Runtime 包位于 NuGet.org，下表版本使用实时 NuGet.org 徽章。仓库存在公开的 `v0.9.1` GitHub Release，但其中没有上传 Release 资产。
+已发布的 Core 与 Linux Runtime 包位于 NuGet.org，下表版本使用实时 NuGet.org 徽章。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。
 
 | 包 | 版本 | NuGet.org | 用途 |
 | --- | --- | --- | --- |
@@ -110,7 +110,7 @@ Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部�
 
 | 发布渠道 | 链接 | 资产 |
 | --- | --- | --- |
-| GitHub Release | [v0.9.1](https://github.com/guojin-yan/HIP-CSharp-API/releases/tag/v0.9.1) | 未上传 Release 资产 |
+| Git tag | [v0.10.0](https://github.com/guojin-yan/HIP-CSharp-API/tree/v0.10.0) | 未上传 Release 资产 |
 | NuGet.org | [包搜索](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | 已发布的 Core 与 Linux Runtime 包 |
 
 ### 🧩 Runtime 包矩阵
@@ -145,7 +145,7 @@ Core 项目直接面向 15 个目标框架：
 
 | 平台 | Core 构建/打包 | GPU 验证 | Runtime 包 |
 | --- | --- | --- | --- |
-| Linux x64 | 是 | 公开 Core `0.9.1` + Runtime `7.2.1` 已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过 M8.9 nuget.org-only package GPU/ABI 门禁；新的 `0.9.3` bytes 需要自己的 exact-SHA 证据 | 已公开且 receipt-verified 的 Runtime `7.2.1`；也可选择 system ROCm |
+| Linux x64 | 是 | Core `0.10.0` + Runtime `7.2.1` 已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过 exact-package 官方宿主和隔离 package-only GPU/ABI 门禁 | 已公开且 receipt-verified 的 Runtime `7.2.1`；也可选择 system ROCm |
 | Windows x64 | 是；loader 与 PE 路径已静态审计 | 尚未在 AMD GPU 上验证 | 已禁用的 7.2.0 骨架 |
 
 部分旧 .NET 目标已结束上游支持，本项目仅将其作为包兼容目标保留。构建兼容、历史验证与正式支持之间的完整区别见[框架兼容性](docs/compatibility/frameworks.md)和[平台兼容性](docs/compatibility/platforms.md)。
@@ -153,6 +153,7 @@ Core 项目直接面向 15 个目标框架：
 ## 🧪 示例
 
 [案例学习路径](samples/README.zh-CN.md)按 HIP 功能模块组织，而不是按单个 API 调用堆叠。
+完整的云端可复现矩阵、运行日志和 Windows 复现说明见[教程验证指南](samples/tutorials/README.zh-CN.md)。
 
 | 模块 | 入口案例 | 内容 |
 | --- | --- | --- |
@@ -165,6 +166,7 @@ Core 项目直接面向 15 个目标框架：
 | Data objects | [`ArrayTextureSurface`](samples/tutorials/07-DataObjects/ArrayTextureSurface) | Array、Texture 与 Surface 所有权 |
 | Low-level | [`NativeAbiInterop`](samples/tutorials/90-LowLevel/NativeAbiInterop) | 面向专家的生成式 C ABI 直接调用 |
 | 综合案例 | [`HeatDiffusion`](samples/showcases/HeatDiffusion/README.zh-CN.md) | 使用 HIPRTC、Stream、Event 和 Graph 重放完成 CPU/GPU 热扩散模拟、校验与 BMP 热力图输出 |
+| 综合案例 | [`VisualInspection`](samples/showcases/VisualInspection/README.zh-CN.md) | 使用 OpenCV CPU 图像流水线和 AMD GPU HIPRTC 缺陷掩码 Kernel，输出 PNG 以及 JSON/CSV 证据 |
 
 GPU 示例要求显式提供真实目标架构，例如：
 
@@ -172,9 +174,10 @@ GPU 示例要求显式提供真实目标架构，例如：
 dotnet run --project .\samples\tutorials\04-Kernel\HipRtcVectorAdd\HipRtcVectorAdd.csproj -c Release -- --arch gfx1100 --length 1000 --repeat 20
 ```
 
-教程示例用于验证正确性与所有权行为，不是性能基准，也不作性能承诺。独立的 `HeatDiffusion`
-综合案例输出仅适用于当前进程运行的 CPU/GPU 测量结果，并提供单独的
-[Radeon Cloud 使用教程](samples/showcases/HeatDiffusion/README.zh-CN.md#在-radeon-cloud-运行)。
+教程示例用于验证正确性与所有权行为，不是性能基准，也不作性能承诺。`HeatDiffusion` 和
+`VisualInspection` 综合案例输出仅适用于当前进程运行的 CPU/GPU 测量结果，并分别提供
+[HeatDiffusion Radeon Cloud 使用教程](samples/showcases/HeatDiffusion/README.zh-CN.md)
+和 [VisualInspection Radeon Cloud 使用教程](samples/showcases/VisualInspection/README.zh-CN.md)。
 
 ## 📚 文档入口
 
@@ -230,7 +233,7 @@ HIP-CSharp-API/
 
 ## 🤝 参与贡献
 
-欢迎提交 Issue 与 Pull Request。修改公开 API、原生声明、所有权行为、包标识或 Runtime payload 前，请阅读 [CONTRIBUTING.md](CONTRIBUTING.md) 与 [API 冻结指南](docs/guides/api-freeze.md)。安全问题请按照 [SECURITY.md](SECURITY.md) 私下报告，不要提交公开 Issue。
+欢迎提交 Issue 与 Pull Request。修改公开 API、原生声明、所有权行为、包标识或 Runtime payload 前，请阅读 [中文贡献指南](CONTRIBUTING.zh-CN.md) 与 [API 冻结指南](docs/guides/api-freeze.md)。安全问题请按照 [SECURITY.md](SECURITY.md) 私下报告，不要提交公开 Issue。
 
 ## 🙏 致谢
 

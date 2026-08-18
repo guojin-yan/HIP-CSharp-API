@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFrameworks>net8.0;net10.0</TargetFrameworks>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <!-- The OpenCV project deliberately publishes distro-specific Linux RIDs. -->
+    <NoWarn>$(NoWarn);NETSDK1206</NoWarn>
+    <RuntimeIdentifier>ubuntu.24.04-x64</RuntimeIdentifier>
+    <RuntimeIdentifierGraphPath>$(MSBuildThisFileDirectory)runtime-distro-rid-graph.json</RuntimeIdentifierGraphPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj"
+                      GlobalPropertiesToRemove="RuntimeIdentifier;RuntimeIdentifierGraphPath" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="JYPPX.OpenCV.CSharp.API" />
+    <PackageReference Include="JYPPX.OpenCV.runtime.ubuntu.24.04-x64.mini" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Kernels\visual-inspection.hip" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="runtime-distro-rid-graph.json" CopyToOutputDirectory="PreserveNewest" />
+    <None Include="assets\**\*" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

@@ -236,7 +236,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "core-0.9.3-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
+    runtimeAndGpuValidation = "core-0.10.0-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

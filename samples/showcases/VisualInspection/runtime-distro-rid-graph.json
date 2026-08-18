@@ -1,0 +1,17 @@
+{
+  "runtimes": {
+    "ubuntu.22.04-x64": {
+      "#import": [ "linux-x64" ]
+    },
+    "ubuntu.24.04-x64": {
+      "#import": [ "ubuntu.22.04-x64" ]
+    },
+    "linux-x64": {
+      "#import": [ "linux" ]
+    },
+    "linux": {
+      "#import": [ "any" ]
+    },
+    "any": {}
+  }
+}

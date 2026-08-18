@@ -20,7 +20,7 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <EnablePackageValidation>true</EnablePackageValidation>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
-    <PackageReleaseNotes>Core 0.9.3 adds managed HIPRTC name-expression, bitcode, and linker ownership APIs. Candidate bytes are unpublished, cloud-validation-open, publishable=false, and releaseAuthorized=false.</PackageReleaseNotes>
+    <PackageReleaseNotes>Core 0.10.0 releases managed HIPRTC name-expression, bitcode, and linker ownership APIs, plus the updated runnable sample and tutorial set. ROCm 7.2.1 retains the documented hipMemRetainAllocationHandle upstream limitation.</PackageReleaseNotes>
     <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->

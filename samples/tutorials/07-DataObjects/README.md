@@ -1,9 +1,30 @@
 # Data Objects
 
-Arrays, mipmapped arrays, texture objects, and surface objects are specialized data paths. Learn them
-after linear memory and kernel ownership.
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-Array、Mipmapped Array、Texture Object 和 Surface Object 是专用数据路径，建议在线性内存和
-Kernel 所有权之后学习。
+Learn arrays, texture objects, and surface objects with explicit ownership.
 
-- [`ArrayTextureSurface`](ArrayTextureSurface)
+## Recommended Order
+
+- [ArrayTextureSurface](./ArrayTextureSurface/README.md)
+
+## Reproduce on Radeon Cloud
+
+From the repository root, run the complete tutorial matrix:
+
+```bash
+bash ./samples/tutorials/run-cloud-verification.sh
+```
+
+The retained Radeon Cloud evidence is [`20260818-161709-tutorials`](../../../../Radeon_Cloud/records/20260818-161709-tutorials).
+Read the individual case README for the exact command, expected output, and per-case log.
+
+## Windows Scope
+
+Windows build and GPU execution have not been validated. The individual case guides contain best-effort
+PowerShell commands, but actual HIP Runtime/driver compatibility must be verified separately.
+
+## Next Step
+
+Start with the first case above and keep the deterministic correctness check enabled before moving to the
+next capability.

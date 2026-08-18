@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "seed": 20260812,
+  "format": "binary PGM (P5), 8-bit grayscale",
+  "width": 128,
+  "height": 96,
+  "fixtures": [
+    {
+      "id": "part_000_ok",
+      "image": "images/part_000_ok.pgm",
+      "mask": "masks/part_000_ok_mask.pgm",
+      "defect_type": "ok",
+      "expected_decision": "PASS",
+      "defect_pixels": 0
+    },
+    {
+      "id": "part_001_scratch",
+      "image": "images/part_001_scratch.pgm",
+      "mask": "masks/part_001_scratch_mask.pgm",
+      "defect_type": "scratch",
+      "expected_decision": "FAIL",
+      "defect_pixels": 261
+    },
+    {
+      "id": "part_002_hole",
+      "image": "images/part_002_hole.pgm",
+      "mask": "masks/part_002_hole_mask.pgm",
+      "defect_type": "hole",
+      "expected_decision": "FAIL",
+      "defect_pixels": 529
+    },
+    {
+      "id": "part_003_contamination",
+      "image": "images/part_003_contamination.pgm",
+      "mask": "masks/part_003_contamination_mask.pgm",
+      "defect_type": "contamination",
+      "expected_decision": "FAIL",
+      "defect_pixels": 421
+    }
+  ],
+  "notes": "Synthetic transfer and segmentation fixture; not a production accuracy dataset."
+}

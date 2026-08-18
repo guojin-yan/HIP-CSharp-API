@@ -1,14 +1,35 @@
 # Memory
 
-This module progresses from linear device memory to pinned host memory, pitched 2D/3D memory,
-managed memory, stream-ordered allocation, memory pools, and virtual memory.
+<p align="center"><strong>English</strong> | <a href="README.zh-CN.md">简体中文</a></p>
 
-本模块从线性设备内存逐步进入锁页主机内存、Pitched 2D/3D、Managed Memory、Stream-ordered
-allocation、Memory Pool 和 Virtual Memory。
+Progress from linear copies to pinned, pitched, managed, stream-ordered, pooled, and virtual memory.
 
-- [`LinearMemoryCopy`](LinearMemoryCopy)
-- [`PinnedHostMemory`](PinnedHostMemory)
-- [`PitchedMemory2D3D`](PitchedMemory2D3D)
-- [`ManagedMemory`](ManagedMemory)
-- [`AsyncAllocationAndMemoryPool`](AsyncAllocationAndMemoryPool)
-- [`VirtualMemory`](VirtualMemory)
+## Recommended Order
+
+- [AsyncAllocationAndMemoryPool](./AsyncAllocationAndMemoryPool/README.md)
+- [LinearMemoryCopy](./LinearMemoryCopy/README.md)
+- [ManagedMemory](./ManagedMemory/README.md)
+- [PinnedHostMemory](./PinnedHostMemory/README.md)
+- [PitchedMemory2D3D](./PitchedMemory2D3D/README.md)
+- [VirtualMemory](./VirtualMemory/README.md)
+
+## Reproduce on Radeon Cloud
+
+From the repository root, run the complete tutorial matrix:
+
+```bash
+bash ./samples/tutorials/run-cloud-verification.sh
+```
+
+The retained Radeon Cloud evidence is [`20260818-161709-tutorials`](../../../../Radeon_Cloud/records/20260818-161709-tutorials).
+Read the individual case README for the exact command, expected output, and per-case log.
+
+## Windows Scope
+
+Windows build and GPU execution have not been validated. The individual case guides contain best-effort
+PowerShell commands, but actual HIP Runtime/driver compatibility must be verified separately.
+
+## Next Step
+
+Start with the first case above and keep the deterministic correctness check enabled before moving to the
+next capability.

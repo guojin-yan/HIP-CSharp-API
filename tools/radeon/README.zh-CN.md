@@ -44,7 +44,7 @@ bash ./tools/radeon/cloud-test.sh <40-character-commit>
 全部导出。
 
 门禁还会编译 schema 7 owner ABI probe，其中包括 M8.6 `hipModuleGetGlobal` 签名、M8.5 Module
-函数属性、Occupancy、Cooperative Launch 的签名和枚举、M8.4 Graph 布局，以及 0.9.3 HIPRTC
+函数属性、Occupancy、Cooperative Launch 的签名和枚举、M8.4 Graph 布局，以及 0.10.0 HIPRTC
 Program/Linker 签名。它会运行 DeviceInfo、MemoryCopy、HIPRTC VectorAdd 与负向编译、HIPRTC
 Program/Linker 精确包工作负载、Stream/Event、高级 API 路径和带 schema 版本的 M8.2-M8.6
 托管扩展工作负载。HIPRTC 工作负载覆盖 name lowering、bitcode 获取、`AddData`、`AddFile`、

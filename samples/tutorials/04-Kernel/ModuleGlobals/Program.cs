@@ -9,7 +9,7 @@ internal static class Program
 {
     private static int Main(string[] args)
     {
-        const string source = "extern \"C\" __device__ int values[4];";
+        const string source = "extern \"C\" __device__ int values[4] = { 0, 0, 0, 0 };";
         string architecture = args.Length == 0 ? "gfx1100" : args[0];
         try
         {

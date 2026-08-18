@@ -248,7 +248,7 @@ private static int RunProgramLinkerValidation(HipRtc rtc, Options options, strin
     Console.WriteLine(JsonSerializer.Serialize(new
     {
         schemaVersion = 1,
-        workload = "hiprtc-program-linker-0.9.3",
+        workload = "hiprtc-program-linker-0.10.0",
         status = "passed",
         repositoryCommit = options.ExpectedCommit,
         packageSha256 = options.ExpectedPackageSha256,

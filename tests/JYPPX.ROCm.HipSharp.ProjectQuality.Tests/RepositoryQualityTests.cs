@@ -43,7 +43,7 @@ public sealed class RepositoryQualityTests
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.9.3", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("0.10.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -696,7 +696,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeGate, "hiprtc-program-linker-run.json");
         StringAssert.Contains(runtimeGate, "validate-hiprtc-program-linker.py");
         StringAssert.Contains(cloudGate, "evidence[\"schemaVersion\"] != 7 or len(evidence.get(\"functions\", [])) != 109");
-        StringAssert.Contains(cloudGate, "0.9.3 managed HIPRTC exports are missing");
+        StringAssert.Contains(cloudGate, "0.10.0 managed HIPRTC exports are missing");
         StringAssert.Contains(cloudGate, "--program-linker-validation");
         StringAssert.Contains(cloudGate, "hiprtc-program-linker.json");
         string radeonReadme = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "radeon", "README.md"));
@@ -709,7 +709,7 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(rtcSample, "GetLoweredName");
         StringAssert.Contains(rtcSample, "HipRtcJitInputType.LlvmBitcode");
         StringAssert.Contains(rtcSample, "AddFile");
-        StringAssert.Contains(rtcSample, "hiprtc-program-linker-0.9.3");
+        StringAssert.Contains(rtcSample, "hiprtc-program-linker-0.10.0");
         StringAssert.Contains(rtcSample, "performanceClaim = false");
         Assert.IsFalse(program.Contains("IntPtr", StringComparison.Ordinal));
         Assert.IsFalse(program.Contains("JYPPX.ROCm.HipSharp.LowLevel", StringComparison.Ordinal));
@@ -760,7 +760,7 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.9.3.txt");
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.10.0.txt");
         Assert.IsTrue(File.Exists(snapshot));
         string currentSurface = File.ReadAllText(snapshot);
         StringAssert.StartsWith(currentSurface, "# HipSharp public API snapshot schema 1");
@@ -815,7 +815,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "core-0.9.3-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
+        StringAssert.Contains(packageVerifier, "core-0.10.0-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
         string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
         StringAssert.Contains(pairingGate, "21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799");
