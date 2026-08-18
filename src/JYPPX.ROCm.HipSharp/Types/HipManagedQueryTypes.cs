@@ -194,12 +194,15 @@ public struct HipStreamAttributeValue
 [Flags]
 public enum HipStreamWaitValueFlags : uint
 {
-    /// <summary>说明该托管接口 / Use equality comparison.</summary>
-    Equal = 0,
     /// <summary>说明该托管接口 / Use greater-than-or-equal comparison.</summary>
-    GreaterOrEqual = 1,
+    GreaterOrEqual = 0,
+    /// <summary>说明该托管接口 / Use equality comparison.</summary>
+    Equal = 1,
     /// <summary>说明该托管接口 / Use bitwise-and comparison.</summary>
     And = 2,
-    /// <summary>说明该托管接口 / Flush remote writes before waiting.</summary>
+    /// <summary>说明该托管接口 / Use bitwise-nor comparison.</summary>
+    Nor = 3,
+    /// <summary>保留的非 ROCm flag value / Retained non-ROCm flag value.</summary>
+    [Obsolete("ROCm HIP headers do not define this stream-wait flag.")]
     NoMemoryBarrier = 4,
 }

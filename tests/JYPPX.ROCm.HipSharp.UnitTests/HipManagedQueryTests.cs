@@ -105,13 +105,19 @@ public class HipManagedQueryTests
         Assert.AreEqual(1, native.StreamWaitValue32CallCount);
         Assert.AreEqual(signalAddress, native.LastStreamWaitValue32Pointer);
         Assert.AreEqual(0x10203040U, native.LastStreamWaitValue32Value);
-        Assert.AreEqual((uint)HipStreamWaitValueFlags.GreaterOrEqual, native.LastStreamWaitValue32Flags);
+        Assert.AreEqual(0U, native.LastStreamWaitValue32Flags);
         Assert.AreEqual(0x00FFFFFFU, native.LastStreamWaitValue32Mask);
         Assert.AreEqual(1, native.StreamWaitValue64CallCount);
         Assert.AreEqual(signalAddress, native.LastStreamWaitValue64Pointer);
         Assert.AreEqual(0x0102030405060708UL, native.LastStreamWaitValue64Value);
-        Assert.AreEqual((uint)HipStreamWaitValueFlags.And, native.LastStreamWaitValue64Flags);
+        Assert.AreEqual(2U, native.LastStreamWaitValue64Flags);
         Assert.AreEqual(0x00FFFFFFFFFFFFFFUL, native.LastStreamWaitValue64Mask);
+        stream.WaitValue32(signalAddress, 0, HipStreamWaitValueFlags.Equal);
+        stream.WaitValue64(signalAddress, 0, HipStreamWaitValueFlags.Nor);
+        Assert.AreEqual(2, native.StreamWaitValue32CallCount);
+        Assert.AreEqual(1U, native.LastStreamWaitValue32Flags);
+        Assert.AreEqual(2, native.StreamWaitValue64CallCount);
+        Assert.AreEqual(3U, native.LastStreamWaitValue64Flags);
         Assert.ThrowsExactly<ArgumentException>(() => stream.WaitValue32(IntPtr.Zero, 0));
         Assert.ThrowsExactly<ArgumentException>(() => stream.WaitValue64(IntPtr.Zero, 0));
     }
