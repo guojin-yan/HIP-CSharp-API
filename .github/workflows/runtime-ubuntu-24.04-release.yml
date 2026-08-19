@@ -48,6 +48,9 @@ jobs:
         shell: pwsh
         run: |
           $tag = $env:RELEASE_INPUT_TAG
+          if ([string]::IsNullOrWhiteSpace($tag)) {
+            $tag = @(git tag --points-at HEAD | Where-Object { $_ -match '^runtime-ubuntu\.24\.04-v[0-9]+\.[0-9]+\.[0-9]+$' } | Select-Object -First 1)
+          }
           if ([string]::IsNullOrWhiteSpace($tag)) { $tag = $env:RELEASE_REF_NAME }
           if ($tag -notmatch '^runtime-ubuntu\.24\.04-v(?<version>[0-9]+\.[0-9]+\.[0-9]+)$') {
             throw "Runtime release tag must use runtime-ubuntu.24.04-vMAJOR.MINOR.PATCH; found '$tag'."
