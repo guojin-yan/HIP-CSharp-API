@@ -62,6 +62,15 @@ jobs:
           if ($sha -notmatch '^[0-9a-f]{40}$' -or $tagSha -ne $sha) {
             throw "Runtime release tag '$tag' does not resolve to the checked-out commit."
           }
+          $tagBody = (git cat-file tag $tag) -join "`n"
+          if ($tagBody -notmatch '(?m)^Runtime-Package-SHA256: (?<packageSha256>[0-9a-f]{64})$') {
+            throw "Runtime release tag '$tag' does not bind the cloud-validated package SHA-256."
+          }
+          $expectedPackageSha256 = $Matches.packageSha256
+          if ($tagBody -notmatch '(?m)^Runtime-Package-Size: (?<packageSize>[1-9][0-9]*)$') {
+            throw "Runtime release tag '$tag' does not bind the cloud-validated package size."
+          }
+          $expectedPackageSize = $Matches.packageSize
           if ((git status --porcelain).Trim()) { throw 'The Runtime release checkout is not clean.' }
 
           $projectVersion = (& dotnet msbuild ./pack/JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj -nologo -getProperty:HipSharpUbuntu2404RuntimeVersion).Trim()
@@ -72,6 +81,8 @@ jobs:
           "tag=$tag" >> $env:GITHUB_OUTPUT
           "version=$version" >> $env:GITHUB_OUTPUT
           "sha=$sha" >> $env:GITHUB_OUTPUT
+          "package_sha256=$expectedPackageSha256" >> $env:GITHUB_OUTPUT
+          "package_size=$expectedPackageSize" >> $env:GITHUB_OUTPUT
 
       - name: Run Runtime supply-chain tests
         shell: pwsh
@@ -94,6 +105,10 @@ jobs:
           $expectedName = 'JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.${{ steps.release.outputs.version }}.nupkg'
           if ([System.IO.Path]::GetFileName($package) -cne $expectedName) { throw "Unexpected Runtime package: $package" }
           $sha256 = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash.ToLowerInvariant()
+          $size = (Get-Item -LiteralPath $package).Length
+          if ($sha256 -cne '${{ steps.release.outputs.package_sha256 }}' -or [string]$size -cne '${{ steps.release.outputs.package_size }}') {
+            throw "Rebuilt Runtime package does not match the exact cloud-validated bytes bound by the annotated tag."
+          }
           $hashFile = "$package.sha256"
           [System.IO.File]::WriteAllText($hashFile, "$sha256  $expectedName`n", [System.Text.UTF8Encoding]::new($false))
           "path=$package" >> $env:GITHUB_OUTPUT

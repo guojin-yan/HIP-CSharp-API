@@ -148,6 +148,7 @@ if ($Candidate) {
 & dotnet @arguments
 if ($LASTEXITCODE -ne 0) { throw "Runtime package generation failed." }
 if (-not (Test-Path -LiteralPath $package -PathType Leaf)) { throw "Expected runtime package was not generated: $package" }
+& (Join-Path $PSScriptRoot "normalize-nupkg.ps1") -PackagePath $package
 & (Join-Path $PSScriptRoot "verify-runtime-package.ps1") -PackagePath $package -Candidate:$Candidate
 if ($LASTEXITCODE -ne 0) { throw "Runtime package audit failed." }
 Write-Output $package

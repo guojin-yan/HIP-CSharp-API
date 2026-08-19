@@ -102,4 +102,47 @@ try {
     if (Test-Path -LiteralPath $digestRoot) { Remove-Item -LiteralPath $digestRoot -Recurse -Force }
 }
 
+$nupkgRoot = Join-Path $repositoryRoot "artifacts/runtime-nupkg-determinism-test"
+if (Test-Path -LiteralPath $nupkgRoot) { Remove-Item -LiteralPath $nupkgRoot -Recurse -Force }
+try {
+    Add-Type -AssemblyName System.IO.Compression.FileSystem
+    New-Item -ItemType Directory -Force -Path $nupkgRoot | Out-Null
+    function New-NondeterministicTestPackage([string]$Path, [string]$CoreName, [string]$ManifestRelationId, [datetimeoffset]$Timestamp) {
+        $archive = [System.IO.Compression.ZipFile]::Open($Path, [System.IO.Compression.ZipArchiveMode]::Create)
+        try {
+            $entries = [ordered]@{
+                '_rels/.rels' = @(
+                    '<?xml version="1.0" encoding="utf-8"?>',
+                    '<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">',
+                    "  <Relationship Type=`"http://schemas.microsoft.com/packaging/2010/07/manifest`" Target=`"/fixture.nuspec`" Id=`"$ManifestRelationId`" />",
+                    "  <Relationship Type=`"http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties`" Target=`"/package/services/metadata/core-properties/$CoreName.psmdcp`" Id=`"RANDOM-CORE-$CoreName`" />",
+                    '</Relationships>',
+                    ''
+                ) -join "`n"
+                "package/services/metadata/core-properties/$CoreName.psmdcp" = '<coreProperties />'
+                'fixture.nuspec' = '<package><metadata><id>fixture</id><version>1.0.0</version></metadata></package>'
+                'payload.bin' = 'same protected payload'
+            }
+            foreach ($name in $entries.Keys) {
+                $entry = $archive.CreateEntry($name, [System.IO.Compression.CompressionLevel]::Optimal)
+                $entry.LastWriteTime = $Timestamp
+                $writer = [System.IO.StreamWriter]::new($entry.Open(), [System.Text.UTF8Encoding]::new($false))
+                try { $writer.Write($entries[$name]) } finally { $writer.Dispose() }
+            }
+        } finally { $archive.Dispose() }
+    }
+    $firstPackage = Join-Path $nupkgRoot 'first.nupkg'
+    $secondPackage = Join-Path $nupkgRoot 'second.nupkg'
+    New-NondeterministicTestPackage $firstPackage 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa' 'RANDOM-MANIFEST-A' ([datetimeoffset]::new(2026, 8, 19, 1, 2, 0, [timespan]::Zero))
+    New-NondeterministicTestPackage $secondPackage 'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb' 'RANDOM-MANIFEST-B' ([datetimeoffset]::new(2026, 8, 19, 3, 4, 0, [timespan]::Zero))
+    & (Join-Path $PSScriptRoot "normalize-nupkg.ps1") -PackagePath $firstPackage
+    & (Join-Path $PSScriptRoot "normalize-nupkg.ps1") -PackagePath $secondPackage
+    if ((Get-HipSharpSha256 $firstPackage) -ne (Get-HipSharpSha256 $secondPackage)) {
+        throw "Deterministic nupkg normalization did not remove NuGet relationship IDs, core-properties names, or timestamps."
+    }
+    Write-Host "Deterministic nupkg normalization test passed."
+} finally {
+    if (Test-Path -LiteralPath $nupkgRoot) { Remove-Item -LiteralPath $nupkgRoot -Recurse -Force }
+}
+
 Write-Host "Runtime supply-chain structural tests passed."

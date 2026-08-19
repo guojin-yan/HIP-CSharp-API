@@ -471,6 +471,9 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeReleaseWorkflow, "--skip-duplicate");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet restore ./HipSharp.sln --locked-mode");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet build ./HipSharp.sln --configuration Release --no-restore");
+        StringAssert.Contains(runtimeReleaseWorkflow, "Runtime-Package-SHA256:");
+        StringAssert.Contains(runtimeReleaseWorkflow, "Runtime-Package-Size:");
+        StringAssert.Contains(runtimeReleaseWorkflow, "exact cloud-validated bytes bound by the annotated tag");
         StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget delete");
         StringAssert.Contains(runtimeReleaseWorkflow, "gh release");
@@ -502,6 +505,8 @@ public sealed class RepositoryQualityTests
         }
 
         string runtimePackScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1"));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "normalize-nupkg.ps1")));
+        StringAssert.Contains(runtimePackScript, "normalize-nupkg.ps1");
         StringAssert.Contains(runtimePackScript, "stagingDigestSha256");
         StringAssert.Contains(runtimePackScript, "publishable = $false");
         StringAssert.Contains(runtimePackScript, "Assert-TextLineEndings $sourceManifestPath CRLF");
