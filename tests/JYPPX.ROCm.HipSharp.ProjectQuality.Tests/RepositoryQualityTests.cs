@@ -474,6 +474,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeReleaseWorkflow, "Runtime-Package-SHA256:");
         StringAssert.Contains(runtimeReleaseWorkflow, "Runtime-Package-Size:");
         StringAssert.Contains(runtimeReleaseWorkflow, "exact cloud-validated bytes bound by the annotated tag");
+        StringAssert.Contains(runtimeReleaseWorkflow, "dotnet-version: 10.0.301");
+        StringAssert.Contains(runtimeReleaseWorkflow, "git status --porcelain | Out-String");
         StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget delete");
         StringAssert.Contains(runtimeReleaseWorkflow, "gh release");

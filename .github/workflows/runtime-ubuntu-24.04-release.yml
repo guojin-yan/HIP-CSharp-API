@@ -39,7 +39,7 @@ jobs:
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
-          dotnet-version: 10.0.x
+          dotnet-version: 10.0.301
           cache: true
           cache-dependency-path: '**/packages.lock.json'
 
@@ -74,7 +74,8 @@ jobs:
             throw "Runtime release tag '$tag' does not bind the cloud-validated package size."
           }
           $expectedPackageSize = $Matches.packageSize
-          if ((git status --porcelain).Trim()) { throw 'The Runtime release checkout is not clean.' }
+          $worktreeStatus = (git status --porcelain | Out-String).Trim()
+          if ($worktreeStatus) { throw 'The Runtime release checkout is not clean.' }
 
           $projectVersion = (& dotnet msbuild ./pack/JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj -nologo -getProperty:HipSharpUbuntu2404RuntimeVersion).Trim()
           if ($LASTEXITCODE -ne 0 -or $projectVersion -ne $version) {
