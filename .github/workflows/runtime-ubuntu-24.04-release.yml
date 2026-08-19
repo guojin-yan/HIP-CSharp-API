@@ -104,7 +104,10 @@ jobs:
         id: package
         shell: pwsh
         run: |
-          $package = ./eng/pack-runtime.ps1 -Platform ubuntu.24.04-x64 -Version '${{ steps.release.outputs.version }}'
+          $packageOutput = ./eng/pack-runtime.ps1 -Platform ubuntu.24.04-x64 -Version '${{ steps.release.outputs.version }}'
+          $package = @($packageOutput | Where-Object { $_ -match '\.nupkg$' } | Select-Object -Last 1)
+          if ($package.Count -ne 1) { throw 'Runtime packaging did not return exactly one nupkg path.' }
+          $package = $package[0]
           $package = (Resolve-Path -LiteralPath $package).Path
           $expectedName = 'JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.${{ steps.release.outputs.version }}.nupkg'
           if ([System.IO.Path]::GetFileName($package) -cne $expectedName) { throw "Unexpected Runtime package: $package" }
