@@ -77,7 +77,9 @@ jobs:
         shell: pwsh
         run: |
           ./eng/test-runtime-supply-chain.ps1
-          dotnet test ./tests/JYPPX.ROCm.HipSharp.ProjectQuality.Tests/JYPPX.ROCm.HipSharp.ProjectQuality.Tests.csproj --configuration Release
+          dotnet restore ./HipSharp.sln --locked-mode
+          dotnet build ./HipSharp.sln --configuration Release --no-restore
+          dotnet test ./tests/JYPPX.ROCm.HipSharp.ProjectQuality.Tests/JYPPX.ROCm.HipSharp.ProjectQuality.Tests.csproj --configuration Release --no-build --no-restore
 
       - name: Restore Runtime pack project
         shell: pwsh

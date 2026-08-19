@@ -469,6 +469,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget push");
         StringAssert.Contains(runtimeReleaseWorkflow, "--skip-duplicate");
+        StringAssert.Contains(runtimeReleaseWorkflow, "dotnet restore ./HipSharp.sln --locked-mode");
+        StringAssert.Contains(runtimeReleaseWorkflow, "dotnet build ./HipSharp.sln --configuration Release --no-restore");
         StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget delete");
         StringAssert.Contains(runtimeReleaseWorkflow, "gh release");
