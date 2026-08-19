@@ -1,0 +1,155 @@
+name: NuGet release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Package version to publish (for example 0.10.0)'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: nuget-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Test, pack, publish, and verify NuGet package
+    runs-on: windows-latest
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      RELEASE_INPUT_VERSION: ${{ inputs.version }}
+      RELEASE_REF_NAME: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout exact release ref
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Resolve and validate release version
+        id: release
+        shell: pwsh
+        run: |
+          $version = $env:RELEASE_INPUT_VERSION
+          if ([string]::IsNullOrWhiteSpace($version)) {
+            $tag = $env:RELEASE_REF_NAME
+            if ($tag -notmatch '^v(?<version>[0-9]+\.[0-9]+\.[0-9]+)$') {
+              throw "A release tag must use vMAJOR.MINOR.PATCH; found '$tag'."
+            }
+            $version = $Matches.version
+          }
+
+          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
+            throw "Release version must use MAJOR.MINOR.PATCH; found '$version'."
+          }
+
+          $projectVersion = (& dotnet msbuild .\src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion).Trim()
+          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($projectVersion)) {
+            throw 'Unable to resolve HipSharpCoreVersion from the project.'
+          }
+          if ($projectVersion -ne $version) {
+            throw "Release version $version does not match eng/Versions.props version $projectVersion."
+          }
+
+          $sha = (git rev-parse HEAD).Trim()
+          if ($LASTEXITCODE -ne 0 -or $sha -notmatch '^[0-9a-f]{40}$') {
+            throw 'The release checkout did not resolve to a full Git SHA.'
+          }
+          if ((git status --porcelain).Trim()) {
+            throw 'The release checkout is not clean.'
+          }
+
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+          Write-Host "Release version: $version"
+          Write-Host "Release commit: $sha"
+
+      - name: Run Release build, tests, package audit, and clean consumers
+        shell: pwsh
+        run: .\eng\test.ps1 -Configuration Release -Version ${{ steps.release.outputs.version }}
+
+      - name: Regenerate and validate documentation
+        shell: pwsh
+        run: .\eng\test-docs.ps1 -Configuration Release
+
+      - name: Confirm publish credential is available
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
+            throw 'The NUGET_API_KEY repository secret is missing.'
+          }
+
+      - name: Publish Core package to NuGet.org
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          $package = Join-Path $PWD "artifacts/packages/JYPPX.ROCm.HIP.CSharp.API.${{ steps.release.outputs.version }}.nupkg"
+          if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
+            throw "Expected package was not found: $package"
+          }
+          dotnet nuget push $package `
+            --api-key $env:NUGET_API_KEY `
+            --source https://api.nuget.org/v3/index.json `
+            --skip-duplicate `
+            --timeout 600
+          if ($LASTEXITCODE -ne 0) {
+            throw "NuGet push failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Verify published package and NuGet.org repository signature
+        shell: pwsh
+        run: |
+          $id = 'jyppx.rocm.hip.csharp.api'
+          $version = '${{ steps.release.outputs.version }}'
+          $uri = "https://api.nuget.org/v3-flatcontainer/$id/$version/$id.$version.nupkg"
+          $download = Join-Path $env:RUNNER_TEMP "$id.$version.nupkg"
+          $published = $false
+
+          for ($attempt = 1; $attempt -le 30; $attempt++) {
+            try {
+              Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 $uri -OutFile $download
+              $published = $true
+              Write-Host "NuGet package became downloadable on attempt $attempt."
+              break
+            }
+            catch {
+              if ($attempt -eq 30) { throw }
+              Start-Sleep -Seconds 10
+            }
+          }
+
+          if (-not $published) { throw 'NuGet package did not become downloadable.' }
+          dotnet nuget verify $download --all
+          if ($LASTEXITCODE -ne 0) {
+            throw "Published NuGet package signature verification failed with exit code $LASTEXITCODE."
+          }
+
+      - name: Upload release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: hipsharp-nuget-release-${{ steps.release.outputs.version || 'unknown' }}
+          if-no-files-found: warn
+          path: |
+            artifacts/test-results/**
+            artifacts/package-audit/**
+            artifacts/packages/*.nupkg

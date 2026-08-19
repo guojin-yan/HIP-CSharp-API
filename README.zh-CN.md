@@ -103,6 +103,8 @@ Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部�
 
 已发布的 Core 与 Linux Runtime 包位于 NuGet.org，下表版本使用实时 NuGet.org 徽章。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。
 
+后续稳定版 Core 包由基于 tag 的 [NuGet 发布 workflow](.github/workflows/nuget-release.yml) 发布；它只在发布时读取 Actions Secret `NUGET_API_KEY`。
+
 | 包 | 版本 | NuGet.org | 用途 |
 | --- | --- | --- | --- |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | [包页面](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | Core 托管 HIP Runtime 与 HIPRTC API |

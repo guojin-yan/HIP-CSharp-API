@@ -103,6 +103,8 @@ The Core package is dependency-free and never installs a GPU driver. Runtime pac
 
 The published Core and Linux Runtime packages are available on NuGet.org. Package versions below are live NuGet.org badges. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
 
+Future stable Core package releases are published by the tag-triggered [NuGet release workflow](.github/workflows/nuget-release.yml), which reads the `NUGET_API_KEY` Actions secret only at publish time.
+
 | Package | Version | NuGet.org | Purpose |
 | --- | --- | --- | --- |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | [Gallery](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | Core managed HIP Runtime and HIPRTC API |

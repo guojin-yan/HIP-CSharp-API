@@ -263,7 +263,19 @@ Radeon Cloud    -> Ubuntu + ROCm       -> Linux ABI / runtime package / GPU gate
 If a PR needs cloud validation, state the exact SHA, target gates, expected duration, and whether a new
 package is required. While waiting for authorization, continue only with locally verifiable work.
 
-## 10. Quick checklist
+## 10. NuGet releases
+
+Stable package publication is handled by [`.github/workflows/nuget-release.yml`](.github/workflows/nuget-release.yml).
+Create and push an annotated `vMAJOR.MINOR.PATCH` tag only after updating `eng/Versions.props` and completing
+the authorized release gates. The workflow checks that the tag, project version, and package version match,
+then runs the Release tests, documentation validation, package audit, and clean consumers before publishing.
+
+The repository must contain an Actions secret named `NUGET_API_KEY` with permission to push
+`JYPPX.ROCm.HIP.CSharp.API`. Never put the key in a workflow file, command committed to the repository,
+issue, log, or package. The workflow verifies that the published package is downloadable and carries a valid
+NuGet.org repository signature.
+
+## 11. Quick checklist
 
 - [ ] I am working in the correct Git root and did not modify or commit `plan/`, `diary/`, or `Radeon_Cloud/`.
 - [ ] I recorded `dotnet --info`, the commit SHA, and working-tree status.

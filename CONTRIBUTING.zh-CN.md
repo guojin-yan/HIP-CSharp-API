@@ -248,7 +248,16 @@ Radeon Cloud    -> Ubuntu + ROCm       -> Linux ABI / runtime package / GPU gate
 如果 PR 需要云端验证，请在描述中写明精确 SHA、目标门禁、预计耗时和是否需要重新打包。等待
 Owner 授权期间，贡献者只应继续完成本地可验证工作，不要自行访问云端。
 
-## 10. 快速检查清单 / Quick checklist
+## 10. NuGet 发布 / NuGet releases
+
+稳定版本发布由 [`.github/workflows/nuget-release.yml`](.github/workflows/nuget-release.yml) 负责。只有在更新
+`eng/Versions.props` 并完成已授权的发布门禁后，才创建并推送 `vMAJOR.MINOR.PATCH` 标注 tag。Action 会检查 tag、
+项目版本和包版本一致，然后执行 Release 测试、文档验证、包审计和干净消费者验证，最后发布 NuGet 包。
+
+仓库 Actions Secret 必须命名为 `NUGET_API_KEY`，且拥有发布 `JYPPX.ROCm.HIP.CSharp.API` 的权限。不要把 Key
+写入 workflow、提交到仓库的命令、Issue、日志或包文件。发布后 Action 会确认包可下载，并验证 NuGet.org 仓库签名。
+
+## 11. 快速检查清单 / Quick checklist
 
 - [ ] 我在正确的 Git 根目录工作，且没有修改或提交 `plan/`、`diary/`、`Radeon_Cloud/`。
 - [ ] 我确认了 `dotnet --info`、commit SHA 和工作树状态。
