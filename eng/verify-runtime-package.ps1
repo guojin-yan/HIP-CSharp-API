@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$PackagePath,
-    [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
+    [string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json",
     [string]$OutputDirectory = "artifacts/runtime-package-audit",
     [switch]$Candidate,
     [string]$ExpectedRepositoryCommit

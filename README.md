@@ -45,18 +45,16 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 
 ## 📢 Current Status: Published Preview / 0.x Validation
 
-Core `0.10.0` and the optional Linux Runtime `7.2.1` are published on nuget.org. The exact Core package passed the official-host and isolated package-only Linux GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`. Core `0.9.0` remains immutable and unlisted with its known unintended `JYPPX.ROCm.HipSharp` assembly identity; do not adopt it.
+Core `0.10.0` is published on nuget.org. The optional Linux Runtime is now identified as `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64`; it is intentionally blocked from publication until a fresh exact-package audit and GPU validation pass. The exact Core package passed the official-host and isolated package-only Linux GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`.
 
 Core `0.10.0` includes the HIPRTC Program/Linker managed expansion and the updated runnable tutorial and showcase set. The pinned ROCm 7.2.1 runtime retains a documented upstream `hipMemRetainAllocationHandle` reference-counting defect; see the [0.10.0 release notes](docs/releases/0.10.0.md). Windows AMD GPU validation remains mandatory before any future `1.0.0` release; this `0.10.0` work does not satisfy or bypass that condition.
 
 ## 🚀 Get Started In 30 Seconds
 
-Install the published managed Core and choose either a compatible system ROCm installation or the optional published Linux Runtime package:
+Install the published managed Core and use a compatible system ROCm installation while the distribution-specific Runtime replacement is revalidated:
 
 ```powershell
 dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.10.0
-# Optional on Ubuntu 24.04 x64:
-dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
 ```
 
 To run from source, use the .NET 10 SDK selected by `global.json` and a machine with a working AMD driver plus compatible HIP/ROCm user-mode runtime:
@@ -94,34 +92,34 @@ Applications using the managed package must still provide compatible native `amd
 | Package | Contents |
 | --- | --- |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | Managed HIP Runtime and HIPRTC C# API across the declared .NET target frameworks |
-| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | Optional audited ROCm 7.2.1 Linux x64 user-mode runtime closure |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64</code> | Ubuntu 24.04 x64 ROCm 7.2.1 user-mode runtime candidate; publication blocked pending fresh validation |
 | <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | Disabled Windows runtime skeleton with no native inventory; not a usable runtime package |
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
 
 ## 🌐 Public Packages And Release Assets
 
-The published Core and Linux Runtime packages are available on NuGet.org. Package versions below are live NuGet.org badges. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
+The Core package is available on NuGet.org. The Ubuntu 24.04 Runtime package is not yet published. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
 
 Future stable Core package releases are published by the tag-triggered [NuGet release workflow](.github/workflows/nuget-release.yml), which reads the `NUGET_API_KEY` Actions secret only at publish time.
+After exact-package promotion, the Ubuntu 24.04 Runtime is published to NuGet.org and attached with its SHA-256 to GitHub Releases by the dedicated [Runtime release workflow](.github/workflows/runtime-ubuntu-24.04-release.yml).
 
 | Package | Version | NuGet.org | Purpose |
 | --- | --- | --- | --- |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | [Gallery](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | Core managed HIP Runtime and HIPRTC API |
-| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | [Gallery](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | Optional audited Linux x64 ROCm user-mode runtime closure |
 
 | Release channel | Link | Assets |
 | --- | --- | --- |
 | Git tag | [v0.10.0](https://github.com/guojin-yan/HIP-CSharp-API/tree/v0.10.0) | No uploaded release assets |
-| NuGet.org | [Package search](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | Published Core and Linux Runtime packages |
+| NuGet.org | [Package search](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | Published Core package |
 
 ### 🧩 Runtime package matrix
 
-Every Runtime package project is listed below. The Version column uses a live NuGet.org badge when that package is published. The Windows package remains an inventory-empty, disabled static-audit skeleton and has no NuGet.org package.
+Every current Runtime package project is listed below. The Windows package remains an inventory-empty, disabled static-audit skeleton and has no NuGet.org package.
 
 | Package ID | Version | RID | Native baseline | Publication state |
 | --- | --- | --- | --- | --- |
-| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | <code>linux-x64</code> | ROCm 7.2.1 user-mode closure | Published on NuGet.org |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64</code> | `7.2.1` | Package identity: <code>ubuntu.24.04-x64</code>; native asset RID: <code>linux-x64</code> | ROCm 7.2.1 user-mode closure | Not published; exact-package audit/GPU validation required |
 | <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | Not published | <code>win-x64</code> | HIP SDK 7.2.0 skeleton | Disabled; no native inventory |
 
 ## 🧩 API Surface
@@ -147,7 +145,7 @@ The Core project directly targets 15 frameworks:
 
 | Platform | Core build/package | GPU validation | Runtime package |
 | --- | --- | --- | --- |
-| Linux x64 | Yes | Core `0.10.0` + Runtime `7.2.1` passed exact-package official-host and isolated package-only GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` | Published, receipt-verified Runtime `7.2.1`; optional to system ROCm |
+| Ubuntu 24.04 x64 | Yes | Historical generic-ID Runtime `7.2.1` passed exact-package gates; the renamed package requires fresh validation | Use system ROCm; distribution-specific Runtime candidate is not published |
 | Windows x64 | Yes; loader and PE paths are statically audited | Not yet validated on an AMD GPU | Disabled 7.2.0 skeleton |
 
 Several older .NET targets are end-of-support upstream and exist only for package compatibility. The full distinctions between build compatibility, historical validation, and supported deployment are documented in [framework compatibility](docs/compatibility/frameworks.md) and [platform compatibility](docs/compatibility/platforms.md).

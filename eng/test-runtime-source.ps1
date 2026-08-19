@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
+    [string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json",
     [string]$CacheDirectory,
     [string]$GpgPath = "gpg",
     [string]$GpgvPath = "gpgv"

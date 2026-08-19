@@ -17,6 +17,11 @@ public sealed class RepositoryQualityTests
     private const string ExpectedFrameworks = "net46;net461;net462;net47;net471;net472;net48;net481;netcoreapp3.1;net5.0;net6.0;net7.0;net8.0;net9.0;net10.0";
     private static readonly string[] LedgerDispositionStatuses = { "managed-next", "raw-only-reviewed", "deferred-capability" };
     private static readonly string[] LedgerExportStatuses = { "found-historical", "missing-reviewed" };
+    private static readonly string[] RuntimeProjectFiles =
+    {
+        "JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj",
+        "JYPPX.ROCm.HipSharp.Runtime.win-x64.csproj",
+    };
     private static readonly string[] NewRtcEntries =
     {
         "hiprtcAddNameExpression", "hiprtcGetLoweredName", "hiprtcGetBitcodeSize", "hiprtcGetBitcode",
@@ -44,7 +49,7 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
         Assert.AreEqual("0.10.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
-        Assert.AreEqual("7.2.1", versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value);
+        Assert.AreEqual("7.2.1", versions.Descendants("HipSharpUbuntu2404RuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
         Assert.AreEqual("$(VersionPrefix)", props.Descendants("PackageVersion").Single().Value);
@@ -129,12 +134,12 @@ public sealed class RepositoryQualityTests
             .Any(text => text.Contains("JYPPX.ROCm.Native", StringComparison.Ordinal) || text.Contains("JYPPX.ROCm.Common", StringComparison.Ordinal)));
 
         using JsonDocument schema = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests", "runtime-manifest.schema.json")));
-        Assert.AreEqual("^JYPPX\\.ROCm\\.HIP\\.CSharp\\.API\\.Runtime\\.(linux|win)-x64$", schema.RootElement.GetProperty("properties").GetProperty("packageId").GetProperty("pattern").GetString());
-        foreach (string rid in new[] { "linux-x64", "win-x64" })
-        {
-            using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests", $"{rid}.json")));
-            Assert.AreEqual($"JYPPX.ROCm.HIP.CSharp.API.Runtime.{rid}", manifest.RootElement.GetProperty("packageId").GetString());
-        }
+        Assert.AreEqual("^JYPPX\\.ROCm\\.HIP\\.CSharp\\.API\\.Runtime\\.(?:[a-z][a-z0-9-]*\\.[0-9]+(?:\\.[0-9]+)*|win)-x64$", schema.RootElement.GetProperty("properties").GetProperty("packageId").GetProperty("pattern").GetString());
+        using JsonDocument linuxManifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests", "ubuntu.24.04-x64.json")));
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64", linuxManifest.RootElement.GetProperty("packageId").GetString());
+        Assert.AreEqual("linux-x64", linuxManifest.RootElement.GetProperty("rid").GetString());
+        using JsonDocument windowsManifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "nuget", "runtime-manifests", "win-x64.json")));
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64", windowsManifest.RootElement.GetProperty("packageId").GetString());
 
         string generator = File.ReadAllText(Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.BindingGenerator", "Program.cs"));
         string generated = string.Join("\n", Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "Generated"), "*.g.cs").Select(File.ReadAllText));
@@ -385,18 +390,23 @@ public sealed class RepositoryQualityTests
     }
 
     [TestMethod]
-    public void RuntimeManifestsUsePackageFamilyAndRequireForwardFixReceipt()
+    public void RuntimeManifestsUseDistributionSpecificLinuxPackageIdentity()
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
         XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
-        using (JsonDocument linux = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "linux-x64.json"))))
+        using (JsonDocument linux = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.json"))))
         {
             JsonElement root = linux.RootElement;
             Assert.AreEqual(2, root.GetProperty("schemaVersion").GetInt32());
-            Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", root.GetProperty("packageId").GetString());
-            Assert.AreEqual(versions.Descendants("HipSharpLinuxRuntimeVersion").Single().Value, root.GetProperty("packageVersion").GetString());
-            Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
-            Assert.IsTrue(root.GetProperty("verified").GetBoolean());
+            Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64", root.GetProperty("packageId").GetString());
+            Assert.AreEqual(versions.Descendants("HipSharpUbuntu2404RuntimeVersion").Single().Value, root.GetProperty("packageVersion").GetString());
+            Assert.AreEqual("linux-x64", root.GetProperty("rid").GetString());
+            Assert.AreEqual("runtimes/linux-x64/native", root.GetProperty("nativeAssetPath").GetString());
+            Assert.AreEqual("ubuntu", root.GetProperty("distribution").GetProperty("id").GetString());
+            Assert.AreEqual("24.04", root.GetProperty("distribution").GetProperty("version").GetString());
+            Assert.AreEqual("noble", root.GetProperty("distribution").GetProperty("codename").GetString());
+            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
@@ -406,24 +416,13 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
             JsonElement verification = root.GetProperty("verification");
-            Assert.IsTrue(verification.GetProperty("packageAuditVerified").GetBoolean());
-            Assert.IsTrue(verification.GetProperty("gpuValidated").GetBoolean());
-            string validationSha256 = verification.GetProperty("validationSha256").GetString()!;
-            Assert.AreEqual(64, validationSha256.Length);
-            Assert.AreEqual(JsonValueKind.Object, verification.GetProperty("environment").ValueKind);
-            JsonElement promotionReceipt = verification.GetProperty("promotionReceipt");
-            Assert.AreEqual("nuget/runtime-manifests/linux-x64.promotion-receipt.json", promotionReceipt.GetProperty("path").GetString());
-            Assert.AreEqual("eng/promotion/m8.9-forward-fix-promotion-lock.json", promotionReceipt.GetProperty("lockPath").GetString());
-            Assert.AreEqual(validationSha256, promotionReceipt.GetProperty("sha256").GetString());
-            StringAssert.Contains(verification.GetProperty("reason").GetString()!, "M8.9 validated the corrected Core assembly identity");
-        }
-
-        using (JsonDocument receipt = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "linux-x64.promotion-receipt.json"))))
-        {
-            JsonElement root = receipt.RootElement;
-            Assert.AreEqual("m8.9-forward-fix-linux-0.9.1", root.GetProperty("promotionId").GetString());
-            Assert.AreEqual("0.9.1", root.GetProperty("candidatePackages").GetProperty("core").GetProperty("version").GetString());
-            Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", root.GetProperty("candidatePackages").GetProperty("runtime").GetProperty("id").GetString());
+            Assert.IsFalse(verification.GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsFalse(verification.GetProperty("gpuValidated").GetBoolean());
+            Assert.AreEqual(JsonValueKind.Null, verification.GetProperty("validationSha256").ValueKind);
+            Assert.AreEqual(JsonValueKind.Null, verification.GetProperty("environment").ValueKind);
+            Assert.IsFalse(verification.TryGetProperty("promotionReceipt", out _));
+            Assert.AreEqual(0, root.GetProperty("size").GetProperty("packageBytes").GetInt64());
+            StringAssert.Contains(verification.GetProperty("reason").GetString()!, "fresh exact-package size/content audit and GPU validation");
         }
 
         using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
@@ -439,12 +438,18 @@ public sealed class RepositoryQualityTests
 
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "runtime-manifest.schema.json")));
         Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "promotion-receipt.schema.json")));
-        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.promotion-receipt.json")));
-        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.cdx.json")));
-        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.provenance.json")));
-        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.dependency-closure.json")));
-        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.licenses.json")));
-        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "linux-x64.sizes.json")));
+        Assert.IsFalse(File.Exists(Path.Combine(manifestDirectory, "linux-x64.json")));
+        Assert.IsFalse(File.Exists(Path.Combine(manifestDirectory, "linux-x64.promotion-receipt.json")));
+        string[] runtimeProjects = Directory.EnumerateFiles(Path.Combine(RepositoryRoot, "pack"), "*.Runtime.*.csproj")
+            .Select(path => Path.GetFileName(path)!)
+            .OrderBy(name => name, StringComparer.Ordinal)
+            .ToArray();
+        CollectionAssert.AreEquivalent(RuntimeProjectFiles, runtimeProjects);
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.cdx.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.provenance.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.dependency-closure.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.licenses.json")));
+        Assert.IsTrue(File.Exists(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.sizes.json")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "prepare-runtime.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "pack-runtime.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1")));
@@ -455,16 +460,22 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-runtime-source.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "verify-windows-runtime.ps1")));
         Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "test-windows-runtime-skeleton.ps1")));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.packages.lock.json")));
+        string runtimeReleaseWorkflow = File.ReadAllText(Path.Combine(RepositoryRoot, ".github", "workflows", "runtime-ubuntu-24.04-release.yml"));
+        StringAssert.Contains(runtimeReleaseWorkflow, "runtime-ubuntu.24.04-v*.*.*");
+        StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64");
+        StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget push");
+        StringAssert.Contains(runtimeReleaseWorkflow, "gh release");
 
         string attributes = File.ReadAllText(Path.Combine(RepositoryRoot, ".gitattributes"));
         foreach (string metadata in new[]
         {
-            "linux-x64.json",
-            "linux-x64.cdx.json",
-            "linux-x64.dependency-closure.json",
-            "linux-x64.licenses.json",
-            "linux-x64.provenance.json",
-            "linux-x64.sizes.json",
+            "ubuntu.24.04-x64.json",
+            "ubuntu.24.04-x64.cdx.json",
+            "ubuntu.24.04-x64.dependency-closure.json",
+            "ubuntu.24.04-x64.licenses.json",
+            "ubuntu.24.04-x64.provenance.json",
+            "ubuntu.24.04-x64.sizes.json",
         })
         {
             StringAssert.Contains(attributes, $"nuget/runtime-manifests/{metadata} text eol=crlf");
@@ -495,11 +506,12 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationPath");
         StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationSha256");
 
-        XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj"));
-        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64", linuxProject.Descendants("PackageId").Single().Value);
-        Assert.AreEqual("$(HipSharpLinuxRuntimeVersion)", linuxProject.Descendants("PackageVersion").Single().Value);
+        XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj"));
+        Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64", linuxProject.Descendants("PackageId").Single().Value);
+        Assert.AreEqual("$(HipSharpUbuntu2404RuntimeVersion)", linuxProject.Descendants("PackageVersion").Single().Value);
+        Assert.AreEqual("linux-x64", linuxProject.Descendants("RuntimeAssetRid").Single().Value);
 
-        string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj");
+        string runtimeProject = Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj");
         var startInfo = new ProcessStartInfo("dotnet")
         {
             WorkingDirectory = RepositoryRoot,
@@ -509,7 +521,6 @@ public sealed class RepositoryQualityTests
         };
         startInfo.ArgumentList.Add("pack");
         startInfo.ArgumentList.Add(runtimeProject);
-        startInfo.ArgumentList.Add("--no-restore");
         startInfo.ArgumentList.Add("--configuration");
         startInfo.ArgumentList.Add("Release");
 
@@ -818,7 +829,8 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(packageVerifier, "core-0.10.0-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
         string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
-        StringAssert.Contains(pairingGate, "21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799");
+        StringAssert.Contains(pairingGate, "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64");
+        StringAssert.Contains(pairingGate, "RuntimePackagePath is required");
         StringAssert.Contains(pairingGate, "source-mapped-local-target-packages-plus-nuget-framework-packs");
         StringAssert.Contains(pairingGate, "packageSourceMapping");
         StringAssert.Contains(pairingGate, "native assets=14");

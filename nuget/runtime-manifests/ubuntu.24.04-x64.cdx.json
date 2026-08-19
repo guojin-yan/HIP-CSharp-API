@@ -4,14 +4,18 @@
   "version": 1,
   "metadata": {
     "component": {
-      "bom-ref": "pkg:nuget/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64@7.2.1",
+      "bom-ref": "pkg:nuget/JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64@7.2.1",
       "type": "application",
-      "name": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
+      "name": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
       "version": "7.2.1",
       "properties": [
         {
           "name": "hipsharp:rid",
           "value": "linux-x64"
+        },
+        {
+          "name": "hipsharp:distribution",
+          "value": "ubuntu 24.04"
         },
         {
           "name": "hipsharp:rocm",
@@ -480,7 +484,7 @@
   ],
   "dependencies": [
     {
-      "ref": "pkg:nuget/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64@7.2.1",
+      "ref": "pkg:nuget/JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64@7.2.1",
       "dependsOn": [
         "file:runtimes/linux-x64/native/libamd_comgr.so.3",
         "file:runtimes/linux-x64/native/libamd_comgr.so.3.0.0",

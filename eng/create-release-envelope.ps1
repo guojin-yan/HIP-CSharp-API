@@ -5,10 +5,10 @@ param(
     [Parameter(Mandatory = $true)][string]$CoreAudit,
     [Parameter(Mandatory = $true)][string]$RuntimeAudit,
     [Parameter(Mandatory = $true)][string]$PayloadEquivalence,
-    [string]$PromotionReceipt = "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
-    [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
-    [string]$Sbom = "nuget/runtime-manifests/linux-x64.cdx.json",
-    [string]$StagingDirectory = "eng/native-assets/staging/linux-x64",
+    [string]$PromotionReceipt = "nuget/runtime-manifests/ubuntu.24.04-x64.promotion-receipt.json",
+    [string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json",
+    [string]$Sbom = "nuget/runtime-manifests/ubuntu.24.04-x64.cdx.json",
+    [string]$StagingDirectory = "eng/native-assets/staging/ubuntu.24.04-x64",
     [string]$Output = "artifacts/release-envelope/m8.9-linux-0.9.1.json"
 )
 
@@ -61,7 +61,7 @@ $envelope = [ordered]@{
     finalGitCommit = $gitSha
     packages = [ordered]@{
         core = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API"; version = "0.9.1"; size = $coreIdentity.size; sha256 = $coreIdentity.sha256; repositoryCommit = $gitSha }
-        runtime = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64"; version = "7.2.1"; size = $runtimeIdentity.size; sha256 = $runtimeIdentity.sha256; repositoryCommit = $gitSha; mode = "verified-final" }
+        runtime = [ordered]@{ id = "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64"; version = "7.2.1"; size = $runtimeIdentity.size; sha256 = $runtimeIdentity.sha256; repositoryCommit = $gitSha; mode = "verified-final" }
     }
     evidence = [ordered]@{
         promotionReceipt = File-Identity $PromotionReceipt

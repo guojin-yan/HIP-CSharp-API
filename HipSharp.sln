@@ -1,4 +1,4 @@
-﻿
+
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
@@ -17,7 +17,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.Package
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "pack", "pack", "{78453166-59D3-F6E5-1AF7-6BAE5D72A388}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.Runtime.linux-x64", "pack\JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj", "{7513D617-40AF-41A6-A9EE-1209D85203D9}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64", "pack\JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj", "{7513D617-40AF-41A6-A9EE-1209D85203D9}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JYPPX.ROCm.HipSharp.Runtime.win-x64", "pack\JYPPX.ROCm.HipSharp.Runtime.win-x64.csproj", "{5074465D-F319-444A-A90B-F30617838DDE}"
 EndProject

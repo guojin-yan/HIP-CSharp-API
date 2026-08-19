@@ -13,9 +13,8 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 $coreVersion = Get-HipSharpVersion -Kind Core -RepositoryRoot $repositoryRoot
-$runtimeVersion = Get-HipSharpVersion -Kind LinuxRuntime -RepositoryRoot $repositoryRoot
-$runtimeId = "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64"
-$expectedRuntimeSha256 = "21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799"
+$runtimeVersion = Get-HipSharpVersion -Kind Ubuntu2404Runtime -RepositoryRoot $repositoryRoot
+$runtimeId = "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64"
 $resolvedCore = (Resolve-Path -LiteralPath $CorePackagePath).Path
 $artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))
 $testRoot = [System.IO.Path]::GetFullPath((Join-Path $artifactsRoot "core-runtime-pairing"))
@@ -33,15 +32,10 @@ New-Item -ItemType Directory -Force -Path $feed, $packages | Out-Null
 Copy-Item -LiteralPath $resolvedCore -Destination $feed
 
 if ([string]::IsNullOrWhiteSpace($RuntimePackagePath)) {
-    $RuntimePackagePath = Join-Path $feed "$runtimeId.$runtimeVersion.nupkg"
-    $runtimeUrl = "https://api.nuget.org/v3-flatcontainer/$($runtimeId.ToLowerInvariant())/$runtimeVersion/$($runtimeId.ToLowerInvariant()).$runtimeVersion.nupkg"
-    Invoke-WebRequest -Uri $runtimeUrl -OutFile $RuntimePackagePath -UseBasicParsing
+    throw "RuntimePackagePath is required until the Ubuntu 24.04 runtime package has completed exact-package validation and publication."
 }
 $resolvedRuntime = (Resolve-Path -LiteralPath $RuntimePackagePath).Path
 $runtimeHash = (Get-FileHash -LiteralPath $resolvedRuntime -Algorithm SHA256).Hash
-if ($runtimeHash -ne $expectedRuntimeSha256) {
-    throw "Public Runtime package SHA-256 mismatch. Expected $expectedRuntimeSha256; found $runtimeHash."
-}
 $feedFull = [System.IO.Path]::GetFullPath($feed).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 $feedPrefix = $feedFull + [System.IO.Path]::DirectorySeparatorChar
 if (-not $resolvedRuntime.StartsWith($feedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -182,7 +176,7 @@ $report = [ordered]@{
     coreSha256 = (Get-FileHash -LiteralPath $resolvedCore -Algorithm SHA256).Hash
     runtimePackageId = $runtimeId
     runtimeVersion = $runtimeVersion
-    runtimePublicSha256 = $runtimeHash
+    runtimeSha256 = $runtimeHash
     packageSource = "source-mapped-local-target-packages-plus-nuget-framework-packs"
     packageOnly = [ordered]@{ restore = "passed"; build = "passed"; nativeAssetCount = $nativeOutputAudit.Count; nativeAssets = $nativeOutputAudit; execution = "not-run-on-windows" }
     systemNativeCoreOnly = [ordered]@{ restore = "passed"; build = "passed"; nativeAssetCount = $systemNativeFiles.Count; execution = "requires-compatible-system-rocm" }

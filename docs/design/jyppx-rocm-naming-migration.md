@@ -11,7 +11,7 @@ HIP-CSharp-API 继续作为 JYPPX ROCm 产品家族中的独立仓库和独立�
 | Root namespace / 根命名空间 | `JYPPX.HipSharp` | `JYPPX.ROCm.HipSharp` |
 | Core assembly / 核心程序集 | `JYPPX.HipSharp.dll` | `JYPPX.ROCm.HIP.CSharp.API.dll` |
 | Managed NuGet | `JYPPX.HIP.CSharp.API` | `JYPPX.ROCm.HIP.CSharp.API` |
-| Linux runtime NuGet | `JYPPX.HipSharp.Runtime.linux-x64` | `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` |
+| Ubuntu 24.04 runtime NuGet | Retired generic Linux identity | `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` |
 | Windows runtime NuGet | `JYPPX.HipSharp.Runtime.win-x64` | `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` |
 
 The repository name, GitHub URL, `HipSharp.sln`, public HIP namespaces and type/member names, native entry points, logical library names, and pinned HIP 7.2.1 headers do not change. The assembly identity is deliberately aligned with the managed NuGet package ID; it is independent of the `JYPPX.ROCm.HipSharp` root namespace.

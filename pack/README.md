@@ -2,7 +2,9 @@
 
 The Linux project is backed by the schema 2 signed-source manifest, dependency reports, licenses, SBOM, staging allowlist, and strict package audit tooling. Candidate packing requires an exact clean-SHA candidate manifest and attestation; incomplete inputs fail with `HIPSHARP1001`. The Windows project remains an empty disabled skeleton.
 
-Runtime package IDs use the Core package family (`JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` and `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64`). Their NuGet package versions match the packaged ROCm release, such as `7.2.1` or `7.2.0`.
+Linux Runtime package IDs use the Core package family plus a concrete distribution/version/architecture suffix, such as `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64`. Each Linux distribution/version gets its own manifest, package project, validation evidence, and publication gate. Package versions match the packaged ROCm release, such as `7.2.1`. The package ID is distribution-specific, while native assets use NuGet's portable `linux-x64` RID.
+
+After a distribution-specific manifest has been promoted with exact-package evidence, its dedicated release workflow publishes the nupkg to NuGet.org and attaches the same local package plus SHA-256 to GitHub Releases. Ubuntu 24.04 uses the `runtime-ubuntu.24.04-v<version>` annotated tag and `.github/workflows/runtime-ubuntu-24.04-release.yml`.
 
 `eng/prepare-runtime.ps1` stages native assets outside Git under `runtimes/<rid>/native`. `eng/pack-runtime.ps1` invokes the same validator used by direct MSBuild packing; a property cannot bypass it. `-Candidate` requires an ignored clean-SHA attestation and emits an explicitly unverified package. Final mode requires the exact tracked promotion receipt and approved lock, embeds the receipt, and rejects direct `dotnet pack`, partial, forged, or stale evidence with `HIPSHARP1001`. `eng/verify-runtime-package.ps1` audits the candidate/final ZIP allowlist, hashes, RID, licenses, SBOM, receipt, forbidden payload, managed assembly absence, repository commit, package size, and non-publishable authorization boundary.
 

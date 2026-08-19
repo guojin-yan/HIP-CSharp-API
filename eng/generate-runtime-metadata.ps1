@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
+    [string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json",
     [switch]$Check
 )
 
@@ -65,7 +65,11 @@ $sbom = [ordered]@{
     specVersion = "1.5"
     version = 1
     metadata = [ordered]@{
-        component = [ordered]@{ "bom-ref" = $rootRef; type = "application"; name = $runtimeManifest.packageId; version = $runtimeManifest.packageVersion; properties = @([ordered]@{ name = "hipsharp:rid"; value = $runtimeManifest.rid }, [ordered]@{ name = "hipsharp:rocm"; value = $runtimeManifest.rocm }) }
+        component = [ordered]@{ "bom-ref" = $rootRef; type = "application"; name = $runtimeManifest.packageId; version = $runtimeManifest.packageVersion; properties = @(
+            [ordered]@{ name = "hipsharp:rid"; value = $runtimeManifest.rid },
+            [ordered]@{ name = "hipsharp:distribution"; value = "$($runtimeManifest.distribution.id) $($runtimeManifest.distribution.version)" },
+            [ordered]@{ name = "hipsharp:rocm"; value = $runtimeManifest.rocm }
+        ) }
     }
     components = @($packageComponents + $fileComponents)
     dependencies = @($dependencies)
@@ -77,6 +81,7 @@ $provenance = [ordered]@{
     packageId = $runtimeManifest.packageId
     packageVersion = $runtimeManifest.packageVersion
     rid = $runtimeManifest.rid
+    distribution = $runtimeManifest.distribution
     source = $runtimeManifest.source
     packages = @($runtimeManifest.packages | Sort-Object name)
 }

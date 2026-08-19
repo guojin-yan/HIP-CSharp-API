@@ -1,6 +1,6 @@
 [CmdletBinding()]
 param(
-    [Parameter(Mandatory = $true)][ValidateSet("linux-x64", "win-x64")][string]$Rid,
+    [Parameter(Mandatory = $true)][ValidatePattern("^[a-z][a-z0-9-]*\.[0-9]+(?:\.[0-9]+)*-x64$")][string]$Platform,
     [string]$Version,
     [string]$OutputDirectory = "artifacts/runtime-packages",
     [string]$StagingDirectory,
@@ -12,8 +12,6 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
-if ($Rid -ne "linux-x64") { throw "HIPSHARP1001: Windows runtime packaging is disabled." }
-
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
 
@@ -31,8 +29,12 @@ function Assert-TextLineEndings([string]$Path, [ValidateSet("CRLF", "LF")][strin
     }
 }
 
-$Version = Get-HipSharpVersion -Kind LinuxRuntime -Override $Version -RepositoryRoot $repositoryRoot
-$sourceManifestPath = Join-Path $repositoryRoot "nuget/runtime-manifests/$Rid.json"
+$versionKind = switch ($Platform) {
+    "ubuntu.24.04-x64" { "Ubuntu2404Runtime" }
+    default { throw "HIPSHARP1001: Runtime platform '$Platform' has no central version mapping." }
+}
+$Version = Get-HipSharpVersion -Kind $versionKind -Override $Version -RepositoryRoot $repositoryRoot
+$sourceManifestPath = Join-Path $repositoryRoot "nuget/runtime-manifests/$Platform.json"
 $sourceManifestInfo = Get-HipSharpRuntimeManifest $sourceManifestPath
 if ($sourceManifestInfo.Value.packageVersion -ne $Version) { throw "Runtime package version must equal the central and manifest version." }
 $sourceSbomPath = Join-Path (Split-Path -Parent $sourceManifestPath) $sourceManifestInfo.Value.sbom.path
@@ -45,11 +47,11 @@ $gitStatus = @(& git -C $repositoryRoot status --porcelain=v1)
 if ($LASTEXITCODE -ne 0 -or $gitStatus.Count -ne 0) { throw "Runtime packaging requires a clean Git worktree." }
 
 $manifestPath = $sourceManifestPath
-$stagingValue = if ([string]::IsNullOrWhiteSpace($StagingDirectory)) { "eng/native-assets/staging/linux-x64" } else { $StagingDirectory }
+$stagingValue = if ([string]::IsNullOrWhiteSpace($StagingDirectory)) { "eng/native-assets/staging/$Platform" } else { $StagingDirectory }
 if ($Candidate) {
     $candidateDirectory = Join-Path $repositoryRoot "artifacts/runtime-candidate"
     New-Item -ItemType Directory -Force -Path $candidateDirectory | Out-Null
-    $manifestPath = Join-Path $candidateDirectory "linux-x64.json"
+    $manifestPath = Join-Path $candidateDirectory "$Platform.json"
     $candidateManifest = Get-Content -Raw -LiteralPath $sourceManifestPath | ConvertFrom-Json -AsHashtable
     $candidateManifest.packEnabled = $false
     $candidateManifest.verified = $false
@@ -71,7 +73,7 @@ if ($Candidate) {
     $candidateManifest | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $manifestPath -Encoding utf8NoBOM
     Copy-Item -LiteralPath (Join-Path (Split-Path -Parent $sourceManifestPath) $sourceManifestInfo.Value.sbom.path) `
         -Destination (Join-Path $candidateDirectory $sourceManifestInfo.Value.sbom.path) -Force
-    if ([string]::IsNullOrWhiteSpace($StagingDirectory)) { $stagingValue = "eng/native-assets/staging/m8.1-linux-x64-candidate" }
+    if ([string]::IsNullOrWhiteSpace($StagingDirectory)) { $stagingValue = "eng/native-assets/staging/$Platform-candidate" }
 }
 
 $staging = if ([System.IO.Path]::IsPathRooted($stagingValue)) {
@@ -86,7 +88,8 @@ $runtimeManifest = (Get-HipSharpRuntimeManifest $manifestPath).Value
 Assert-HipSharpRuntimeManifest $runtimeManifest -RequirePackable:(-not $Candidate)
 $output = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) { [System.IO.Path]::GetFullPath($OutputDirectory) } else { Join-Path $repositoryRoot $OutputDirectory }
 New-Item -ItemType Directory -Force -Path $output | Out-Null
-$project = Join-Path $repositoryRoot "pack/JYPPX.ROCm.HipSharp.Runtime.linux-x64.csproj"
+$project = Join-Path $repositoryRoot "pack/JYPPX.ROCm.HipSharp.Runtime.$Platform.csproj"
+if (-not (Test-Path -LiteralPath $project -PathType Leaf)) { throw "HIPSHARP1001: Runtime platform project is missing: $project" }
 $package = Join-Path $output "$($runtimeManifest.packageId).$Version.nupkg"
 if (Test-Path -LiteralPath $package -PathType Leaf) { [System.IO.File]::Delete($package) }
 

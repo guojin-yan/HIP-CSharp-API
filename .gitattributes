@@ -18,11 +18,10 @@
 # Exact license bytes carried by the M8.9 validated candidate packages.
 nuget/promotion/m8.9/LICENSE binary
 
-# Promotion-locked runtime metadata was validated and packaged with CRLF bytes.
-# Keep clean checkouts byte-identical on every host; the receipt remains LF.
-nuget/runtime-manifests/linux-x64.json text eol=crlf
-nuget/runtime-manifests/linux-x64.cdx.json text eol=crlf
-nuget/runtime-manifests/linux-x64.dependency-closure.json text eol=crlf
-nuget/runtime-manifests/linux-x64.licenses.json text eol=crlf
-nuget/runtime-manifests/linux-x64.provenance.json text eol=crlf
-nuget/runtime-manifests/linux-x64.sizes.json text eol=crlf
+# Runtime metadata is generated with CRLF bytes; future promotion receipts use LF.
+nuget/runtime-manifests/ubuntu.24.04-x64.json text eol=crlf
+nuget/runtime-manifests/ubuntu.24.04-x64.cdx.json text eol=crlf
+nuget/runtime-manifests/ubuntu.24.04-x64.dependency-closure.json text eol=crlf
+nuget/runtime-manifests/ubuntu.24.04-x64.licenses.json text eol=crlf
+nuget/runtime-manifests/ubuntu.24.04-x64.provenance.json text eol=crlf
+nuget/runtime-manifests/ubuntu.24.04-x64.sizes.json text eol=crlf

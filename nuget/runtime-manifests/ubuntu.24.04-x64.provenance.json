@@ -1,8 +1,13 @@
 {
   "schemaVersion": 1,
-  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
   "packageVersion": "7.2.1",
   "rid": "linux-x64",
+  "distribution": {
+    "id": "ubuntu",
+    "version": "24.04",
+    "codename": "noble"
+  },
   "source": {
     "repositoryUrl": "https://repo.radeon.com/rocm/apt/7.2.1",
     "inReleaseUrl": "https://repo.radeon.com/rocm/apt/7.2.1/dists/noble/InRelease",

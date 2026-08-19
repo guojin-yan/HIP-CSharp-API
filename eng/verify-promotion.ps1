@@ -137,30 +137,18 @@ foreach ($name in @("schemaVersion", "promotionId", "validatedGitCommit", "gener
 Assert-Equal $lock.schemaVersion 1 "promotion lock schemaVersion"
 if ([string]$lock.validatedGitCommit -notmatch '^[0-9a-f]{40}$') { Fail "validatedGitCommit must be a lowercase 40-character SHA." }
 
-if ($lock.ContainsKey("expectations")) {
-    Assert-Equal $lock.promotionId "m8.9-forward-fix-linux-0.9.1" "promotionId"
-    $expectations = $lock.expectations
-    foreach ($name in @(
-        "summaryTopic", "pushed", "corePackageId", "corePackageVersion", "runtimePackageId",
-        "runtimePackageVersion", "candidateMode", "candidateStatus", "coreNuspec", "runtimeNuspec"
-    )) {
-        if (-not $expectations.ContainsKey($name)) { Fail "Promotion expectations are missing '$name'." }
-    }
-} else {
-    Assert-Equal $lock.promotionId "m8.7-to-m8.8-linux-0.9.0" "promotionId"
-    $expectations = [ordered]@{
-        summaryTopic = "m8.7-managed-expansion"
-        pushed = $false
-        corePackageId = "JYPPX.ROCm.HIP.CSharp.API"
-        corePackageVersion = "0.9.0"
-        runtimePackageId = "JYPPX.ROCm.HipSharp.Runtime.linux-x64"
-        runtimePackageVersion = "7.2.1"
-        candidateMode = "isolated-gpu-candidate"
-        candidateStatus = "local-unverified-internal-candidate"
-        coreNuspec = "JYPPX.ROCm.HIP.CSharp.API.nuspec"
-        runtimeNuspec = "JYPPX.ROCm.HipSharp.Runtime.linux-x64.nuspec"
-    }
+if (-not $lock.ContainsKey("expectations")) {
+    Fail "Promotion lock must declare explicit expectations for the distribution-specific package."
 }
+$expectations = $lock.expectations
+foreach ($name in @(
+    "summaryTopic", "pushed", "corePackageId", "corePackageVersion", "runtimePackageId",
+    "runtimePackageVersion", "candidateMode", "candidateStatus", "coreNuspec", "runtimeNuspec"
+)) {
+    if (-not $expectations.ContainsKey($name)) { Fail "Promotion expectations are missing '$name'." }
+}
+Assert-Equal $expectations.runtimePackageId "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64" "Runtime expectation package ID"
+Assert-Equal $expectations.runtimeNuspec "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.nuspec" "Runtime expectation nuspec"
 
 $requiredRoles = @(
     "validationSummary", "gitBundle", "transferManifest", "coreCandidate", "runtimeCandidate",
@@ -341,12 +329,12 @@ Assert-Equal ([string]$transfer.localEvidenceLocks.stagingDigestSha256).ToLowerI
 $coreEntries = Get-ZipEntries $paths.coreCandidate
 $runtimeEntries = Get-ZipEntries $paths.runtimeCandidate
 Assert-Equal $runtimeEntries["runtime-manifest.json"].sha256 $lock.inputs.candidateManifest.sha256 "embedded candidate manifest hash"
-Assert-Equal $runtimeEntries["linux-x64.cdx.json"].sha256 $lock.inputs.sbom.sha256 "embedded SBOM hash"
+Assert-Equal $runtimeEntries["ubuntu.24.04-x64.cdx.json"].sha256 $lock.inputs.sbom.sha256 "embedded SBOM hash"
 $corePayload = Get-EntrySetDigest $coreEntries { param($name) $name -match '^lib/.+\.(dll|xml)$' -or $name -in @('LICENSE', 'logo.jpg') }
 $runtimeNative = Get-EntrySetDigest $runtimeEntries { param($name) $name -match '^runtimes/linux-x64/native/' }
 $runtimeLicenses = Get-EntrySetDigest $runtimeEntries { param($name) $name -match '^licenses/' -or $name -eq 'LICENSE' }
-$runtimeSbom = Get-EntrySetDigest $runtimeEntries { param($name) $name -eq 'linux-x64.cdx.json' }
-$runtimeProtected = Get-EntrySetDigest $runtimeEntries { param($name) $name -match '^runtimes/linux-x64/native/' -or $name -match '^licenses/' -or $name -in @('LICENSE', 'linux-x64.cdx.json', 'logo.jpg') }
+$runtimeSbom = Get-EntrySetDigest $runtimeEntries { param($name) $name -eq 'ubuntu.24.04-x64.cdx.json' }
+$runtimeProtected = Get-EntrySetDigest $runtimeEntries { param($name) $name -match '^runtimes/linux-x64/native/' -or $name -match '^licenses/' -or $name -in @('LICENSE', 'ubuntu.24.04-x64.cdx.json', 'logo.jpg') }
 Assert-Equal $corePayload.sha256 $lock.candidatePayloadDigests.coreManagedLicenseAndLogo "Core candidate payload digest"
 Assert-Equal $runtimeNative.sha256 $lock.candidatePayloadDigests.runtimeNative "Runtime native payload digest"
 Assert-Equal $runtimeLicenses.sha256 $lock.candidatePayloadDigests.runtimeLicenses "Runtime license payload digest"

@@ -1,11 +1,16 @@
 {
   "$schema": "./runtime-manifest.schema.json",
   "schemaVersion": 2,
-  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
   "packageVersion": "7.2.1",
   "rid": "linux-x64",
-  "packEnabled": true,
-  "verified": true,
+  "distribution": {
+    "id": "ubuntu",
+    "version": "24.04",
+    "codename": "noble"
+  },
+  "packEnabled": false,
+  "verified": false,
   "nativeAssetPath": "runtimes/linux-x64/native",
   "rocm": "7.2.1",
   "hip": "7.2.53211",
@@ -452,35 +457,25 @@
   },
   "sbom": {
     "format": "CycloneDX-1.5",
-    "path": "linux-x64.cdx.json",
-    "sha256": "eaa02374b3744ec3177fcfba43be5f947fa81ce2b59bf112b691323cbf835619"
+    "path": "ubuntu.24.04-x64.cdx.json",
+    "sha256": "b926a45ab7e0e7418510451179a9bd7810abaf37d48ccca00e26dbd59d54a734"
   },
   "size": {
     "unpackedBytes": 415070520,
-    "packageBytes": 162891900,
+    "packageBytes": 0,
     "nugetLimitBytes": 262144000,
     "topology": "single-package",
-    "decision": "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
+    "decision": "The Ubuntu 24.04-specific package identity is pending a fresh exact-package size audit. The unchanged HIP, HSA, and COMGR payload remains a single lockstep ROCm 7.2.1 loader closure."
   },
   "verification": {
     "provenanceVerified": true,
     "closureVerified": true,
     "licensesVerified": true,
     "sbomVerified": true,
-    "packageAuditVerified": true,
-    "gpuValidated": true,
-    "validationSha256": "0d40773c26963834f2550c7c24597a46fdfa4238491deb926a1b3d650290f9af",
-    "environment": {
-      "os": "Ubuntu 24.04.4",
-      "architecture": "x86_64",
-      "gpu": "gfx1100",
-      "isolation": "official-host + PRoot package-only"
-    },
-    "reason": "M8.9 validated the corrected Core assembly identity and Runtime package family through fresh official-host and signed Ubuntu Base PRoot package-only gates. The deterministic receipt binds the exact 0.9.1/7.2.1 candidate packages, package audits, symbol and ABI completeness, 1,127 managed comparisons, reliability run, and four fail-closed negatives. Publication remains a separate Owner-authorized action.",
-    "promotionReceipt": {
-      "path": "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
-      "sha256": "0d40773c26963834f2550c7c24597a46fdfa4238491deb926a1b3d650290f9af",
-      "lockPath": "eng/promotion/m8.9-forward-fix-promotion-lock.json"
-    }
+    "packageAuditVerified": false,
+    "gpuValidated": false,
+    "validationSha256": null,
+    "environment": null,
+    "reason": "Ubuntu 24.04 x64-specific Runtime package identity migration. Signed source, dependency closure, licenses, and regenerated SBOM remain verified; a fresh exact-package size/content audit and GPU validation are required before publication."
   }
 }

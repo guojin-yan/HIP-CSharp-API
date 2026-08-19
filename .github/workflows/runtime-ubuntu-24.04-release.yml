@@ -1,0 +1,163 @@
+name: Ubuntu 24.04 Runtime release
+
+on:
+  push:
+    tags:
+      - 'runtime-ubuntu.24.04-v*.*.*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Existing annotated tag, for example runtime-ubuntu.24.04-v7.2.1'
+        required: true
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: runtime-ubuntu-24.04-release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Build, publish, and verify Ubuntu 24.04 Runtime
+    runs-on: ubuntu-24.04
+    environment: runtime-production
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+      RELEASE_INPUT_TAG: ${{ inputs.release_tag }}
+      RELEASE_REF_NAME: ${{ github.ref_name }}
+
+    steps:
+      - name: Checkout exact Runtime release tag
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.release_tag || github.ref }}
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+          cache: true
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Resolve and validate Runtime release identity
+        id: release
+        shell: pwsh
+        run: |
+          $tag = $env:RELEASE_INPUT_TAG
+          if ([string]::IsNullOrWhiteSpace($tag)) { $tag = $env:RELEASE_REF_NAME }
+          if ($tag -notmatch '^runtime-ubuntu\.24\.04-v(?<version>[0-9]+\.[0-9]+\.[0-9]+)$') {
+            throw "Runtime release tag must use runtime-ubuntu.24.04-vMAJOR.MINOR.PATCH; found '$tag'."
+          }
+          $version = $Matches.version
+          $tagType = (git cat-file -t $tag).Trim()
+          if ($LASTEXITCODE -ne 0 -or $tagType -ne 'tag') {
+            throw "Runtime release tag '$tag' must be an existing annotated tag."
+          }
+          $sha = (git rev-parse HEAD).Trim()
+          $tagSha = (git rev-parse "$tag^{commit}").Trim()
+          if ($sha -notmatch '^[0-9a-f]{40}$' -or $tagSha -ne $sha) {
+            throw "Runtime release tag '$tag' does not resolve to the checked-out commit."
+          }
+          if ((git status --porcelain).Trim()) { throw 'The Runtime release checkout is not clean.' }
+
+          $projectVersion = (& dotnet msbuild ./pack/JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj -nologo -getProperty:HipSharpUbuntu2404RuntimeVersion).Trim()
+          if ($LASTEXITCODE -ne 0 -or $projectVersion -ne $version) {
+            throw "Runtime tag version $version does not match HipSharpUbuntu2404RuntimeVersion '$projectVersion'."
+          }
+
+          "tag=$tag" >> $env:GITHUB_OUTPUT
+          "version=$version" >> $env:GITHUB_OUTPUT
+          "sha=$sha" >> $env:GITHUB_OUTPUT
+
+      - name: Run Runtime supply-chain tests
+        shell: pwsh
+        run: |
+          ./eng/test-runtime-supply-chain.ps1
+          dotnet test ./tests/JYPPX.ROCm.HipSharp.ProjectQuality.Tests/JYPPX.ROCm.HipSharp.ProjectQuality.Tests.csproj --configuration Release
+
+      - name: Restore Runtime pack project
+        shell: pwsh
+        run: dotnet restore ./pack/JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj --locked-mode
+
+      - name: Build exact verified Runtime package
+        id: package
+        shell: pwsh
+        run: |
+          $package = ./eng/pack-runtime.ps1 -Platform ubuntu.24.04-x64 -Version '${{ steps.release.outputs.version }}'
+          $package = (Resolve-Path -LiteralPath $package).Path
+          $expectedName = 'JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.${{ steps.release.outputs.version }}.nupkg'
+          if ([System.IO.Path]::GetFileName($package) -cne $expectedName) { throw "Unexpected Runtime package: $package" }
+          $sha256 = (Get-FileHash -LiteralPath $package -Algorithm SHA256).Hash.ToLowerInvariant()
+          $hashFile = "$package.sha256"
+          [System.IO.File]::WriteAllText($hashFile, "$sha256  $expectedName`n", [System.Text.UTF8Encoding]::new($false))
+          "path=$package" >> $env:GITHUB_OUTPUT
+          "hash_file=$hashFile" >> $env:GITHUB_OUTPUT
+          "sha256=$sha256" >> $env:GITHUB_OUTPUT
+
+      - name: Confirm NuGet credential
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'The NUGET_API_KEY repository secret is missing.' }
+
+      - name: Publish Runtime package to NuGet.org
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          dotnet nuget push '${{ steps.package.outputs.path }}' --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --timeout 600
+          if ($LASTEXITCODE -ne 0) { throw "NuGet push failed with exit code $LASTEXITCODE." }
+
+      - name: Verify NuGet.org package and repository signature
+        shell: pwsh
+        run: |
+          $id = 'jyppx.rocm.hip.csharp.api.runtime.ubuntu.24.04-x64'
+          $version = '${{ steps.release.outputs.version }}'
+          $uri = "https://api.nuget.org/v3-flatcontainer/$id/$version/$id.$version.nupkg"
+          $download = Join-Path $env:RUNNER_TEMP "$id.$version.nupkg"
+          for ($attempt = 1; $attempt -le 30; $attempt++) {
+            try {
+              Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 $uri -OutFile $download
+              break
+            }
+            catch {
+              if ($attempt -eq 30) { throw }
+              Start-Sleep -Seconds 10
+            }
+          }
+          dotnet nuget verify $download --all
+          if ($LASTEXITCODE -ne 0) { throw "Published Runtime signature verification failed with exit code $LASTEXITCODE." }
+          ./eng/verify-runtime-package.ps1 -PackagePath $download
+
+      - name: Publish GitHub Release asset
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = '${{ steps.release.outputs.tag }}'
+          $title = 'Ubuntu 24.04 Runtime ${{ steps.release.outputs.version }}'
+          gh release view $tag *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload $tag '${{ steps.package.outputs.path }}' '${{ steps.package.outputs.hash_file }}'
+          }
+          else {
+            gh release create $tag '${{ steps.package.outputs.path }}' '${{ steps.package.outputs.hash_file }}' --verify-tag --title $title --notes "ROCm 7.2.1 Runtime package for Ubuntu 24.04 x64. NuGet package ID: JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64."
+          }
+          if ($LASTEXITCODE -ne 0) { throw "GitHub Release publication failed with exit code $LASTEXITCODE." }
+
+      - name: Upload Runtime release evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-ubuntu-24.04-release-${{ steps.release.outputs.version || 'unknown' }}
+          if-no-files-found: warn
+          path: |
+            artifacts/runtime-packages/*.nupkg
+            artifacts/runtime-packages/*.sha256
+            artifacts/runtime-final/**
+            artifacts/package-audit/**

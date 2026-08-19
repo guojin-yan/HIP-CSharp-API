@@ -1,0 +1,10 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <PackageId>JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64</PackageId>
+    <PackageVersion>$(HipSharpUbuntu2404RuntimeVersion)</PackageVersion>
+    <RuntimeAssetRid>linux-x64</RuntimeAssetRid>
+    <RuntimeSbomFileName>ubuntu.24.04-x64.cdx.json</RuntimeSbomFileName>
+    <RuntimeManifestPath>..\nuget\runtime-manifests\ubuntu.24.04-x64.json</RuntimeManifestPath>
+    <RuntimeStagingPath Condition="'$(RuntimeStagingPath)' == ''">..\eng\native-assets\staging\ubuntu.24.04-x64</RuntimeStagingPath>
+  </PropertyGroup>
+</Project>

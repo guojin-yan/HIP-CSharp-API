@@ -4,7 +4,7 @@ param(
     [Parameter(Mandatory = $true)][string]$FinalCore,
     [Parameter(Mandatory = $true)][string]$CandidateRuntime,
     [Parameter(Mandatory = $true)][string]$FinalRuntime,
-    [string]$Receipt = "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
+    [string]$Receipt = "nuget/runtime-manifests/ubuntu.24.04-x64.promotion-receipt.json",
     [string]$Output = "artifacts/release-envelope/payload-equivalence.json"
 )
 

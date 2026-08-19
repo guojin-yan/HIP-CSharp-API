@@ -62,7 +62,7 @@ function Assert-HipSharpRuntimeManifest {
     }
 
     if ($Manifest.schemaVersion -ne 2) { throw "Runtime manifest schemaVersion must be 2." }
-    if ($Manifest.packageId -notmatch "^JYPPX\.ROCm\.HIP\.CSharp\.API\.Runtime\.(linux|win)-x64$") { throw "Runtime packageId is invalid." }
+    if ($Manifest.packageId -notmatch "^JYPPX\.ROCm\.HIP\.CSharp\.API\.Runtime\.(?:[a-z][a-z0-9-]*\.[0-9]+(?:\.[0-9]+)*|win)-x64$") { throw "Runtime packageId must identify a concrete Linux distribution/version or win-x64." }
     if ([string]::IsNullOrWhiteSpace($Manifest.packageVersion)) { throw "Runtime packageVersion is required." }
     if ($Manifest.nativeAssetPath -ne "runtimes/$($Manifest.rid)/native") { throw "nativeAssetPath must match the package RID." }
     ConvertTo-HipSharpRelativePath $Manifest.nativeAssetPath | Out-Null
@@ -72,7 +72,18 @@ function Assert-HipSharpRuntimeManifest {
         if ($RequirePackable) { throw "HIPSHARP1001: Windows runtime packaging remains disabled because the M6 static skeleton has no audited SDK inventory or GPU evidence." }
         return
     }
-    if ($Manifest.rid -ne "linux-x64") { throw "Only linux-x64 and win-x64 manifests are supported." }
+    if ($Manifest.rid -ne "linux-x64") { throw "Only linux-x64 native assets and the win-x64 skeleton are supported." }
+    if (-not $Manifest.ContainsKey("distribution")) { throw "Linux runtime manifests must declare a distribution name and version." }
+    foreach ($name in @("id", "version")) {
+        if (-not $Manifest.distribution.ContainsKey($name) -or [string]::IsNullOrWhiteSpace($Manifest.distribution[$name])) { throw "distribution.$name is required." }
+    }
+    $distributionId = [string]$Manifest.distribution.id
+    $distributionVersion = [string]$Manifest.distribution.version
+    if ($distributionId -notmatch "^[a-z][a-z0-9-]*$" -or $distributionVersion -notmatch "^[0-9]+(?:\.[0-9]+)*$") {
+        throw "Linux distribution identity is invalid."
+    }
+    $expectedPackageId = "JYPPX.ROCm.HIP.CSharp.API.Runtime.$distributionId.$distributionVersion-x64"
+    if ($Manifest.packageId -ne $expectedPackageId) { throw "Runtime packageId must match its Linux distribution identity: $expectedPackageId" }
 
     $source = $Manifest.source
     foreach ($name in @("repositoryUrl", "inReleaseUrl", "packagesIndexUrl", "signingKeyUrl", "signingKeyFingerprint", "signingKeySha256", "inReleaseSha256", "packagesIndexSha256")) {

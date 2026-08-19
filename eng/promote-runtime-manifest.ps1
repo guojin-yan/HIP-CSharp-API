@@ -1,8 +1,9 @@
 [CmdletBinding()]
 param(
-    [string]$LockFile = "eng/promotion/m8.9-forward-fix-promotion-lock.json",
-    [string]$Manifest = "nuget/runtime-manifests/linux-x64.json",
-    [string]$Receipt = "nuget/runtime-manifests/linux-x64.promotion-receipt.json",
+    [Parameter(Mandatory = $true)]
+    [string]$LockFile,
+    [string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json",
+    [string]$Receipt = "nuget/runtime-manifests/ubuntu.24.04-x64.promotion-receipt.json",
     [switch]$Check
 )
 

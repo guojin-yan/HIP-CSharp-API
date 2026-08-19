@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$Manifest = "nuget/runtime-manifests/linux-x64.json")
+param([string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json")
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -10,6 +10,19 @@ $manifestPath = if ([System.IO.Path]::IsPathRooted($Manifest)) { $Manifest } els
 
 function New-ManifestCopy {
     return (Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable)
+}
+
+function New-PackableManifestCopy {
+    $candidate = New-ManifestCopy
+    $candidate.packEnabled = $true
+    $candidate.verified = $true
+    $candidate.verification.packageAuditVerified = $true
+    $candidate.verification.gpuValidated = $true
+    $candidate.verification.validationSha256 = ("11" * 32)
+    $candidate.verification.environment = @{ os = "Ubuntu 24.04.4"; architecture = "x86_64"; gpu = "gfx1100"; isolation = "test-fixture" }
+    $candidate.verification.promotionReceipt = @{ path = "nuget/runtime-manifests/ubuntu.24.04-x64.promotion-receipt.json"; sha256 = ("11" * 32); lockPath = "eng/promotion/ubuntu.24.04-x64-promotion-lock.json" }
+    $candidate.size.packageBytes = 1
+    return $candidate
 }
 
 function Assert-Rejected([string]$name, [scriptblock]$mutation) {
@@ -25,13 +38,7 @@ function Assert-Rejected([string]$name, [scriptblock]$mutation) {
 }
 
 function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
-    $candidate = New-ManifestCopy
-    $candidate.packEnabled = $true
-    $candidate.verified = $true
-    $candidate.verification.packageAuditVerified = $true
-    $candidate.verification.gpuValidated = $true
-    $candidate.verification.validationSha256 = ("11" * 32)
-    $candidate.verification.promotionReceipt = [ordered]@{ path = "nuget/runtime-manifests/linux-x64.promotion-receipt.json"; sha256 = ("22" * 32); lockPath = "eng/promotion/m8.9-forward-fix-promotion-lock.json" }
+    $candidate = New-PackableManifestCopy
     & $mutation $candidate
     try {
         Assert-HipSharpRuntimeManifest $candidate -RequirePackable
@@ -44,16 +51,20 @@ function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
 
 $baseline = New-ManifestCopy
 Assert-HipSharpRuntimeManifest $baseline
-Assert-HipSharpRuntimeManifest $baseline -RequirePackable
-if (-not $baseline.packEnabled -or -not $baseline.verified -or
-    -not $baseline.verification.packageAuditVerified -or -not $baseline.verification.gpuValidated) {
-    throw "The current Runtime manifest must retain all receipt-backed promotion flags."
+try {
+    Assert-HipSharpRuntimeManifest $baseline -RequirePackable
+    throw "The distribution-specific Runtime manifest unexpectedly passed the final publication guard."
+} catch {
+    if ($_.Exception.Message -eq "The distribution-specific Runtime manifest unexpectedly passed the final publication guard.") { throw }
 }
-Write-Host "Forward-fix Runtime manifest is receipt-backed and packable."
+$packableFixture = New-PackableManifestCopy
+Assert-HipSharpRuntimeManifest $packableFixture -RequirePackable
+Write-Host "Distribution-specific Runtime manifest is structurally valid and intentionally pending exact-package promotion."
 & (Join-Path $PSScriptRoot "generate-runtime-metadata.ps1") -Manifest $manifestPath -Check
 
 Assert-Rejected "wrong architecture" { param($m) $m.packages[0].architecture = "arm64" }
 Assert-Rejected "staging path escape" { param($m) $m.files[0].path = "../libamd_comgr.so.3" }
+Assert-Rejected "distribution/package mismatch" { param($m) $m.distribution.version = "22.04" }
 Assert-Rejected "forbidden header" { param($m) $m.files[0].path = "runtimes/linux-x64/native/hip_runtime.h" }
 Assert-Rejected "invalid file hash" { param($m) $m.files[0].sha256 = "00" }
 Assert-Rejected "missing ELF dependency" { param($m) $m.files[0].needed += "libundeclared.so.1" }

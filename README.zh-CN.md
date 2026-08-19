@@ -45,18 +45,16 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 
 ## 📢 当前状态：已发布预览版 / 0.x 验证
 
-Core `0.10.0` 与可选 Linux Runtime `7.2.1` 已在 nuget.org 公开。精确的 Core 包已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过官方宿主和隔离 package-only Linux GPU/ABI 门禁。Core `0.9.0` 因错误的 `JYPPX.ROCm.HipSharp` 程序集 identity 保持不可变且已 unlist，请勿采用。
+Core `0.10.0` 已在 nuget.org 公开。可选 Linux Runtime 现在使用 `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64`；在重新完成精确包审计和 GPU 验证前，该包保持禁止发布。精确的 Core 包已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过官方宿主和隔离 package-only Linux GPU/ABI 门禁。
 
 Core `0.10.0` 包含 HIPRTC Program/Linker 托管扩展，以及更新后的可运行教程与综合案例。固定 ROCm 7.2.1 runtime 仍有已记录的上游 `hipMemRetainAllocationHandle` 引用计数缺陷，详见 [0.10.0 发布说明](docs/releases/0.10.0.md)。未来任何 `1.0.0` 仍必须满足 Windows AMD GPU 实机验证；本次 `0.10.0` 工作不能替代或绕过该条件。
 
 ## 🚀 30 秒开始
 
-安装已公开的托管 Core，并选择兼容的 system ROCm 或可选的 Linux Runtime 包：
+安装已公开的托管 Core；发行版专用 Runtime 重新验证期间，请使用兼容的 system ROCm：
 
 ```powershell
 dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.10.0
-# Ubuntu 24.04 x64 可选：
-dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64 --version 7.2.1
 ```
 
 从源码运行时，需要 `global.json` 指定的 .NET 10 SDK，以及已正确安装 AMD 驱动和兼容 HIP/ROCm 用户态运行时的机器：
@@ -94,34 +92,34 @@ foreach (HipDevice device in runtime.GetDevices())
 | 包 | 内容 |
 | --- | --- |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | 面向已声明 .NET 目标框架的托管 HIP Runtime 与 HIPRTC C# API |
-| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | 可选的、已审计的 ROCm 7.2.1 Linux x64 用户态运行时闭包 |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64</code> | Ubuntu 24.04 x64 ROCm 7.2.1 用户态 Runtime 候选；重新验证前禁止发布 |
 | <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | 已禁用的 Windows 运行时骨架，不含原生 inventory，不是可用运行时包 |
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。
 
 ## 🌐 公开包与 Release 资产
 
-已发布的 Core 与 Linux Runtime 包位于 NuGet.org，下表版本使用实时 NuGet.org 徽章。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。
+Core 包已位于 NuGet.org；Ubuntu 24.04 Runtime 包尚未发布。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。
 
 后续稳定版 Core 包由基于 tag 的 [NuGet 发布 workflow](.github/workflows/nuget-release.yml) 发布；它只在发布时读取 Actions Secret `NUGET_API_KEY`。
+Ubuntu 24.04 Runtime 完成精确包晋级后，由专用的 [Runtime 发布 workflow](.github/workflows/runtime-ubuntu-24.04-release.yml) 发布到 NuGet.org，并把 nupkg 与 SHA-256 同步附加到 GitHub Release。
 
 | 包 | 版本 | NuGet.org | 用途 |
 | --- | --- | --- | --- |
 | <code>JYPPX.ROCm.HIP.CSharp.API</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | [包页面](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API/) | Core 托管 HIP Runtime 与 HIPRTC API |
-| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | [包页面](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | 可选的、已审计的 Linux x64 ROCm 用户态运行时闭包 |
 
 | 发布渠道 | 链接 | 资产 |
 | --- | --- | --- |
 | Git tag | [v0.10.0](https://github.com/guojin-yan/HIP-CSharp-API/tree/v0.10.0) | 未上传 Release 资产 |
-| NuGet.org | [包搜索](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | 已发布的 Core 与 Linux Runtime 包 |
+| NuGet.org | [包搜索](https://www.nuget.org/packages?q=JYPPX.ROCm.HIP.CSharp.API) | 已发布的 Core 包 |
 
 ### 🧩 Runtime 包矩阵
 
-下表列出全部 Runtime 包项目。已发布包的版本列使用实时 NuGet.org 徽章；Windows 包保持无原生 inventory 的已禁用静态审计骨架，NuGet.org 上不存在该包。
+下表列出当前全部 Runtime 包项目。Windows 包保持无原生 inventory 的已禁用静态审计骨架，NuGet.org 上不存在该包。
 
 | 包 ID | 版本 | RID | 原生基线 | 发布状态 |
 | --- | --- | --- | --- | --- |
-| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64</code> | [![version](https://img.shields.io/nuget/v/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64.svg?label=version)](https://www.nuget.org/packages/JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64/) | <code>linux-x64</code> | ROCm 7.2.1 用户态闭包 | 已发布到 NuGet.org |
+| <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64</code> | `7.2.1` | 包身份：<code>ubuntu.24.04-x64</code>；原生资产 RID：<code>linux-x64</code> | ROCm 7.2.1 用户态闭包 | 未发布；需要重新完成精确包审计和 GPU 验证 |
 | <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | 未发布 | <code>win-x64</code> | HIP SDK 7.2.0 骨架 | 已禁用；无原生 inventory |
 
 ## 🧩 API 范围
@@ -147,7 +145,7 @@ Core 项目直接面向 15 个目标框架：
 
 | 平台 | Core 构建/打包 | GPU 验证 | Runtime 包 |
 | --- | --- | --- | --- |
-| Linux x64 | 是 | Core `0.10.0` + Runtime `7.2.1` 已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过 exact-package 官方宿主和隔离 package-only GPU/ABI 门禁 | 已公开且 receipt-verified 的 Runtime `7.2.1`；也可选择 system ROCm |
+| Ubuntu 24.04 x64 | 是 | 历史通用 ID Runtime `7.2.1` 已通过精确包门禁；重命名后的包必须重新验证 | 使用 system ROCm；发行版专用 Runtime 候选尚未发布 |
 | Windows x64 | 是；loader 与 PE 路径已静态审计 | 尚未在 AMD GPU 上验证 | 已禁用的 7.2.0 骨架 |
 
 部分旧 .NET 目标已结束上游支持，本项目仅将其作为包兼容目标保留。构建兼容、历史验证与正式支持之间的完整区别见[框架兼容性](docs/compatibility/frameworks.md)和[平台兼容性](docs/compatibility/platforms.md)。

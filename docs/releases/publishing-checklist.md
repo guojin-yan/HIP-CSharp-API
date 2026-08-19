@@ -15,7 +15,7 @@ This checklist is a handoff only. It never authorizes push, tag creation, NuGet 
 
 - Require a clean detached checkout at the exact 40-character candidate SHA and no source/package/protected-entry drift since validation.
 - Recompute Core `1.0.0` nupkg size/SHA-256, normalized content digest, API snapshot hash, assembly/XML hashes for all 15 TFMs, nuspec `RepositoryCommit`, package entry manifest and attestation; require exact equality with the reviewed envelope.
-- Lock public Runtime `JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64` `7.2.1` to public SHA-256 `21D0A2E511964923DE4BE2C7F1BF02CE19E9ABD9E9BF535CB915C7D7C81B5799`; do not repack or republish it.
+- Require an exact `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` candidate SHA-256 and a matching promotion receipt; do not substitute evidence from another package identity.
 - Confirm both system-native Core-only and package-only Core + Runtime modes were tested without source `bin`, staging, private cache or accidental `/opt/rocm` fallback.
 - Require fresh exact-candidate loader/maps, owner symbols `91/91 + 9/9`, complete symbols `458/459 + 18/18`, schema-7 ABI, 1,127 comparisons, bounded reliability, and missing/tampered/mixed/wrong-package negatives.
 - Record P2P as pass only with capability evidence; otherwise keep the honest skip. Do not add a performance claim.

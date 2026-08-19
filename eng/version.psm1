@@ -4,7 +4,7 @@ function Get-HipSharpVersion {
     [CmdletBinding()]
     param(
         [Parameter(Mandatory = $true)]
-        [ValidateSet("Core", "LinuxRuntime", "WindowsRuntime")]
+        [ValidateSet("Core", "Ubuntu2404Runtime", "WindowsRuntime")]
         [string]$Kind,
         [string]$Override,
         [string]$RepositoryRoot = (Split-Path -Parent $PSScriptRoot)

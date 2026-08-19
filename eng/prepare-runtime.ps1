@@ -2,7 +2,7 @@
 param(
     [Parameter(Mandatory = $true)][string]$Manifest,
     [string]$CacheDirectory,
-    [string]$StagingDirectory = "eng/native-assets/staging/linux-x64",
+    [string]$StagingDirectory = "eng/native-assets/staging/ubuntu.24.04-x64",
     [switch]$Offline,
     [switch]$VerifyOnly,
     [string]$GpgPath = "gpg",
@@ -17,8 +17,8 @@ Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
 $manifestInfo = Get-HipSharpRuntimeManifest $Manifest
 $runtimeManifest = $manifestInfo.Value
 Assert-HipSharpRuntimeManifest $runtimeManifest
-if ($runtimeManifest.rid -ne "linux-x64") { throw "prepare-runtime.ps1 only prepares linux-x64." }
-if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = "eng/native-assets/cache/rocm-$($runtimeManifest.packageVersion)-noble" }
+if ($runtimeManifest.rid -ne "linux-x64") { throw "prepare-runtime.ps1 only prepares Linux x64 native assets." }
+if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = "eng/native-assets/cache/rocm-$($runtimeManifest.packageVersion)-$($runtimeManifest.distribution.codename)" }
 
 function Resolve-UnderRepository([string]$value) {
     $path = if ([System.IO.Path]::IsPathRooted($value)) { [System.IO.Path]::GetFullPath($value) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $value)) }

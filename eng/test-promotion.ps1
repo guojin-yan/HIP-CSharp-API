@@ -1,5 +1,8 @@
 [CmdletBinding()]
-param([string]$LockFile = "eng/promotion/m8.9-forward-fix-promotion-lock.json")
+param(
+    [Parameter(Mandatory = $true)][string]$LockFile,
+    [Parameter(Mandatory = $true)][string]$ExpectedReceipt
+)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
@@ -56,7 +59,7 @@ function Assert-Rejected([string]$Name, [scriptblock]$Mutation, [switch]$KeepWro
 }
 
 try {
-    & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $lockPath -ExpectedReceipt (Join-Path $repositoryRoot "nuget/runtime-manifests/linux-x64.promotion-receipt.json")
+    & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $lockPath -ExpectedReceipt $ExpectedReceipt
     if ($LASTEXITCODE -ne 0) { throw "Positive promotion fixture failed." }
 
     Assert-Rejected "wrong input hash" { param($s, $l) $s.status = "tampered" } -KeepWrongHash

@@ -1,7 +1,7 @@
 [CmdletBinding()]
 param(
     [Parameter(Mandatory = $true)][string]$Manifest,
-    [string]$StagingDirectory = "eng/native-assets/staging/linux-x64",
+    [string]$StagingDirectory = "eng/native-assets/staging/ubuntu.24.04-x64",
     [switch]$RequirePackable,
     [string]$CandidateAttestation,
     [string]$CandidateAttestationSha256,
@@ -46,11 +46,8 @@ if ($RequirePackable) {
     $expectedReceiptPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $receiptMetadata.path))
     $receiptPath = if ([System.IO.Path]::IsPathRooted($PromotionReceipt)) { [System.IO.Path]::GetFullPath($PromotionReceipt) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $PromotionReceipt)) }
     $expectedLockPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $receiptMetadata.lockPath))
-    $approvedLockPaths = @(
-        [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/m8.7-promotion-lock.json")),
-        [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/m8.9-forward-fix-promotion-lock.json"))
-    )
-    if ($receiptPath -ne $expectedReceiptPath -or $expectedLockPath -notin $approvedLockPaths) {
+    $approvedLockPath = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "eng/promotion/ubuntu.24.04-x64-promotion-lock.json"))
+    if ($receiptPath -ne $expectedReceiptPath -or $expectedLockPath -ne $approvedLockPath) {
         throw "HIPSHARP1001: Final packaging must use a repository-tracked promotion receipt and approved lock."
     }
     if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) { throw "HIPSHARP1001: The tracked promotion receipt is missing." }

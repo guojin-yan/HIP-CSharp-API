@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64",
+  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
   "licenses": [
     {
       "sourcePackage": "comgr-rpath7.2.1",
