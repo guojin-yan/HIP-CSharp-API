@@ -505,6 +505,11 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeTargets, "RuntimePromotionReceiptSha256");
         StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationPath");
         StringAssert.Contains(runtimeTargets, "RuntimeFinalAttestationSha256");
+        XDocument runtimeTargetsDocument = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "Directory.Build.targets"));
+        XElement nativePackItem = runtimeTargetsDocument.Descendants("None")
+            .Single(item => item.Attribute("Include")?.Value.EndsWith("\\native\\*", StringComparison.Ordinal) == true);
+        Assert.AreEqual("runtimes\\$(RuntimeAssetRid)\\native", nativePackItem.Attribute("PackagePath")?.Value,
+            "A trailing separator creates double-slash native paths in Linux-built nupkg archives.");
 
         XDocument linuxProject = XDocument.Load(Path.Combine(RepositoryRoot, "pack", "JYPPX.ROCm.HipSharp.Runtime.ubuntu.24.04-x64.csproj"));
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64", linuxProject.Descendants("PackageId").Single().Value);
