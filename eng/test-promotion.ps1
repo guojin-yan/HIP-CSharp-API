@@ -18,7 +18,7 @@ function Write-Json([object]$Value, [string]$Path) {
     [System.IO.File]::WriteAllText($Path, $json, [System.Text.UTF8Encoding]::new($false))
 }
 
-function Invoke-Verifier([string]$CaseLock) {
+function Invoke-Verifier([string]$CaseLock, [string]$CaseReceipt = "", [switch]$TrackedReceiptOnly) {
     $startInfo = [System.Diagnostics.ProcessStartInfo]::new("pwsh")
     $startInfo.WorkingDirectory = $repositoryRoot
     $startInfo.UseShellExecute = $false
@@ -27,6 +27,11 @@ function Invoke-Verifier([string]$CaseLock) {
     foreach ($argument in @("-NoProfile", "-File", (Join-Path $PSScriptRoot "verify-promotion.ps1"), "-LockFile", $CaseLock)) {
         $startInfo.ArgumentList.Add($argument)
     }
+    if (-not [string]::IsNullOrWhiteSpace($CaseReceipt)) {
+        $startInfo.ArgumentList.Add("-ExpectedReceipt")
+        $startInfo.ArgumentList.Add($CaseReceipt)
+    }
+    if ($TrackedReceiptOnly) { $startInfo.ArgumentList.Add("-TrackedReceiptOnly") }
     $process = [System.Diagnostics.Process]::Start($startInfo)
     try {
         $output = $process.StandardOutput.ReadToEnd() + $process.StandardError.ReadToEnd()
@@ -61,6 +66,36 @@ function Assert-Rejected([string]$Name, [scriptblock]$Mutation, [switch]$KeepWro
 try {
     & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $lockPath -ExpectedReceipt $ExpectedReceipt
     if ($LASTEXITCODE -ne 0) { throw "Positive promotion fixture failed." }
+
+    $trackedLock = Get-Content -Raw -LiteralPath $lockPath | ConvertFrom-Json -AsHashtable
+    foreach ($role in @($trackedLock.inputs.Keys)) {
+        $trackedLock.inputs[$role].path = "artifacts/promotion/missing-ci-fixture/$role.bin"
+    }
+    $trackedLockPath = Join-Path $caseRoot "tracked-receipt-lock.json"
+    Write-Json $trackedLock $trackedLockPath
+    $trackedResult = Invoke-Verifier $trackedLockPath $ExpectedReceipt -TrackedReceiptOnly
+    if ($trackedResult.ExitCode -ne 0) { throw "Tracked receipt unexpectedly required ignored candidate artifacts.`n$($trackedResult.Output)" }
+    Write-Host "Tracked receipt passed with all ignored candidate artifact paths absent."
+
+    $wrongSizeLock = Get-Content -Raw -LiteralPath $trackedLockPath | ConvertFrom-Json -AsHashtable
+    $wrongSizeLock.inputs.runtimeCandidate.size = [int64]$wrongSizeLock.inputs.runtimeCandidate.size + 1
+    $wrongSizeLockPath = Join-Path $caseRoot "tracked-wrong-size-lock.json"
+    Write-Json $wrongSizeLock $wrongSizeLockPath
+    $wrongSizeResult = Invoke-Verifier $wrongSizeLockPath $ExpectedReceipt -TrackedReceiptOnly
+    if ($wrongSizeResult.ExitCode -eq 0 -or $wrongSizeResult.Output -notmatch "HIPSHARP1001") {
+        throw "Tracked receipt accepted a changed Runtime candidate size.`n$($wrongSizeResult.Output)"
+    }
+    Write-Host "Rejected as expected: tracked Runtime candidate size mismatch"
+
+    $unauthorizedReceipt = Get-Content -Raw -LiteralPath $ExpectedReceipt | ConvertFrom-Json -AsHashtable
+    $unauthorizedReceipt.boundaries.releaseAuthorized = $true
+    $unauthorizedReceiptPath = Join-Path $caseRoot "tracked-unauthorized-receipt.json"
+    Write-Json $unauthorizedReceipt $unauthorizedReceiptPath
+    $unauthorizedResult = Invoke-Verifier $trackedLockPath $unauthorizedReceiptPath -TrackedReceiptOnly
+    if ($unauthorizedResult.ExitCode -eq 0 -or $unauthorizedResult.Output -notmatch "HIPSHARP1001") {
+        throw "Tracked receipt accepted a forged release authorization.`n$($unauthorizedResult.Output)"
+    }
+    Write-Host "Rejected as expected: tracked release authorization forgery"
 
     Assert-Rejected "wrong input hash" { param($s, $l) $s.status = "tampered" } -KeepWrongHash
     Assert-Rejected "wrong Git SHA" { param($s, $l) $s.finalGitCommit = ("0" * 40) }

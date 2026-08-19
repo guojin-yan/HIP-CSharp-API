@@ -2,7 +2,8 @@
 param(
     [Parameter(Mandatory = $true)][string]$LockFile,
     [string]$OutputReceipt,
-    [string]$ExpectedReceipt
+    [string]$ExpectedReceipt,
+    [switch]$TrackedReceiptOnly
 )
 
 Set-StrictMode -Version Latest
@@ -23,6 +24,14 @@ function Assert-Equal([object]$actual, [object]$expected, [string]$name) {
 
 function Assert-False([object]$value, [string]$name) {
     if ($value -ne $false) { Fail "$name must be false for the validated candidate." }
+}
+
+function Assert-KeySet([object]$value, [string[]]$expected, [string]$name) {
+    $actualKeys = @($value.Keys | Sort-Object)
+    $expectedKeys = @($expected | Sort-Object)
+    if (($actualKeys -join "`n") -cne ($expectedKeys -join "`n")) {
+        Fail "$name fields mismatch. Expected '$($expectedKeys -join ', ')', actual '$($actualKeys -join ', ')'."
+    }
 }
 
 function Resolve-Input([hashtable]$item, [string]$role) {
@@ -154,6 +163,107 @@ $requiredRoles = @(
     "validationSummary", "gitBundle", "transferManifest", "coreCandidate", "runtimeCandidate",
     "coreAudit", "runtimeAudit", "sourceManifest", "candidateManifest", "sbom", "candidateAttestation"
 )
+
+if ($TrackedReceiptOnly) {
+    if ([string]::IsNullOrWhiteSpace($ExpectedReceipt)) {
+        Fail "Tracked-receipt validation requires ExpectedReceipt."
+    }
+    $expectedPath = if ([System.IO.Path]::IsPathRooted($ExpectedReceipt)) {
+        [System.IO.Path]::GetFullPath($ExpectedReceipt)
+    } else {
+        [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $ExpectedReceipt))
+    }
+    if (-not (Test-Path -LiteralPath $expectedPath -PathType Leaf)) { Fail "Expected promotion receipt is missing." }
+    Assert-NoSensitiveFields $expectedPath "promotionReceipt"
+    $receipt = Read-Json $expectedPath "promotionReceipt"
+    Assert-KeySet $receipt @(
+        "schemaVersion", "promotionId", "validatedGitCommit", "generatorVersion", "inputs",
+        "candidatePackages", "payload", "allowedMetadataPaths", "validationScope", "boundaries"
+    ) "promotion receipt"
+    Assert-Equal $receipt.schemaVersion 1 "promotion receipt schemaVersion"
+    Assert-Equal $receipt.promotionId $lock.promotionId "promotion receipt promotionId"
+    Assert-Equal $receipt.validatedGitCommit $lock.validatedGitCommit "promotion receipt Git SHA"
+    Assert-Equal $receipt.generatorVersion $lock.generatorVersion "promotion receipt generatorVersion"
+
+    foreach ($role in $requiredRoles) {
+        if (-not $lock.inputs.ContainsKey($role)) { Fail "Promotion lock is missing input '$role'." }
+        $item = $lock.inputs[$role]
+        foreach ($name in @("size", "sha256")) {
+            if (-not $item.ContainsKey($name)) { Fail "Promotion lock input '$role' is missing '$name'." }
+        }
+        if ([int64]$item.size -le 0 -or [string]$item.sha256 -notmatch '^[0-9a-f]{64}$') {
+            Fail "Promotion lock input '$role' has an invalid size or SHA-256."
+        }
+        if (-not $item.ContainsKey("path") -or [System.IO.Path]::IsPathRooted([string]$item.path) -or
+            [string]$item.path -match '(^|/)\.\.(/|$)' -or
+            [string]$item.path -notmatch '^(artifacts/promotion/|nuget/runtime-manifests/)') {
+            Fail "Promotion lock input '$role' must use a repository-relative promotion or manifest path."
+        }
+        if (-not $receipt.inputs.ContainsKey($role)) { Fail "Promotion receipt is missing input '$role'." }
+        Assert-KeySet $receipt.inputs[$role] @("size", "sha256") "promotion receipt input $role"
+        Assert-Equal $receipt.inputs[$role].size $item.size "promotion receipt input $role size"
+        Assert-Equal $receipt.inputs[$role].sha256 $item.sha256 "promotion receipt input $role SHA-256"
+    }
+
+    $coreReceipt = $receipt.candidatePackages.core
+    $runtimeReceipt = $receipt.candidatePackages.runtime
+    Assert-Equal $coreReceipt.id $expectations.corePackageId "tracked Core package ID"
+    Assert-Equal $coreReceipt.version $expectations.corePackageVersion "tracked Core package version"
+    Assert-Equal $coreReceipt.size $lock.inputs.coreCandidate.size "tracked Core package size"
+    Assert-Equal $coreReceipt.sha256 $lock.inputs.coreCandidate.sha256 "tracked Core package hash"
+    Assert-Equal $coreReceipt.repositoryCommit $lock.validatedGitCommit "tracked Core package commit"
+    Assert-Equal $runtimeReceipt.id $expectations.runtimePackageId "tracked Runtime package ID"
+    Assert-Equal $runtimeReceipt.version $expectations.runtimePackageVersion "tracked Runtime package version"
+    Assert-Equal $runtimeReceipt.size $lock.inputs.runtimeCandidate.size "tracked Runtime package size"
+    Assert-Equal $runtimeReceipt.sha256 $lock.inputs.runtimeCandidate.sha256 "tracked Runtime package hash"
+    Assert-Equal $runtimeReceipt.repositoryCommit $lock.validatedGitCommit "tracked Runtime package commit"
+
+    $payloadPathCounts = [ordered]@{
+        coreManagedLicenseAndLogo = 32
+        runtimeNative = 14
+        runtimeLicenses = 7
+        runtimeSbom = 1
+        runtimeProtectedPayload = 23
+    }
+    foreach ($name in $payloadPathCounts.Keys) {
+        Assert-Equal $receipt.payload[$name].sha256 $lock.candidatePayloadDigests[$name] "tracked payload $name hash"
+        Assert-Equal $receipt.payload[$name].paths $payloadPathCounts[$name] "tracked payload $name path count"
+    }
+    Assert-Equal $receipt.payload.stagingDigestSha256 $lock.stagingDigestSha256 "tracked staging digest"
+    Assert-Equal (@($receipt.allowedMetadataPaths.core) -join "`n") (@("_rels/.rels", "[Content_Types].xml", $expectations.coreNuspec, "package/services/metadata/core-properties/*.psmdcp", "README.md") -join "`n") "tracked Core metadata allowlist"
+    Assert-Equal (@($receipt.allowedMetadataPaths.runtime) -join "`n") (@("_rels/.rels", "[Content_Types].xml", $expectations.runtimeNuspec, "package/services/metadata/core-properties/*.psmdcp", "README.md", "runtime-manifest.json", "promotion-receipt.json") -join "`n") "tracked Runtime metadata allowlist"
+
+    Assert-Equal $receipt.validationScope.environment.os "Ubuntu 24.04.4" "tracked validation OS"
+    Assert-Equal $receipt.validationScope.environment.architecture "x86_64" "tracked validation architecture"
+    Assert-Equal $receipt.validationScope.environment.gpuArchitecture "gfx1100" "tracked validation GPU"
+    Assert-Equal $receipt.validationScope.environment.isolation "official-host + PRoot package-only" "tracked validation isolation"
+    Assert-Equal $receipt.validationScope.symbols.managedRuntime "91/91" "tracked managed Runtime symbols"
+    Assert-Equal $receipt.validationScope.symbols.managedHiprtc "9/9" "tracked managed HIPRTC symbols"
+    Assert-Equal $receipt.validationScope.symbols.completeRuntime "458/459" "tracked complete Runtime symbols"
+    Assert-Equal (@($receipt.validationScope.symbols.completeRuntimeAllowedMissing) -join "`n") "hipExternalMemoryGetMappedMipmappedArray" "tracked allowed missing Runtime symbol"
+    Assert-Equal $receipt.validationScope.symbols.completeHiprtc "18/18" "tracked complete HIPRTC symbols"
+    Assert-Equal $receipt.validationScope.abiSchema 7 "tracked ABI schema"
+    Assert-Equal $receipt.validationScope.managedExpansion.comparisons 1127 "tracked comparison count"
+    Assert-Equal (@($receipt.validationScope.managedExpansion.stages) -join "`n") (@("m8.2-pitched-memory", "m8.3-memory-pool", "m8.4-explicit-graph", "m8.5-kernel-occupancy", "m8.6-module-globals") -join "`n") "tracked managed stages"
+    Assert-Equal (@($receipt.validationScope.managedExpansion.skippedStages).Count) 0 "tracked skipped stage count"
+    Assert-False $receipt.validationScope.managedExpansion.performanceClaim "tracked managed performanceClaim"
+    Assert-Equal $receipt.validationScope.reliability.status "passed" "tracked reliability status"
+    Assert-Equal $receipt.validationScope.reliability.rounds 10 "tracked reliability rounds"
+    Assert-Equal $receipt.validationScope.reliability.streams 4 "tracked reliability streams"
+    Assert-Equal $receipt.validationScope.reliability.vectorLength 4194304 "tracked reliability vector length"
+    Assert-Equal $receipt.validationScope.reliability.maximumInFlightDeviceBytes 201326592 "tracked reliability maximum device bytes"
+    Assert-Equal $receipt.validationScope.reliability.cpuGpuCompared $true "tracked reliability CPU/GPU comparison"
+    Assert-False $receipt.validationScope.reliability.performanceClaim "tracked reliability performanceClaim"
+    Assert-Equal (@($receipt.validationScope.negatives) -join "`n") (@("missingHsa", "coreOnly", "tamperedPackage", "mixedRuntimeHiprtc") -join "`n") "tracked negative gates"
+    Assert-Equal $receipt.boundaries.p2p "skipped(device-count<2)" "tracked P2P boundary"
+    Assert-Equal $receipt.boundaries.windows "disabled/unverified/static-only" "tracked Windows boundary"
+    Assert-False $receipt.boundaries.performanceClaim "tracked performanceClaim boundary"
+    Assert-False $receipt.boundaries.publishable "tracked publishable boundary"
+    Assert-False $receipt.boundaries.releaseAuthorized "tracked release authorization boundary"
+    Write-Host "Tracked promotion receipt passed without ignored candidate artifacts: $($lock.promotionId)."
+    return
+}
+
 $paths = @{}
 foreach ($role in $requiredRoles) {
     if (-not $lock.inputs.ContainsKey($role)) { Fail "Promotion lock is missing input '$role'." }

@@ -1,0 +1,84 @@
+{
+  "schemaVersion": 1,
+  "promotionId": "ubuntu.24.04-x64-runtime-7.2.1",
+  "validatedGitCommit": "9f7dc5cb00e354e51da711ac52a12a0e7f107339",
+  "generatorVersion": "1.1.0",
+  "expectations": {
+    "summaryTopic": "ubuntu.24.04-runtime-package-identity",
+    "pushed": false,
+    "corePackageId": "JYPPX.ROCm.HIP.CSharp.API",
+    "corePackageVersion": "0.10.0",
+    "runtimePackageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
+    "runtimePackageVersion": "7.2.1",
+    "candidateMode": "isolated-gpu-candidate",
+    "candidateStatus": "local-unverified-internal-candidate",
+    "coreNuspec": "JYPPX.ROCm.HIP.CSharp.API.nuspec",
+    "runtimeNuspec": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.nuspec"
+  },
+  "promotionReason": "The distribution-specific Ubuntu 24.04 Runtime candidate passed a fresh official-host ROCm 7.2.1 ABI/GPU gate and a signed Ubuntu Base 24.04.4 PRoot package-only gate. The deterministic receipt binds the exact Core 0.10.0 and Runtime 7.2.1 candidates, package audits, 91/91 managed Runtime and 18/18 HIPRTC symbols, schema-7 ABI, 1,127 managed comparisons, the bounded reliability run, and four fail-closed isolated negatives. Publication remains a separate release action.",
+  "inputs": {
+    "validationSummary": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/validation-summary.json",
+      "size": 2784,
+      "sha256": "f2c016cf384cf6c626c68fed7ce53449b1189fc6daed98f7b0f720623dd56b9e"
+    },
+    "gitBundle": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/hipsharp-9f7dc5c.bundle",
+      "size": 2223349,
+      "sha256": "82d29955d98ff5f9707855f2796c39642aee304b9ed75906f380435dfc287528"
+    },
+    "transferManifest": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/transfer-manifest.json",
+      "size": 1894,
+      "sha256": "d869a2eb940b193a3ffd64ee4e96f54824549482652890fd322b1018ab2f58ed"
+    },
+    "coreCandidate": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/JYPPX.ROCm.HIP.CSharp.API.0.10.0.nupkg",
+      "size": 2978342,
+      "sha256": "367fb7b90ef040e2f4f7f247ed67a5c835d1799430a2f6ac36c6c56222335aa1"
+    },
+    "runtimeCandidate": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.7.2.1.nupkg",
+      "size": 162892118,
+      "sha256": "38b85372ab99c050409b4dd9203f446313fb608e615ed2db51b2e75dada6fac0"
+    },
+    "coreAudit": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/core-package-audit.json",
+      "size": 3001,
+      "sha256": "1417957bfb590fc8493b07370c6ff2301e76b9cf38763e89165d582de7e8c5df"
+    },
+    "runtimeAudit": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/runtime-package-audit.json",
+      "size": 973,
+      "sha256": "caec6c71a8477772589249d26119bf4b791d1b284242c0db6387742d83820793"
+    },
+    "sourceManifest": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/source-ubuntu.24.04-x64.json",
+      "size": 18371,
+      "sha256": "2057addf81b4d9fe0db7e577c000a4f2207792e197599bed3fa90a7b55da1703"
+    },
+    "candidateManifest": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/candidate-ubuntu.24.04-x64.json",
+      "size": 18152,
+      "sha256": "0c2ae611a372d7a9937985ca8c598379071d0581a4f691937678ade1e418149d"
+    },
+    "sbom": {
+      "path": "nuget/runtime-manifests/ubuntu.24.04-x64.cdx.json",
+      "size": 17595,
+      "sha256": "b926a45ab7e0e7418510451179a9bd7810abaf37d48ccca00e26dbd59d54a734"
+    },
+    "candidateAttestation": {
+      "path": "artifacts/promotion/ubuntu.24.04-9f7dc5c-candidate/candidate-attestation.json",
+      "size": 647,
+      "sha256": "6b8adf153feea263396bc271900c6086fb87ba9a5451f155e6c9fb577f0ab9c2"
+    }
+  },
+  "stagingDigestSha256": "c84f6160b16685ab60d1c98aea33b291a4ab39e66323322a4cc8bcf3fda66835",
+  "candidatePayloadDigests": {
+    "coreManagedLicenseAndLogo": "d0bdb97205b4ea23a31ed2f6f931e7f2a4372f40a6bc688b3ef25027454fcc4f",
+    "runtimeNative": "e6ba2a789edb9bc4a6c1655d0d76733471443156ff7d2628e8e45f5d3f00a478",
+    "runtimeLicenses": "0fe536a1ecda77e19b0a5e03641f438253371762d19a0facc8fe8c82c380055e",
+    "runtimeSbom": "8634fc3e0e833173461ef851dd1eff35cecadfbffc87f497526252ca4d03a587",
+    "runtimeProtectedPayload": "f929bc8a0d5cd74cdc60ef292d6c7b654c9e697384394f138d77db088d60356d"
+  }
+}

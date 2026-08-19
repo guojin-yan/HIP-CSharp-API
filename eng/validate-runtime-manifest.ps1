@@ -58,8 +58,7 @@ if ($RequirePackable) {
         $actualReceiptHash -ne $runtimeManifest.verification.validationSha256) {
         throw "HIPSHARP1001: Promotion receipt hash mismatch."
     }
-    & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $expectedLockPath -ExpectedReceipt $receiptPath
-    if ($LASTEXITCODE -ne 0) { throw "HIPSHARP1001: Promotion receipt evidence validation failed." }
+    & (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $expectedLockPath -ExpectedReceipt $receiptPath -TrackedReceiptOnly
 
     if ($SkipStaging) { throw "HIPSHARP1001: Final-pack attestation validation cannot skip staging." }
     $artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))

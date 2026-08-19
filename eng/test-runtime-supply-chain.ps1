@@ -51,15 +51,13 @@ function Assert-RejectedPackable([string]$testName, [scriptblock]$mutation) {
 
 $baseline = New-ManifestCopy
 Assert-HipSharpRuntimeManifest $baseline
-try {
-    Assert-HipSharpRuntimeManifest $baseline -RequirePackable
-    throw "The distribution-specific Runtime manifest unexpectedly passed the final publication guard."
-} catch {
-    if ($_.Exception.Message -eq "The distribution-specific Runtime manifest unexpectedly passed the final publication guard.") { throw }
-}
+Assert-HipSharpRuntimeManifest $baseline -RequirePackable
+$promotionReceiptPath = Join-Path $repositoryRoot $baseline.verification.promotionReceipt.path
+$promotionLockPath = Join-Path $repositoryRoot $baseline.verification.promotionReceipt.lockPath
+& (Join-Path $PSScriptRoot "promote-runtime-manifest.ps1") -LockFile $promotionLockPath -Manifest $manifestPath -Receipt $promotionReceiptPath -Check -TrackedReceiptOnly
 $packableFixture = New-PackableManifestCopy
 Assert-HipSharpRuntimeManifest $packableFixture -RequirePackable
-Write-Host "Distribution-specific Runtime manifest is structurally valid and intentionally pending exact-package promotion."
+Write-Host "Distribution-specific Runtime manifest and tracked exact-package promotion are valid."
 & (Join-Path $PSScriptRoot "generate-runtime-metadata.ps1") -Manifest $manifestPath -Check
 
 Assert-Rejected "wrong architecture" { param($m) $m.packages[0].architecture = "arm64" }

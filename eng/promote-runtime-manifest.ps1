@@ -4,7 +4,8 @@ param(
     [string]$LockFile,
     [string]$Manifest = "nuget/runtime-manifests/ubuntu.24.04-x64.json",
     [string]$Receipt = "nuget/runtime-manifests/ubuntu.24.04-x64.promotion-receipt.json",
-    [switch]$Check
+    [switch]$Check,
+    [switch]$TrackedReceiptOnly
 )
 
 Set-StrictMode -Version Latest
@@ -23,17 +24,25 @@ $manifestPath = Resolve-RepositoryPath $Manifest
 $receiptPath = Resolve-RepositoryPath $Receipt
 $lock = Get-Content -Raw -LiteralPath $lockPath | ConvertFrom-Json -AsHashtable
 
+if ($TrackedReceiptOnly -and -not $Check) {
+    throw "HIPSHARP1001: Tracked-receipt-only validation is allowed only in Check mode."
+}
+
 if (-not (Test-Path -LiteralPath $receiptPath -PathType Leaf)) {
     throw "HIPSHARP1001: The tracked promotion receipt is missing."
 }
-& (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $lockPath -ExpectedReceipt $receiptPath
-if ($LASTEXITCODE -ne 0) { throw "HIPSHARP1001: Promotion evidence did not reproduce the tracked receipt." }
+& (Join-Path $PSScriptRoot "verify-promotion.ps1") -LockFile $lockPath -ExpectedReceipt $receiptPath -TrackedReceiptOnly:$TrackedReceiptOnly
 
 $receiptHash = Get-HipSharpSha256 $receiptPath
 $manifestValue = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable
 $verification = $manifestValue["verification"]
+$runtimeCandidateInput = $lock["inputs"]["runtimeCandidate"]
+if ($null -eq $runtimeCandidateInput -or [int64]$runtimeCandidateInput["size"] -le 0) {
+    throw "HIPSHARP1001: The promotion lock must bind a positive Runtime candidate package size."
+}
 $isPromoted = $manifestValue["packEnabled"] -and $manifestValue["verified"] -and
-    $verification["packageAuditVerified"] -and $verification["gpuValidated"]
+    $verification["packageAuditVerified"] -and $verification["gpuValidated"] -and
+    [int64]$manifestValue["size"]["packageBytes"] -eq [int64]$runtimeCandidateInput["size"]
 
 if (-not $isPromoted) {
     if ($Check) { throw "HIPSHARP1001: The Linux runtime manifest has not been promoted." }
@@ -60,10 +69,12 @@ if (-not $isPromoted) {
         lockPath = $lockRelativePath
     }
     $verification["reason"] = if ($lock.ContainsKey("promotionReason")) { [string]$lock["promotionReason"] } else { "The deterministic promotion receipt binds the exact candidate package audits, symbol and ABI completeness, managed comparisons, reliability run, fail-closed negatives, and unchanged protected payload. Publication remains a separate authorization boundary." }
+    $manifestValue["size"]["packageBytes"] = [int64]$runtimeCandidateInput["size"]
     $manifestValue["size"]["topology"] = "single-package"
     $manifestValue["size"]["decision"] = "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
     $manifestJson = (($manifestValue | ConvertTo-Json -Depth 30) -replace "`r?`n", "`r`n") + "`r`n"
     [System.IO.File]::WriteAllText($manifestPath, $manifestJson, [System.Text.UTF8Encoding]::new($false))
+    & (Join-Path $PSScriptRoot "generate-runtime-metadata.ps1") -Manifest $manifestPath
     $manifestValue = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json -AsHashtable
     $verification = $manifestValue["verification"]
 }

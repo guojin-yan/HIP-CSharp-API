@@ -1,0 +1,161 @@
+{
+  "schemaVersion": 1,
+  "promotionId": "ubuntu.24.04-x64-runtime-7.2.1",
+  "validatedGitCommit": "9f7dc5cb00e354e51da711ac52a12a0e7f107339",
+  "generatorVersion": "1.1.0",
+  "inputs": {
+    "validationSummary": {
+      "size": 2784,
+      "sha256": "f2c016cf384cf6c626c68fed7ce53449b1189fc6daed98f7b0f720623dd56b9e"
+    },
+    "gitBundle": {
+      "size": 2223349,
+      "sha256": "82d29955d98ff5f9707855f2796c39642aee304b9ed75906f380435dfc287528"
+    },
+    "transferManifest": {
+      "size": 1894,
+      "sha256": "d869a2eb940b193a3ffd64ee4e96f54824549482652890fd322b1018ab2f58ed"
+    },
+    "coreCandidate": {
+      "size": 2978342,
+      "sha256": "367fb7b90ef040e2f4f7f247ed67a5c835d1799430a2f6ac36c6c56222335aa1"
+    },
+    "runtimeCandidate": {
+      "size": 162892118,
+      "sha256": "38b85372ab99c050409b4dd9203f446313fb608e615ed2db51b2e75dada6fac0"
+    },
+    "coreAudit": {
+      "size": 3001,
+      "sha256": "1417957bfb590fc8493b07370c6ff2301e76b9cf38763e89165d582de7e8c5df"
+    },
+    "runtimeAudit": {
+      "size": 973,
+      "sha256": "caec6c71a8477772589249d26119bf4b791d1b284242c0db6387742d83820793"
+    },
+    "sourceManifest": {
+      "size": 18371,
+      "sha256": "2057addf81b4d9fe0db7e577c000a4f2207792e197599bed3fa90a7b55da1703"
+    },
+    "candidateManifest": {
+      "size": 18152,
+      "sha256": "0c2ae611a372d7a9937985ca8c598379071d0581a4f691937678ade1e418149d"
+    },
+    "sbom": {
+      "size": 17595,
+      "sha256": "b926a45ab7e0e7418510451179a9bd7810abaf37d48ccca00e26dbd59d54a734"
+    },
+    "candidateAttestation": {
+      "size": 647,
+      "sha256": "6b8adf153feea263396bc271900c6086fb87ba9a5451f155e6c9fb577f0ab9c2"
+    }
+  },
+  "candidatePackages": {
+    "core": {
+      "id": "JYPPX.ROCm.HIP.CSharp.API",
+      "version": "0.10.0",
+      "size": 2978342,
+      "sha256": "367fb7b90ef040e2f4f7f247ed67a5c835d1799430a2f6ac36c6c56222335aa1",
+      "repositoryCommit": "9f7dc5cb00e354e51da711ac52a12a0e7f107339"
+    },
+    "runtime": {
+      "id": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
+      "version": "7.2.1",
+      "size": 162892118,
+      "sha256": "38b85372ab99c050409b4dd9203f446313fb608e615ed2db51b2e75dada6fac0",
+      "repositoryCommit": "9f7dc5cb00e354e51da711ac52a12a0e7f107339"
+    }
+  },
+  "payload": {
+    "coreManagedLicenseAndLogo": {
+      "sha256": "d0bdb97205b4ea23a31ed2f6f931e7f2a4372f40a6bc688b3ef25027454fcc4f",
+      "paths": 32
+    },
+    "runtimeNative": {
+      "sha256": "e6ba2a789edb9bc4a6c1655d0d76733471443156ff7d2628e8e45f5d3f00a478",
+      "paths": 14
+    },
+    "runtimeLicenses": {
+      "sha256": "0fe536a1ecda77e19b0a5e03641f438253371762d19a0facc8fe8c82c380055e",
+      "paths": 7
+    },
+    "runtimeSbom": {
+      "sha256": "8634fc3e0e833173461ef851dd1eff35cecadfbffc87f497526252ca4d03a587",
+      "paths": 1
+    },
+    "runtimeProtectedPayload": {
+      "sha256": "f929bc8a0d5cd74cdc60ef292d6c7b654c9e697384394f138d77db088d60356d",
+      "paths": 23
+    },
+    "stagingDigestSha256": "c84f6160b16685ab60d1c98aea33b291a4ab39e66323322a4cc8bcf3fda66835"
+  },
+  "allowedMetadataPaths": {
+    "core": [
+      "_rels/.rels",
+      "[Content_Types].xml",
+      "JYPPX.ROCm.HIP.CSharp.API.nuspec",
+      "package/services/metadata/core-properties/*.psmdcp",
+      "README.md"
+    ],
+    "runtime": [
+      "_rels/.rels",
+      "[Content_Types].xml",
+      "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.nuspec",
+      "package/services/metadata/core-properties/*.psmdcp",
+      "README.md",
+      "runtime-manifest.json",
+      "promotion-receipt.json"
+    ]
+  },
+  "validationScope": {
+    "environment": {
+      "os": "Ubuntu 24.04.4",
+      "architecture": "x86_64",
+      "gpuArchitecture": "gfx1100",
+      "isolation": "official-host + PRoot package-only"
+    },
+    "symbols": {
+      "managedRuntime": "91/91",
+      "managedHiprtc": "9/9",
+      "completeRuntime": "458/459",
+      "completeRuntimeAllowedMissing": [
+        "hipExternalMemoryGetMappedMipmappedArray"
+      ],
+      "completeHiprtc": "18/18"
+    },
+    "abiSchema": 7,
+    "managedExpansion": {
+      "comparisons": 1127,
+      "stages": [
+        "m8.2-pitched-memory",
+        "m8.3-memory-pool",
+        "m8.4-explicit-graph",
+        "m8.5-kernel-occupancy",
+        "m8.6-module-globals"
+      ],
+      "skippedStages": [],
+      "performanceClaim": false
+    },
+    "reliability": {
+      "status": "passed",
+      "rounds": 10,
+      "streams": 4,
+      "vectorLength": 4194304,
+      "maximumInFlightDeviceBytes": 201326592,
+      "cpuGpuCompared": true,
+      "performanceClaim": false
+    },
+    "negatives": [
+      "missingHsa",
+      "coreOnly",
+      "tamperedPackage",
+      "mixedRuntimeHiprtc"
+    ]
+  },
+  "boundaries": {
+    "p2p": "skipped(device-count<2)",
+    "windows": "disabled/unverified/static-only",
+    "performanceClaim": false,
+    "publishable": false,
+    "releaseAuthorized": false
+  }
+}

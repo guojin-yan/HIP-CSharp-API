@@ -9,8 +9,8 @@
     "version": "24.04",
     "codename": "noble"
   },
-  "packEnabled": false,
-  "verified": false,
+  "packEnabled": true,
+  "verified": true,
   "nativeAssetPath": "runtimes/linux-x64/native",
   "rocm": "7.2.1",
   "hip": "7.2.53211",
@@ -462,20 +462,30 @@
   },
   "size": {
     "unpackedBytes": 415070520,
-    "packageBytes": 0,
+    "packageBytes": 162892118,
     "nugetLimitBytes": 262144000,
     "topology": "single-package",
-    "decision": "The Ubuntu 24.04-specific package identity is pending a fresh exact-package size audit. The unchanged HIP, HSA, and COMGR payload remains a single lockstep ROCm 7.2.1 loader closure."
+    "decision": "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
   },
   "verification": {
     "provenanceVerified": true,
     "closureVerified": true,
     "licensesVerified": true,
     "sbomVerified": true,
-    "packageAuditVerified": false,
-    "gpuValidated": false,
-    "validationSha256": null,
-    "environment": null,
-    "reason": "Ubuntu 24.04 x64-specific Runtime package identity migration. Signed source, dependency closure, licenses, and regenerated SBOM remain verified; a fresh exact-package size/content audit and GPU validation are required before publication."
+    "packageAuditVerified": true,
+    "gpuValidated": true,
+    "validationSha256": "1c015808360ef931a6b6f5e38b6abbe522553eeff8415a994e73e2df77cecab5",
+    "environment": {
+      "os": "Ubuntu 24.04.4",
+      "architecture": "x86_64",
+      "gpu": "gfx1100",
+      "isolation": "official-host + PRoot package-only"
+    },
+    "reason": "The distribution-specific Ubuntu 24.04 Runtime candidate passed a fresh official-host ROCm 7.2.1 ABI/GPU gate and a signed Ubuntu Base 24.04.4 PRoot package-only gate. The deterministic receipt binds the exact Core 0.10.0 and Runtime 7.2.1 candidates, package audits, 91/91 managed Runtime and 18/18 HIPRTC symbols, schema-7 ABI, 1,127 managed comparisons, the bounded reliability run, and four fail-closed isolated negatives. Publication remains a separate release action.",
+    "promotionReceipt": {
+      "path": "nuget/runtime-manifests/ubuntu.24.04-x64.promotion-receipt.json",
+      "sha256": "1c015808360ef931a6b6f5e38b6abbe522553eeff8415a994e73e2df77cecab5",
+      "lockPath": "eng/promotion/ubuntu.24.04-x64-promotion-lock.json"
+    }
   }
 }

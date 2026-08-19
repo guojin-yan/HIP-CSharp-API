@@ -2,8 +2,8 @@
   "schemaVersion": 1,
   "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
   "unpackedBytes": 415070520,
-  "packageBytes": 0,
+  "packageBytes": 162892118,
   "nugetLimitBytes": 262144000,
   "topology": "single-package",
-  "decision": "The Ubuntu 24.04-specific package identity is pending a fresh exact-package size audit. The unchanged HIP, HSA, and COMGR payload remains a single lockstep ROCm 7.2.1 loader closure."
+  "decision": "The receipt-locked single runtime package remains below the 262144000-byte gate. Component splitting remains rejected because HIP, HSA, and COMGR share one lockstep ROCm release and loader closure; every final nupkg must still pass the exact-package audit and payload-equivalence gate."
 }

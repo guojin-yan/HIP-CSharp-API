@@ -394,6 +394,8 @@ public sealed class RepositoryQualityTests
     {
         string manifestDirectory = Path.Combine(RepositoryRoot, "nuget", "runtime-manifests");
         XDocument versions = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props"));
+        using JsonDocument promotionLock = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "promotion", "ubuntu.24.04-x64-promotion-lock.json")));
+        long promotedPackageBytes = promotionLock.RootElement.GetProperty("inputs").GetProperty("runtimeCandidate").GetProperty("size").GetInt64();
         using (JsonDocument linux = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "ubuntu.24.04-x64.json"))))
         {
             JsonElement root = linux.RootElement;
@@ -405,8 +407,8 @@ public sealed class RepositoryQualityTests
             Assert.AreEqual("ubuntu", root.GetProperty("distribution").GetProperty("id").GetString());
             Assert.AreEqual("24.04", root.GetProperty("distribution").GetProperty("version").GetString());
             Assert.AreEqual("noble", root.GetProperty("distribution").GetProperty("codename").GetString());
-            Assert.IsFalse(root.GetProperty("packEnabled").GetBoolean());
-            Assert.IsFalse(root.GetProperty("verified").GetBoolean());
+            Assert.IsTrue(root.GetProperty("packEnabled").GetBoolean());
+            Assert.IsTrue(root.GetProperty("verified").GetBoolean());
             Assert.IsTrue(root.GetProperty("packages").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("files").GetArrayLength() >= 6);
             Assert.IsTrue(root.GetProperty("licenses").GetArrayLength() >= 4);
@@ -416,13 +418,14 @@ public sealed class RepositoryQualityTests
             Assert.IsTrue(root.GetProperty("verification").GetProperty("licensesVerified").GetBoolean());
             Assert.IsTrue(root.GetProperty("verification").GetProperty("sbomVerified").GetBoolean());
             JsonElement verification = root.GetProperty("verification");
-            Assert.IsFalse(verification.GetProperty("packageAuditVerified").GetBoolean());
-            Assert.IsFalse(verification.GetProperty("gpuValidated").GetBoolean());
-            Assert.AreEqual(JsonValueKind.Null, verification.GetProperty("validationSha256").ValueKind);
-            Assert.AreEqual(JsonValueKind.Null, verification.GetProperty("environment").ValueKind);
-            Assert.IsFalse(verification.TryGetProperty("promotionReceipt", out _));
-            Assert.AreEqual(0, root.GetProperty("size").GetProperty("packageBytes").GetInt64());
-            StringAssert.Contains(verification.GetProperty("reason").GetString()!, "fresh exact-package size/content audit and GPU validation");
+            Assert.IsTrue(verification.GetProperty("packageAuditVerified").GetBoolean());
+            Assert.IsTrue(verification.GetProperty("gpuValidated").GetBoolean());
+            Assert.AreEqual(64, verification.GetProperty("validationSha256").GetString()!.Length);
+            Assert.AreEqual(JsonValueKind.Object, verification.GetProperty("environment").ValueKind);
+            Assert.IsTrue(verification.TryGetProperty("promotionReceipt", out JsonElement promotionReceipt));
+            Assert.AreEqual(verification.GetProperty("validationSha256").GetString(), promotionReceipt.GetProperty("sha256").GetString());
+            Assert.AreEqual(promotedPackageBytes, root.GetProperty("size").GetProperty("packageBytes").GetInt64());
+            StringAssert.Contains(verification.GetProperty("reason").GetString()!, "distribution-specific Ubuntu 24.04 Runtime candidate passed");
         }
 
         using (JsonDocument windows = JsonDocument.Parse(File.ReadAllText(Path.Combine(manifestDirectory, "win-x64.json"))))
@@ -465,6 +468,9 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimeReleaseWorkflow, "runtime-ubuntu.24.04-v*.*.*");
         StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64");
         StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget push");
+        StringAssert.Contains(runtimeReleaseWorkflow, "--skip-duplicate");
+        StringAssert.Contains(runtimeReleaseWorkflow, "JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64");
+        StringAssert.Contains(runtimeReleaseWorkflow, "dotnet nuget delete");
         StringAssert.Contains(runtimeReleaseWorkflow, "gh release");
 
         string attributes = File.ReadAllText(Path.Combine(RepositoryRoot, ".gitattributes"));
@@ -498,6 +504,16 @@ public sealed class RepositoryQualityTests
         StringAssert.Contains(runtimePackScript, "publishable = $false");
         StringAssert.Contains(runtimePackScript, "Assert-TextLineEndings $sourceManifestPath CRLF");
         StringAssert.Contains(runtimePackScript, "Assert-TextLineEndings $receiptPath LF");
+        string promotionScript = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "promote-runtime-manifest.ps1"));
+        StringAssert.Contains(promotionScript, "$runtimeCandidateInput = $lock[\"inputs\"][\"runtimeCandidate\"]");
+        StringAssert.Contains(promotionScript, "$manifestValue[\"size\"][\"packageBytes\"] = [int64]$runtimeCandidateInput[\"size\"]");
+        StringAssert.Contains(promotionScript, "generate-runtime-metadata.ps1");
+        string promotionVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-promotion.ps1"));
+        StringAssert.Contains(promotionVerifier, "TrackedReceiptOnly");
+        StringAssert.Contains(promotionVerifier, "Tracked promotion receipt passed without ignored candidate artifacts");
+        string runtimePackageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-runtime-package.ps1"));
+        StringAssert.Contains(runtimePackageVerifier, "runtimeProtectedPayload");
+        StringAssert.Contains(runtimePackageVerifier, "Final Runtime protected payload does not match the promoted candidate receipt");
         string runtimeTargets = File.ReadAllText(Path.Combine(RepositoryRoot, "pack", "Directory.Build.targets"));
         StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationPath");
         StringAssert.Contains(runtimeTargets, "RuntimeCandidateAttestationSha256");

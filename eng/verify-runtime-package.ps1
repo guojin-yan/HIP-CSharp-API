@@ -62,6 +62,27 @@ if ($Candidate -and ($runtimeManifest.candidate.gitSha -ne $gitSha -or $runtimeM
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
+
+function Get-EntrySetDigest([object[]]$Entries, [scriptblock]$Filter) {
+    $lines = [System.Collections.Generic.List[string]]::new()
+    foreach ($entry in $Entries) {
+        $name = $entry.FullName.Replace("\", "/")
+        if (& $Filter $name) {
+            $stream = $entry.Open()
+            try { $sha256 = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant() }
+            finally { $stream.Dispose() }
+            $lines.Add("$name`t$([int64]$entry.Length)`t$sha256")
+        }
+    }
+    $values = $lines.ToArray()
+    [System.Array]::Sort($values, [System.StringComparer]::Ordinal)
+    $content = ($values -join "`n") + "`n"
+    return [ordered]@{
+        sha256 = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData([System.Text.Encoding]::UTF8.GetBytes($content))).ToLowerInvariant()
+        paths = $values.Count
+    }
+}
+
 $archive = [System.IO.Compression.ZipFile]::OpenRead($package)
 try {
     $entries = @($archive.Entries | Where-Object { -not $_.FullName.EndsWith("/") })
@@ -115,6 +136,26 @@ try {
         try { $actual = [Convert]::ToHexString([System.Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant() } finally { $stream.Dispose() }
         if ($actual -ne $metadataFile.Value) { throw "Runtime package metadata hash mismatch: $($metadataFile.Key)" }
     }
+    if (-not $Candidate) {
+        $receipt = Get-Content -Raw -LiteralPath $receiptPath | ConvertFrom-Json -AsHashtable
+        if ($receipt.candidatePackages.runtime.id -ne $runtimeManifest.packageId -or
+            $receipt.candidatePackages.runtime.version -ne $runtimeManifest.packageVersion -or
+            [int64]$receipt.candidatePackages.runtime.size -ne [int64]$runtimeManifest.size.packageBytes) {
+            throw "Promotion receipt candidate identity or audited package size does not match the Runtime manifest."
+        }
+        $protectedSets = [ordered]@{
+            runtimeNative = Get-EntrySetDigest $entries { param($name) $name -match '^runtimes/linux-x64/native/' }
+            runtimeLicenses = Get-EntrySetDigest $entries { param($name) $name -match '^licenses/' -or $name -eq 'LICENSE' }
+            runtimeSbom = Get-EntrySetDigest $entries { param($name) $name -eq 'ubuntu.24.04-x64.cdx.json' }
+            runtimeProtectedPayload = Get-EntrySetDigest $entries { param($name) $name -match '^runtimes/linux-x64/native/' -or $name -match '^licenses/' -or $name -in @('LICENSE', 'ubuntu.24.04-x64.cdx.json', 'logo.jpg') }
+        }
+        foreach ($name in $protectedSets.Keys) {
+            if ($protectedSets[$name].sha256 -ne $receipt.payload[$name].sha256 -or
+                $protectedSets[$name].paths -ne [int]$receipt.payload[$name].paths) {
+                throw "Final Runtime protected payload does not match the promoted candidate receipt: $name."
+            }
+        }
+    }
     $nuspecEntry = @($entries | Where-Object { $_.FullName.EndsWith(".nuspec", [System.StringComparison]::OrdinalIgnoreCase) })
     if ($nuspecEntry.Count -ne 1) { throw "Runtime package must contain exactly one nuspec." }
     $reader = [System.IO.StreamReader]::new($nuspecEntry[0].Open())
@@ -151,6 +192,7 @@ $report = [ordered]@{
     manifestSha256 = Get-HipSharpSha256 $manifestInfo.Path
     sbomSha256 = $runtimeManifest.sbom.sha256
     promotionReceiptSha256 = if ($Candidate) { $null } else { $runtimeManifest.verification.promotionReceipt.sha256 }
+    promotionProtectedPayload = if ($Candidate -or $isRegression) { "not-applicable" } else { "verified" }
     finalExactPackageGate = if ($Candidate -or $isRegression) { "not-applicable" } else { "pending-owner-authorization" }
     sourceManifestSha256 = if ($Candidate) { $runtimeManifest.candidate.sourceManifestSha256 } else { $null }
 }

@@ -110,7 +110,7 @@ jobs:
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
         run: |
-          dotnet nuget push '${{ steps.package.outputs.path }}' --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --timeout 600
+          dotnet nuget push '${{ steps.package.outputs.path }}' --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --timeout 600 --skip-duplicate
           if ($LASTEXITCODE -ne 0) { throw "NuGet push failed with exit code $LASTEXITCODE." }
 
       - name: Verify NuGet.org package and repository signature
@@ -133,6 +133,32 @@ jobs:
           dotnet nuget verify $download --all
           if ($LASTEXITCODE -ne 0) { throw "Published Runtime signature verification failed with exit code $LASTEXITCODE." }
           ./eng/verify-runtime-package.ps1 -PackagePath $download
+
+      - name: Unlist obsolete generic Linux Runtime package
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+        run: |
+          $legacyId = 'JYPPX.ROCm.HIP.CSharp.API.Runtime.linux-x64'
+          $version = '${{ steps.release.outputs.version }}'
+          $registrationId = $legacyId.ToLowerInvariant()
+          $registrationUri = "https://api.nuget.org/v3/registration5-semver1/$registrationId/$version.json"
+          try {
+            $registration = Invoke-RestMethod -UseBasicParsing -TimeoutSec 30 $registrationUri
+          }
+          catch {
+            if ($_.Exception.Response.StatusCode -eq [System.Net.HttpStatusCode]::NotFound) {
+              Write-Host "The obsolete package version does not exist; nothing to unlist."
+              exit 0
+            }
+            throw
+          }
+          if ($registration.listed -eq $false) {
+            Write-Host "The obsolete package version is already unlisted."
+            exit 0
+          }
+          dotnet nuget delete $legacyId $version --non-interactive --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+          if ($LASTEXITCODE -ne 0) { throw "NuGet unlist failed with exit code $LASTEXITCODE." }
 
       - name: Publish GitHub Release asset
         shell: pwsh
