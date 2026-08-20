@@ -303,15 +303,15 @@ public sealed class RepositoryQualityTests
             .SelectMany(group => group.GetProperty("entries").EnumerateArray())
             .Select(entry => entry.GetString()!)
             .ToArray();
-        Assert.AreEqual(82, promotedEntries.Length);
-        Assert.AreEqual(82, promotedEntries.Distinct(StringComparer.Ordinal).Count());
+        Assert.AreEqual(130, promotedEntries.Length);
+        Assert.AreEqual(130, promotedEntries.Distinct(StringComparer.Ordinal).Count());
         foreach (string entryPoint in promotedEntries)
         {
             Assert.IsTrue(completeEntries.Contains(entryPoint), $"Promoted interface is absent from complete model: {entryPoint}");
             managedLibraries.Add(entryPoint, completeLibraries[entryPoint]);
         }
         Assert.AreEqual(477, completeEntries.Count);
-        Assert.AreEqual(191, managedLibraries.Count);
+        Assert.AreEqual(239, managedLibraries.Count);
         Assert.IsTrue(managedLibraries.Keys.All(completeEntries.Contains), "Every managed manifest entry must exist in the complete model.");
         var unvalidatedManagedEntries = new HashSet<string>(NewRtcEntries.Concat(promotedEntries), StringComparer.Ordinal);
 
@@ -385,8 +385,8 @@ public sealed class RepositoryQualityTests
         }
         CollectionAssert.AreEquivalent(completeEntries.ToArray(), seen.ToArray());
         Assert.AreEqual(1, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("cloudExport").GetProperty("status").GetString() == "missing-reviewed"));
-        Assert.AreEqual(191, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
-        Assert.AreEqual(286, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
+        Assert.AreEqual(239, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
+        Assert.AreEqual(238, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
     }
 
     [TestMethod]

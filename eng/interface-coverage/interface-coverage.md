@@ -6,8 +6,8 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 ## Inventory
 
 - Total entries: 477 (Runtime 459, HIPRTC 18).
-- Complete model: 477; managed interfaces: 191 (109 ABI-manifest + 82 promoted).
-- Disposition: managed 191, managed-next 0, raw-only-reviewed 238, deferred-capability 48.
+- Complete model: 477; managed interfaces: 239 (109 ABI-manifest + 130 promoted).
+- Disposition: managed 239, managed-next 0, raw-only-reviewed 238, deferred-capability 0.
 - Cloud function evidence: historical pass 100, not-tested 377; export scan is tracked separately.
 
 ## Managed workload mapping
@@ -29,6 +29,7 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 | `m8.13-common-query` (28) | typed device, pointer, symbol, and stream queries | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipManagedQueryTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
 | `m8.13-virtual-memory` (12) | virtual-address, physical-allocation, mapping, and access ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipManagedQueryTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
 | `m8.13-array-texture-surface` (42) | array, mipmap, texture, surface, copy, and legacy-reference ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipArrayTextureTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
+| `m8.14-advanced-interop` (48) | external interop, IPC, callback, profiler, user object, and driver compatibility ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipAdvancedInteropTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
 
 ## Review boundaries
 

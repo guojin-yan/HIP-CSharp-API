@@ -72,8 +72,8 @@ foreach ($group in $managedInterfaceMap.groups) {
         $promotedByEntry[[string]$entryPoint] = $group
     }
 }
-if ($promotedByEntry.Count -ne 82) { throw "Expected 82 promoted managed interfaces, found $($promotedByEntry.Count)" }
-$functions = @($model.runtimeFunctions) + @($model.rtcFunctions)
+if ($promotedByEntry.Count -ne 130) { throw "Expected 130 promoted managed interfaces, found $($promotedByEntry.Count)" }
+    $functions = @($model.runtimeFunctions) + @($model.rtcFunctions)
 $completeEntrySet = [System.Collections.Generic.HashSet[string]]::new([StringComparer]::Ordinal)
 foreach ($function in $functions) { [void]$completeEntrySet.Add([string]$function.entryPoint) }
 foreach ($managedEntryPoint in $managedByEntry.Keys) {

@@ -1,6 +1,7 @@
 # HipSharp public API snapshot schema 1
 # Generated from exported types and declared public/protected members.
 C|formal|public|JYPPX.ROCm.HipSharp.Graphs.HipGraphEdge(JYPPX.ROCm.HipSharp.Graphs.HipGraphNode prerequisite,JYPPX.ROCm.HipSharp.Graphs.HipGraphNode dependent)
+C|formal|public|JYPPX.ROCm.HipSharp.HipNativeDescriptor(System.IntPtr pointer)
 C|formal|public|JYPPX.ROCm.HipSharp.HipRuntime(System.String nativeLibraryPath=null)
 C|formal|public|JYPPX.ROCm.HipSharp.Interop.HipRtcNativeApi(System.String nativeLibraryPath=null)
 C|formal|public|JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi(System.String nativeLibraryPath=null)
@@ -286,7 +287,16 @@ M|formal|public virtual|System.Boolean JYPPX.ROCm.HipSharp.Rtc.HipRtcVersion.Equ
 M|formal|public virtual|System.Boolean JYPPX.ROCm.HipSharp.Types.HipVersion.Equals(JYPPX.ROCm.HipSharp.Types.HipVersion other)
 M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.Graphs.HipGraph.Dispose()
 M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.Graphs.HipGraphExec.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipExternalMemory.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipExternalMemoryBuffer.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipExternalMipmappedArray.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipExternalSemaphore.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipGraphicsMapping.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipGraphicsResource.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipIpcMemory.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipProfilerSession.Dispose()
 M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipRuntime.Dispose()
+M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.HipUserObject.Dispose()
 M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.Memory.HipArray.Dispose()
 M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.Memory.HipAsyncDeviceMemory.Dispose()
 M|formal|public virtual|System.Void JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory.Dispose()
@@ -328,9 +338,24 @@ M|formal|public|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Grap
 M|formal|public|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Graphs.HipGraph.AddMemoryFree(JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory memory,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.Graphs.HipGraphNode> dependencies=null)
 M|formal|public|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Graphs.HipGraph.AddMemset(JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory destination,System.Int32 value,System.UInt64 byteCount=0,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.Graphs.HipGraphNode> dependencies=null)
 M|formal|public|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Graphs.HipGraph.AddMemset(JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory destination,System.Int32 value,System.UInt64 byteCount=0,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.Graphs.HipGraphNode> dependencies=null)
+M|formal|public|JYPPX.ROCm.HipSharp.HipAdvancedGraphNode JYPPX.ROCm.HipSharp.HipAdvancedInterop.AddDriverMemFreeNode(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipAdvancedGraphNode> dependencies,System.IntPtr devicePointer)
+M|formal|public|JYPPX.ROCm.HipSharp.HipAdvancedGraphNode JYPPX.ROCm.HipSharp.HipAdvancedInterop.AddDriverMemcpyNode(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipAdvancedGraphNode> dependencies,JYPPX.ROCm.HipSharp.HipNativeDescriptor copyParameters,System.IntPtr context=0)
+M|formal|public|JYPPX.ROCm.HipSharp.HipAdvancedGraphNode JYPPX.ROCm.HipSharp.HipAdvancedInterop.AddDriverMemsetNode(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipAdvancedGraphNode> dependencies,JYPPX.ROCm.HipSharp.HipNativeDescriptor memsetParameters,System.IntPtr context=0)
+M|formal|public|JYPPX.ROCm.HipSharp.HipAdvancedGraphNode JYPPX.ROCm.HipSharp.HipAdvancedInterop.AddExternalSemaphoreSignalNode(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipAdvancedGraphNode> dependencies,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|JYPPX.ROCm.HipSharp.HipAdvancedGraphNode JYPPX.ROCm.HipSharp.HipAdvancedInterop.AddExternalSemaphoreWaitNode(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipAdvancedGraphNode> dependencies,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
 M|formal|public|JYPPX.ROCm.HipSharp.HipDevice JYPPX.ROCm.HipSharp.HipRuntime.GetCurrentDevice()
 M|formal|public|JYPPX.ROCm.HipSharp.HipDevice JYPPX.ROCm.HipSharp.HipRuntime.GetDevice(System.Int32 ordinal)
 M|formal|public|JYPPX.ROCm.HipSharp.HipDevice JYPPX.ROCm.HipSharp.HipRuntime.GetDeviceByPciBusId(System.String pciBusId)
+M|formal|public|JYPPX.ROCm.HipSharp.HipExternalMemory JYPPX.ROCm.HipSharp.HipAdvancedInterop.ImportExternalMemory(JYPPX.ROCm.HipSharp.HipNativeDescriptor descriptor)
+M|formal|public|JYPPX.ROCm.HipSharp.HipExternalMemoryBuffer JYPPX.ROCm.HipSharp.HipExternalMemory.MapBuffer(JYPPX.ROCm.HipSharp.HipNativeDescriptor descriptor)
+M|formal|public|JYPPX.ROCm.HipSharp.HipExternalMipmappedArray JYPPX.ROCm.HipSharp.HipExternalMemory.MapMipmappedArray(JYPPX.ROCm.HipSharp.HipNativeDescriptor descriptor)
+M|formal|public|JYPPX.ROCm.HipSharp.HipExternalSemaphore JYPPX.ROCm.HipSharp.HipAdvancedInterop.ImportExternalSemaphore(JYPPX.ROCm.HipSharp.HipNativeDescriptor descriptor)
+M|formal|public|JYPPX.ROCm.HipSharp.HipGraphicsMapping JYPPX.ROCm.HipSharp.HipAdvancedInterop.MapGraphicsResources(System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipGraphicsResource> resources,JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+M|formal|public|JYPPX.ROCm.HipSharp.HipGraphicsResource JYPPX.ROCm.HipSharp.HipAdvancedInterop.OwnGraphicsResource(System.IntPtr nativeHandle)
+M|formal|public|JYPPX.ROCm.HipSharp.HipIpcMemory JYPPX.ROCm.HipSharp.HipAdvancedInterop.OpenIpcMemory(JYPPX.ROCm.HipSharp.Types.HipIpcMemHandle handle,System.UInt32 flags=0)
+M|formal|public|JYPPX.ROCm.HipSharp.HipMappedGraphicsPointer JYPPX.ROCm.HipSharp.HipGraphicsMapping.GetMappedPointer(JYPPX.ROCm.HipSharp.HipGraphicsResource resource)
+M|formal|public|JYPPX.ROCm.HipSharp.HipProfilerSession JYPPX.ROCm.HipSharp.HipAdvancedInterop.StartProfiler()
+M|formal|public|JYPPX.ROCm.HipSharp.HipUserObject JYPPX.ROCm.HipSharp.HipAdvancedInterop.CreateUserObject(System.IntPtr value,JYPPX.ROCm.HipSharp.HipNativeDescriptor destroyCallback,System.UInt32 initialReferenceCount=1,System.UInt32 flags=0)
 M|formal|public|JYPPX.ROCm.HipSharp.Memory.HipArray JYPPX.ROCm.HipSharp.HipRuntime.AllocateArray(JYPPX.ROCm.HipSharp.Types.HipChannelFormatDescriptor channelFormat,System.UInt64 width,System.UInt64 height=0,JYPPX.ROCm.HipSharp.Types.HipArrayFlags flags=Default)
 M|formal|public|JYPPX.ROCm.HipSharp.Memory.HipArray JYPPX.ROCm.HipSharp.HipRuntime.AllocateArray3D(JYPPX.ROCm.HipSharp.Types.HipChannelFormatDescriptor channelFormat,System.UInt64 width,System.UInt64 height,System.UInt64 depth,JYPPX.ROCm.HipSharp.Types.HipArrayFlags flags=Default)
 M|formal|public|JYPPX.ROCm.HipSharp.Memory.HipArray JYPPX.ROCm.HipSharp.HipRuntime.CreateArray(JYPPX.ROCm.HipSharp.Types.HipArrayDescriptor descriptor)
@@ -383,6 +408,7 @@ M|formal|public|JYPPX.ROCm.HipSharp.Rtc.HipRtcResult JYPPX.ROCm.HipSharp.Interop
 M|formal|public|JYPPX.ROCm.HipSharp.Rtc.HipRtcResult JYPPX.ROCm.HipSharp.Interop.HipRtcNativeApi.LinkDestroy(System.IntPtr hipLinkState)
 M|formal|public|JYPPX.ROCm.HipSharp.Rtc.HipRtcResult JYPPX.ROCm.HipSharp.Interop.HipRtcNativeApi.Version(System.IntPtr major,System.IntPtr minor)
 M|formal|public|JYPPX.ROCm.HipSharp.Rtc.HipRtcVersion JYPPX.ROCm.HipSharp.Rtc.HipRtc.GetVersion()
+M|formal|public|JYPPX.ROCm.HipSharp.Streams.HipEvent JYPPX.ROCm.HipSharp.HipAdvancedInterop.OpenIpcEvent(JYPPX.ROCm.HipSharp.Types.HipIpcEventHandle handle)
 M|formal|public|JYPPX.ROCm.HipSharp.Streams.HipEvent JYPPX.ROCm.HipSharp.HipRuntime.CreateEvent(JYPPX.ROCm.HipSharp.Types.HipEventFlags flags=Default)
 M|formal|public|JYPPX.ROCm.HipSharp.Streams.HipStream JYPPX.ROCm.HipSharp.HipRuntime.CreateStream(JYPPX.ROCm.HipSharp.Types.HipStreamFlags flags=Default)
 M|formal|public|JYPPX.ROCm.HipSharp.Textures.HipSurfaceObject JYPPX.ROCm.HipSharp.HipRuntime.CreateSurfaceObject(JYPPX.ROCm.HipSharp.Memory.HipArray array)
@@ -851,6 +877,8 @@ M|formal|public|JYPPX.ROCm.HipSharp.Types.HipError JYPPX.ROCm.HipSharp.Interop.H
 M|formal|public|JYPPX.ROCm.HipSharp.Types.HipError JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi.UserObjectRelease(System.IntPtr object,System.UInt32 count)
 M|formal|public|JYPPX.ROCm.HipSharp.Types.HipError JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi.UserObjectRetain(System.IntPtr object,System.UInt32 count)
 M|formal|public|JYPPX.ROCm.HipSharp.Types.HipError JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi.WaitExternalSemaphoresAsync(System.IntPtr extSemArray,System.IntPtr paramsArray,System.UInt32 numExtSems,System.IntPtr stream)
+M|formal|public|JYPPX.ROCm.HipSharp.Types.HipIpcEventHandle JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetIpcEventHandle(JYPPX.ROCm.HipSharp.Streams.HipEvent eventHandle)
+M|formal|public|JYPPX.ROCm.HipSharp.Types.HipIpcMemHandle JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetIpcMemoryHandle(JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory memory)
 M|formal|public|JYPPX.ROCm.HipSharp.Types.HipMemoryAccessFlags JYPPX.ROCm.HipSharp.Memory.HipVirtualMemoryReservation.GetAccess(JYPPX.ROCm.HipSharp.Types.HipMemLocation location)
 M|formal|public|JYPPX.ROCm.HipSharp.Types.HipPointerAttributes JYPPX.ROCm.HipSharp.HipRuntime.GetPointerAttributes(System.IntPtr nativeAddress)
 M|formal|public|JYPPX.ROCm.HipSharp.Types.HipResourceViewDescriptor JYPPX.ROCm.HipSharp.Textures.HipTextureObject.GetResourceViewDescriptor()
@@ -876,6 +904,13 @@ M|formal|public|System.Int32 JYPPX.ROCm.HipSharp.HipRuntime.GetP2PAttribute(Syst
 M|formal|public|System.Int32 JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi.GetStreamDeviceId(System.IntPtr stream)
 M|formal|public|System.Int32 JYPPX.ROCm.HipSharp.Streams.HipStream.GetNativeDeviceOrdinal()
 M|formal|public|System.Int32 JYPPX.ROCm.HipSharp.Streams.HipStream.GetNativePriority()
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipExternalMemory.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipExternalMemoryBuffer.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipExternalMipmappedArray.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipExternalSemaphore.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipGraphicsMapping.GetMappedArray(JYPPX.ROCm.HipSharp.HipGraphicsResource resource,System.UInt32 arrayIndex,System.UInt32 mipLevel)
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipGraphicsResource.DangerousGetHandle()
+M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipIpcMemory.DangerousGetHandle()
 M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.HipRuntime.GetSymbolAddress(System.IntPtr symbol)
 M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.Interop.HipRtcNativeApi.GetErrorString(JYPPX.ROCm.HipSharp.Rtc.HipRtcResult result)
 M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi.ApiName(System.UInt32 id)
@@ -896,6 +931,8 @@ M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.Memory.HipVirtualMemoryReserva
 M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.Textures.HipTextureReference.DangerousGetHandle()
 M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.Textures.HipTextureReference.GetBoundArrayHandle()
 M|formal|public|System.IntPtr JYPPX.ROCm.HipSharp.Textures.HipTextureReference.GetBoundMipmappedArrayHandle()
+M|formal|public|System.String JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetDriverErrorName(JYPPX.ROCm.HipSharp.Types.HipError error)
+M|formal|public|System.String JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetDriverErrorString(JYPPX.ROCm.HipSharp.Types.HipError error)
 M|formal|public|System.String JYPPX.ROCm.HipSharp.HipDevice.GetPciBusId()
 M|formal|public|System.String JYPPX.ROCm.HipSharp.Rtc.HipRtcProgram.GetLoweredName(System.String nameExpression)
 M|formal|public|System.UInt32[] JYPPX.ROCm.HipSharp.Streams.HipStream.GetComputeUnitMask(System.UInt32 wordCount)
@@ -921,11 +958,32 @@ M|formal|public|System.Void JYPPX.ROCm.HipSharp.Graphs.HipGraphExec.UpdateKernel
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.Graphs.HipGraphExec.UpdateMemset(JYPPX.ROCm.HipSharp.Graphs.HipGraphNode node,JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory destination,System.Int32 value,System.UInt64 byteCount=0)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.Graphs.HipGraphExec.UpdateMemset(JYPPX.ROCm.HipSharp.Graphs.HipGraphNode node,JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory destination,System.Int32 value,System.UInt64 byteCount=0)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.Graphs.HipGraphExec.Upload(JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.AddStreamCallback(JYPPX.ROCm.HipSharp.Streams.HipStream stream,System.Action<JYPPX.ROCm.HipSharp.Types.HipError> callback,System.UInt32 flags=0)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.CopyDriver2DUnaligned(JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.CopyDriver3D(JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.CopyDriver3DAsync(JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters,JYPPX.ROCm.HipSharp.Streams.HipStream stream)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetDriverMemcpyNodeParameters(JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor destination)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetDriverPointerAttributes(System.Collections.Generic.IReadOnlyList<System.Int32> attributes,JYPPX.ROCm.HipSharp.HipNativeDescriptor values,System.IntPtr devicePointer)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetExternalSemaphoreSignalNodeParameters(JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor destination)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.GetExternalSemaphoreWaitNodeParameters(JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor destination)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.LaunchDriverKernel(JYPPX.ROCm.HipSharp.HipNativeDescriptor configuration,System.IntPtr function,System.IntPtr parameters=0,System.IntPtr extra=0)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.ReleaseUserObject(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,JYPPX.ROCm.HipSharp.HipUserObject userObject,System.UInt32 count=1)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.RetainUserObject(JYPPX.ROCm.HipSharp.Graphs.HipGraph graph,JYPPX.ROCm.HipSharp.HipUserObject userObject,System.UInt32 count=1,System.UInt32 flags=0)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.SetDriverMemcpyNodeParameters(JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.SetExternalSemaphoreSignalNodeParameters(JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.SetExternalSemaphoreWaitNodeParameters(JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.SignalExternalSemaphores(JYPPX.ROCm.HipSharp.Streams.HipStream stream,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipExternalSemaphore> semaphores,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.UpdateDriverMemcpyNode(JYPPX.ROCm.HipSharp.Graphs.HipGraphExec graphExec,JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor copyParameters,System.IntPtr context=0)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.UpdateDriverMemsetNode(JYPPX.ROCm.HipSharp.Graphs.HipGraphExec graphExec,JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor memsetParameters,System.IntPtr context=0)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.UpdateExternalSemaphoreSignalNode(JYPPX.ROCm.HipSharp.Graphs.HipGraphExec graphExec,JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.UpdateExternalSemaphoreWaitNode(JYPPX.ROCm.HipSharp.Graphs.HipGraphExec graphExec,JYPPX.ROCm.HipSharp.HipAdvancedGraphNode node,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipAdvancedInterop.WaitExternalSemaphores(JYPPX.ROCm.HipSharp.Streams.HipStream stream,System.Collections.Generic.IReadOnlyList<JYPPX.ROCm.HipSharp.HipExternalSemaphore> semaphores,JYPPX.ROCm.HipSharp.HipNativeDescriptor parameters)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipDevice.MakeCurrent()
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipRuntime.Initialize(System.UInt32 flags=0)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipRuntime.MapArrayAsync(System.IntPtr nativeMapInformation,System.UInt32 count,JYPPX.ROCm.HipSharp.Streams.HipStream stream)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipRuntime.SetPointerAttribute<T>(System.IntPtr nativeAddress,System.Int32 nativeAttribute,T value);where=T:struct&System.ValueType
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipRuntime.Synchronize()
+M|formal|public|System.Void JYPPX.ROCm.HipSharp.HipUserObject.Retain(System.UInt32 count=1)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.Memory.HipArray.Copy2DFrom(System.Byte[] source,System.UInt64 widthBytes,System.UInt64 height,System.UInt64 sourcePitch=0,System.UInt64 destinationX=0,System.UInt64 destinationY=0)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.Memory.HipArray.Copy2DFromAsync(System.Byte[] source,System.UInt64 widthBytes,System.UInt64 height,JYPPX.ROCm.HipSharp.Streams.HipStream stream,System.UInt64 sourcePitch=0,System.UInt64 destinationX=0,System.UInt64 destinationY=0)
 M|formal|public|System.Void JYPPX.ROCm.HipSharp.Memory.HipArray.Copy2DTo(JYPPX.ROCm.HipSharp.Memory.HipArray destination,System.UInt64 widthBytes,System.UInt64 height,System.UInt64 sourceX=0,System.UInt64 sourceY=0,System.UInt64 destinationX=0,System.UInt64 destinationY=0)
@@ -1045,11 +1103,13 @@ P|diagnostic|get:public,set:none|System.String JYPPX.ROCm.HipSharp.Loading.HipLi
 P|diagnostic|get:public,set:none|System.String JYPPX.ROCm.HipSharp.Loading.HipLibraryLoadDiagnostics.RuntimeIdentifier
 P|diagnostic|get:public,set:none|System.String JYPPX.ROCm.HipSharp.Loading.HipLibraryLoadDiagnostics.TargetFramework
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraph JYPPX.ROCm.HipSharp.Graphs.HipGraphNode.Graph
+P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraph JYPPX.ROCm.HipSharp.HipAdvancedGraphNode.Graph
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraphKind JYPPX.ROCm.HipSharp.Graphs.HipGraph.Kind
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Graphs.HipGraphEdge.Dependent
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Graphs.HipGraphEdge.Prerequisite
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory.AllocationNode
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.Graphs.HipGraphNodeType JYPPX.ROCm.HipSharp.Graphs.HipGraphNode.Type
+P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.HipAdvancedInterop JYPPX.ROCm.HipSharp.HipRuntime.AdvancedInterop
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.HipDevice JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory.Device
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.HipDevice JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolAccessDescriptor.Device
 P|formal|get:public,set:none|JYPPX.ROCm.HipSharp.HipDevice JYPPX.ROCm.HipSharp.Memory.HipMemoryPoolOptions.Device
@@ -1093,7 +1153,16 @@ P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Graphs.HipGraph.
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Graphs.HipGraphExec.IsDisposed
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory.IsValid
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Graphs.HipGraphNode.IsValid
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipAdvancedGraphNode.IsValid
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipDevice.SupportsCooperativeLaunch
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipExternalMemory.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipExternalMemoryBuffer.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipExternalMipmappedArray.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipExternalSemaphore.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipGraphicsResource.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipIpcMemory.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipProfilerSession.IsDisposed
+P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.HipUserObject.IsDisposed
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Memory.HipArray.IsDisposed
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Memory.HipAsyncDeviceMemory.IsDisposed
 P|formal|get:public,set:none|System.Boolean JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory.IsDisposed
@@ -1170,6 +1239,8 @@ P|formal|get:public,set:none|System.Int32 JYPPX.ROCm.HipSharp.Types.HipVersion.P
 P|formal|get:public,set:none|System.Int32 JYPPX.ROCm.HipSharp.Types.HipVersion.RawValue
 P|formal|get:public,set:none|System.Int32 JYPPX.ROCm.HipSharp.Types.HipVirtualMemoryAllocationOptions.DeviceOrdinal
 P|formal|get:public,set:none|System.Int64 JYPPX.ROCm.HipSharp.Modules.HipOccupancyInfo.MaximumResidentBlocks
+P|formal|get:public,set:none|System.IntPtr JYPPX.ROCm.HipSharp.HipMappedGraphicsPointer.Pointer
+P|formal|get:public,set:none|System.IntPtr JYPPX.ROCm.HipSharp.HipNativeDescriptor.Pointer
 P|formal|get:public,set:none|System.IntPtr JYPPX.ROCm.HipSharp.Types.HipPitchedPtr.Address
 P|formal|get:public,set:none|System.IntPtr JYPPX.ROCm.HipSharp.Types.HipStreamCaptureInfoV2.DependencyHandles
 P|formal|get:public,set:none|System.IntPtr JYPPX.ROCm.HipSharp.Types.HipStreamCaptureInfoV2.GraphHandle
@@ -1202,6 +1273,7 @@ P|formal|get:public,set:none|System.UInt32 JYPPX.ROCm.HipSharp.Types.HipDim3.Z
 P|formal|get:public,set:none|System.UInt32 JYPPX.ROCm.HipSharp.Types.HipDriverTextureDescriptor.Flags
 P|formal|get:public,set:none|System.UInt32 JYPPX.ROCm.HipSharp.Types.HipDriverTextureDescriptor.MaximumAnisotropy
 P|formal|get:public,set:none|System.UInt64 JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory.ByteLength
+P|formal|get:public,set:none|System.UInt64 JYPPX.ROCm.HipSharp.HipMappedGraphicsPointer.ByteLength
 P|formal|get:public,set:none|System.UInt64 JYPPX.ROCm.HipSharp.Memory.HipAsyncDeviceMemory.ByteLength
 P|formal|get:public,set:none|System.UInt64 JYPPX.ROCm.HipSharp.Memory.HipDeviceMemory.ByteLength
 P|formal|get:public,set:none|System.UInt64 JYPPX.ROCm.HipSharp.Memory.HipManagedMemory.ByteLength
@@ -1302,9 +1374,20 @@ T|formal|public sealed class|JYPPX.ROCm.HipSharp.Graphs.HipGraph;interfaces=Syst
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.Graphs.HipGraphExec;interfaces=System.IDisposable
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.Graphs.HipGraphMemory;interfaces=
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.Graphs.HipGraphNode;interfaces=
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipAdvancedGraphNode;interfaces=
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipAdvancedInterop;interfaces=
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipDevice;interfaces=
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipException;base=System.Exception;interfaces=System.Runtime.Serialization.ISerializable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipExternalMemory;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipExternalMemoryBuffer;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipExternalMipmappedArray;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipExternalSemaphore;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipGraphicsMapping;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipGraphicsResource;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipIpcMemory;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipProfilerSession;interfaces=System.IDisposable
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipRuntime;interfaces=System.IDisposable
+T|formal|public sealed class|JYPPX.ROCm.HipSharp.HipUserObject;interfaces=System.IDisposable
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.Interop.HipRtcNativeApi;interfaces=
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.Interop.HipRuntimeNativeApi;interfaces=
 T|formal|public sealed class|JYPPX.ROCm.HipSharp.Memory.HipArray;interfaces=JYPPX.ROCm.HipSharp.Memory.IHipTextureResourceOwner,System.IDisposable
@@ -1373,6 +1456,8 @@ T|formal|public sealed enum|JYPPX.ROCm.HipSharp.Types.HipTextureFilterMode;inter
 T|formal|public sealed enum|JYPPX.ROCm.HipSharp.Types.HipTextureReadMode;interfaces=
 T|formal|public sealed enum|JYPPX.ROCm.HipSharp.Types.HipTextureResourceKind;interfaces=
 T|formal|public sealed readonly struct|JYPPX.ROCm.HipSharp.Graphs.HipGraphEdge;interfaces=System.IEquatable<JYPPX.ROCm.HipSharp.Graphs.HipGraphEdge>
+T|formal|public sealed readonly struct|JYPPX.ROCm.HipSharp.HipMappedGraphicsPointer;interfaces=
+T|formal|public sealed readonly struct|JYPPX.ROCm.HipSharp.HipNativeDescriptor;interfaces=
 T|formal|public sealed readonly struct|JYPPX.ROCm.HipSharp.Memory.HipMemoryExtent;interfaces=System.IEquatable<JYPPX.ROCm.HipSharp.Memory.HipMemoryExtent>
 T|formal|public sealed readonly struct|JYPPX.ROCm.HipSharp.Memory.HipMemoryInfo;interfaces=System.IEquatable<JYPPX.ROCm.HipSharp.Memory.HipMemoryInfo>
 T|formal|public sealed readonly struct|JYPPX.ROCm.HipSharp.Memory.HipMemoryOffset;interfaces=System.IEquatable<JYPPX.ROCm.HipSharp.Memory.HipMemoryOffset>

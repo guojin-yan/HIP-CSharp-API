@@ -756,6 +756,55 @@ internal sealed class PInvokeHipNativeApi : IHipNativeApi
 
     public string GetErrorString(HipError error) => ReadBorrowedString(HipNativeMethods.GetErrorString(error));
 
+    public HipError DestroyExternalMemory(IntPtr externalMemory) => Optional(() => _completeApi.DestroyExternalMemory(externalMemory));
+    public HipError DestroyExternalSemaphore(IntPtr externalSemaphore) => Optional(() => _completeApi.DestroyExternalSemaphore(externalSemaphore));
+    public HipError ExternalMemoryGetMappedBuffer(IntPtr devicePointer, IntPtr externalMemory, IntPtr bufferDescriptor) => Optional(() => _completeApi.ExternalMemoryGetMappedBuffer(devicePointer, externalMemory, bufferDescriptor));
+    public HipError ExternalMemoryGetMappedMipmappedArray(IntPtr mipmappedArray, IntPtr externalMemory, IntPtr mipmappedArrayDescriptor) => Optional(() => _completeApi.ExternalMemoryGetMappedMipmappedArray(mipmappedArray, externalMemory, mipmappedArrayDescriptor));
+    public HipError GraphAddExternalSemaphoresSignalNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters) => Optional(() => _completeApi.GraphAddExternalSemaphoresSignalNode(node, graph, dependencies, dependencyCount, parameters));
+    public HipError GraphAddExternalSemaphoresWaitNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters) => Optional(() => _completeApi.GraphAddExternalSemaphoresWaitNode(node, graph, dependencies, dependencyCount, parameters));
+    public HipError GraphExecExternalSemaphoresSignalNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters) => Optional(() => _completeApi.GraphExecExternalSemaphoresSignalNodeSetParams(graphExec, node, parameters));
+    public HipError GraphExecExternalSemaphoresWaitNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters) => Optional(() => _completeApi.GraphExecExternalSemaphoresWaitNodeSetParams(graphExec, node, parameters));
+    public HipError GraphExternalSemaphoresSignalNodeGetParams(IntPtr node, IntPtr parameters) => Optional(() => _completeApi.GraphExternalSemaphoresSignalNodeGetParams(node, parameters));
+    public HipError GraphExternalSemaphoresSignalNodeSetParams(IntPtr node, IntPtr parameters) => Optional(() => _completeApi.GraphExternalSemaphoresSignalNodeSetParams(node, parameters));
+    public HipError GraphExternalSemaphoresWaitNodeGetParams(IntPtr node, IntPtr parameters) => Optional(() => _completeApi.GraphExternalSemaphoresWaitNodeGetParams(node, parameters));
+    public HipError GraphExternalSemaphoresWaitNodeSetParams(IntPtr node, IntPtr parameters) => Optional(() => _completeApi.GraphExternalSemaphoresWaitNodeSetParams(node, parameters));
+    public HipError GraphicsMapResources(int count, IntPtr resources, IntPtr stream) => Optional(() => _completeApi.GraphicsMapResources(count, resources, stream));
+    public HipError GraphicsResourceGetMappedPointer(IntPtr devicePointer, IntPtr size, IntPtr resource) => Optional(() => _completeApi.GraphicsResourceGetMappedPointer(devicePointer, size, resource));
+    public HipError GraphicsSubResourceGetMappedArray(IntPtr array, IntPtr resource, uint arrayIndex, uint mipLevel) => Optional(() => _completeApi.GraphicsSubResourceGetMappedArray(array, resource, arrayIndex, mipLevel));
+    public HipError GraphicsUnmapResources(int count, IntPtr resources, IntPtr stream) => Optional(() => _completeApi.GraphicsUnmapResources(count, resources, stream));
+    public HipError GraphicsUnregisterResource(IntPtr resource) => Optional(() => _completeApi.GraphicsUnregisterResource(resource));
+    public HipError ImportExternalMemory(IntPtr externalMemory, IntPtr descriptor) => Optional(() => _completeApi.ImportExternalMemory(externalMemory, descriptor));
+    public HipError ImportExternalSemaphore(IntPtr externalSemaphore, IntPtr descriptor) => Optional(() => _completeApi.ImportExternalSemaphore(externalSemaphore, descriptor));
+    public HipError IpcCloseMemHandle(IntPtr devicePointer) => Optional(() => _completeApi.IpcCloseMemHandle(devicePointer));
+    public HipError IpcGetEventHandle(IntPtr handle, IntPtr eventHandle) => Optional(() => _completeApi.IpcGetEventHandle(handle, eventHandle));
+    public HipError IpcGetMemHandle(IntPtr handle, IntPtr devicePointer) => Optional(() => _completeApi.IpcGetMemHandle(handle, devicePointer));
+    public HipError IpcOpenEventHandle(IntPtr eventHandle, HipIpcEventHandle handle) => Optional(() => _completeApi.IpcOpenEventHandle(eventHandle, handle));
+    public HipError IpcOpenMemHandle(IntPtr devicePointer, HipIpcMemHandle handle, uint flags) => Optional(() => _completeApi.IpcOpenMemHandle(devicePointer, handle, flags));
+    public HipError SignalExternalSemaphoresAsync(IntPtr semaphores, IntPtr parameters, uint semaphoreCount, IntPtr stream) => Optional(() => _completeApi.SignalExternalSemaphoresAsync(semaphores, parameters, semaphoreCount, stream));
+    public HipError WaitExternalSemaphoresAsync(IntPtr semaphores, IntPtr parameters, uint semaphoreCount, IntPtr stream) => Optional(() => _completeApi.WaitExternalSemaphoresAsync(semaphores, parameters, semaphoreCount, stream));
+    public HipError GraphReleaseUserObject(IntPtr graph, IntPtr userObject, uint count) => Optional(() => _completeApi.GraphReleaseUserObject(graph, userObject, count));
+    public HipError GraphRetainUserObject(IntPtr graph, IntPtr userObject, uint count, uint flags) => Optional(() => _completeApi.GraphRetainUserObject(graph, userObject, count, flags));
+    public HipError ProfilerStart() => Optional(() => _completeApi.ProfilerStart());
+    public HipError ProfilerStop() => Optional(() => _completeApi.ProfilerStop());
+    public HipError StreamAddCallback(IntPtr stream, IntPtr callback, IntPtr userData, uint flags) => Optional(() => _completeApi.StreamAddCallback(stream, callback, userData, flags));
+    public HipError UserObjectCreate(IntPtr userObject, IntPtr value, IntPtr destroy, uint initialRefCount, uint flags) => Optional(() => _completeApi.UserObjectCreate(userObject, value, destroy, initialRefCount, flags));
+    public HipError UserObjectRelease(IntPtr userObject, uint count) => Optional(() => _completeApi.UserObjectRelease(userObject, count));
+    public HipError UserObjectRetain(IntPtr userObject, uint count) => Optional(() => _completeApi.UserObjectRetain(userObject, count));
+    public HipError DrvGetErrorName(HipError error, IntPtr name) => Optional(() => _completeApi.DrvGetErrorName(error, name));
+    public HipError DrvGetErrorString(HipError error, IntPtr message) => Optional(() => _completeApi.DrvGetErrorString(error, message));
+    public HipError DrvGraphAddMemcpyNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr copyParameters, IntPtr context) => Optional(() => _completeApi.DrvGraphAddMemcpyNode(node, graph, dependencies, dependencyCount, copyParameters, context));
+    public HipError DrvGraphAddMemFreeNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr devicePointer) => Optional(() => _completeApi.DrvGraphAddMemFreeNode(node, graph, dependencies, dependencyCount, devicePointer));
+    public HipError DrvGraphAddMemsetNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr memsetParameters, IntPtr context) => Optional(() => _completeApi.DrvGraphAddMemsetNode(node, graph, dependencies, dependencyCount, memsetParameters, context));
+    public HipError DrvGraphExecMemcpyNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr copyParameters, IntPtr context) => Optional(() => _completeApi.DrvGraphExecMemcpyNodeSetParams(graphExec, node, copyParameters, context));
+    public HipError DrvGraphExecMemsetNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr memsetParameters, IntPtr context) => Optional(() => _completeApi.DrvGraphExecMemsetNodeSetParams(graphExec, node, memsetParameters, context));
+    public HipError DrvGraphMemcpyNodeGetParams(IntPtr node, IntPtr copyParameters) => Optional(() => _completeApi.DrvGraphMemcpyNodeGetParams(node, copyParameters));
+    public HipError DrvGraphMemcpyNodeSetParams(IntPtr node, IntPtr copyParameters) => Optional(() => _completeApi.DrvGraphMemcpyNodeSetParams(node, copyParameters));
+    public HipError DrvLaunchKernelEx(IntPtr configuration, IntPtr function, IntPtr parameters, IntPtr extra) => Optional(() => _completeApi.DrvLaunchKernelEx(configuration, function, parameters, extra));
+    public HipError DrvMemcpy2DUnaligned(IntPtr copyParameters) => Optional(() => _completeApi.DrvMemcpy2DUnaligned(copyParameters));
+    public HipError DrvMemcpy3D(IntPtr copyParameters) => Optional(() => _completeApi.DrvMemcpy3D(copyParameters));
+    public HipError DrvMemcpy3DAsync(IntPtr copyParameters, IntPtr stream) => Optional(() => _completeApi.DrvMemcpy3DAsync(copyParameters, stream));
+    public HipError DrvPointerGetAttributes(uint count, IntPtr attributes, IntPtr values, IntPtr devicePointer) => Optional(() => _completeApi.DrvPointerGetAttributes(count, attributes, values, devicePointer));
+
     private static string ReadBorrowedString(IntPtr pointer) =>
         pointer == IntPtr.Zero ? string.Empty : Marshal.PtrToStringAnsi(pointer) ?? string.Empty;
 

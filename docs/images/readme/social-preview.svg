@@ -1,0 +1,163 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">HIP CSharp API social preview</title>
+  <desc id="desc">A playful developer desk scene showing C# code flowing through the HIP C ABI into an AMD GPU, with managed ownership, streams, graphs and HIPRTC capabilities.</desc>
+  <defs>
+    <pattern id="dots" width="24" height="24" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="1.6" fill="#b4c6d8" opacity="0.48"/>
+    </pattern>
+    <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#22395c" flood-opacity="0.20"/>
+    </filter>
+    <filter id="small-shadow" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="0" dy="5" stdDeviation="4" flood-color="#22395c" flood-opacity="0.18"/>
+    </filter>
+  </defs>
+
+  <rect width="1280" height="640" fill="#edf2f2"/>
+  <rect x="40" y="32" width="1200" height="576" rx="34" fill="#fffdf8" stroke="#22395c" stroke-width="3"/>
+  <path d="M68 302H1212" stroke="#d7e0e1" stroke-width="2"/>
+  <path d="M72 52H388M892 588H1208" stroke="#ed6b72" stroke-width="5" stroke-linecap="round"/>
+  <path d="M70 70H610M670 570H1210" stroke="#dbe4e7" stroke-width="2" stroke-dasharray="4 12"/>
+  <rect x="62" y="286" width="1156" height="286" rx="24" fill="url(#dots)" opacity="0.38"/>
+
+  <g font-family="Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif">
+    <g transform="translate(74 68)">
+      <rect width="236" height="31" rx="15.5" fill="#e7f6f3" stroke="#85cfc4"/>
+      <circle cx="18" cy="15.5" r="5" fill="#2bb9a8"/>
+      <text x="32" y="21" fill="#167c73" font-size="13" font-weight="900" letter-spacing="0.8">AMD GPU  /  C#  /  .NET</text>
+    </g>
+    <text x="72" y="154" fill="#1d2e4d" font-size="60" font-weight="900">HIP CSharp API</text>
+    <text x="76" y="190" fill="#52677f" font-size="21" font-weight="600">Write C#. Ship real GPU work.</text>
+
+    <g transform="translate(76 214)">
+      <rect width="178" height="36" rx="18" fill="#fbe9e4" stroke="#e7a69f"/>
+      <text x="89" y="24" text-anchor="middle" fill="#a34c4a" font-size="13" font-weight="900">MANAGED OWNERSHIP</text>
+      <rect x="190" width="151" height="36" rx="18" fill="#e8eafb" stroke="#a7a8de"/>
+      <text x="265.5" y="24" text-anchor="middle" fill="#5557a4" font-size="13" font-weight="900">NATIVE C ABI</text>
+      <rect x="353" width="138" height="36" rx="18" fill="#fff1cb" stroke="#e4bd68"/>
+      <text x="422" y="24" text-anchor="middle" fill="#8e6521" font-size="13" font-weight="900">HIPRTC READY</text>
+    </g>
+
+    <!-- A compact toolkit panel fills the developer-friendly upper-right space. -->
+    <g transform="translate(654 70)" filter="url(#small-shadow)">
+      <rect width="536" height="178" rx="24" fill="#f4f1ff" stroke="#a7a8de" stroke-width="3"/>
+      <circle cx="29" cy="29" r="8" fill="#ed6b72"/>
+      <circle cx="53" cy="29" r="8" fill="#f2c46d"/>
+      <circle cx="77" cy="29" r="8" fill="#5bd1be"/>
+      <text x="102" y="34" fill="#5557a4" font-size="13" font-weight="900" letter-spacing="1">GPU TOOLKIT</text>
+      <text x="28" y="60" fill="#52677f" font-size="13" font-weight="700">One C# surface, many execution paths.</text>
+      <g transform="translate(28 80)">
+        <rect width="105" height="30" rx="15" fill="#e7f6f3" stroke="#85cfc4"/><text x="52.5" y="20" text-anchor="middle" fill="#167c73" font-size="12" font-weight="900">MEMORY</text>
+        <rect x="116" width="105" height="30" rx="15" fill="#e8eafb" stroke="#a7a8de"/><text x="168.5" y="20" text-anchor="middle" fill="#5557a4" font-size="12" font-weight="900">STREAMS</text>
+        <rect x="0" y="39" width="105" height="30" rx="15" fill="#fbe9e4" stroke="#e7a69f"/><text x="52.5" y="59" text-anchor="middle" fill="#a34c4a" font-size="12" font-weight="900">GRAPHS</text>
+        <rect x="116" y="39" width="105" height="30" rx="15" fill="#fff1cb" stroke="#e4bd68"/><text x="168.5" y="59" text-anchor="middle" fill="#8e6521" font-size="12" font-weight="900">HIPRTC</text>
+      </g>
+      <g transform="translate(294 79)">
+        <rect width="214" height="70" rx="12" fill="#22395c"/>
+        <circle cx="16" cy="15" r="3.5" fill="#ed6b72"/><circle cx="28" cy="15" r="3.5" fill="#f2c46d"/><circle cx="40" cy="15" r="3.5" fill="#5bd1be"/>
+        <text x="16" y="38" fill="#8bd9cf" font-size="10" font-weight="700">dotnet add package</text>
+        <text x="16" y="54" fill="#f5f8ff" font-size="10" font-weight="800" textLength="180" lengthAdjust="spacingAndGlyphs">JYPPX.ROCm.HIP.CSharp.API</text>
+      </g>
+    </g>
+
+    <!-- A friendly developer at a terminal. -->
+    <g transform="translate(112 320)">
+      <path d="M48 200H338" stroke="#22395c" stroke-width="7" stroke-linecap="round"/>
+      <path d="M85 200l-10 33M302 200l10 33" stroke="#22395c" stroke-width="7" stroke-linecap="round"/>
+      <path d="M122 120c-4-45 25-79 69-79h25c43 0 72 34 68 79l-11 79H134z" fill="#ed6b72" stroke="#22395c" stroke-width="4"/>
+      <path d="M138 118c8 23 26 38 52 38s45-15 53-38l8 81H130z" fill="#f2a18a" opacity="0.48"/>
+      <path d="M144 69V53c0-32 21-55 46-55s46 23 46 55v16" fill="none" stroke="#ed6b72" stroke-width="9" stroke-linecap="round"/>
+      <rect x="136" y="61" width="16" height="26" rx="8" fill="#ed6b72" stroke="#22395c" stroke-width="3"/>
+      <rect x="228" y="61" width="16" height="26" rx="8" fill="#ed6b72" stroke="#22395c" stroke-width="3"/>
+      <circle cx="190" cy="55" r="47" fill="#ffd0b3" stroke="#22395c" stroke-width="4"/>
+      <path d="M146 51c-2-28 16-56 46-56h8c30 0 49 24 46 54l-16-13-18 10-19-15-27 20z" fill="#283957" stroke="#22395c" stroke-width="4" stroke-linejoin="round"/>
+      <rect x="154" y="55" width="31" height="24" rx="9" fill="#ffd0b3" fill-opacity="0.35" stroke="#22395c" stroke-width="4"/>
+      <rect x="195" y="55" width="31" height="24" rx="9" fill="#ffd0b3" fill-opacity="0.35" stroke="#22395c" stroke-width="4"/>
+      <path d="M185 66h10" stroke="#22395c" stroke-width="4" stroke-linecap="round"/>
+      <circle cx="169" cy="67" r="5" fill="#22395c"/><circle cx="211" cy="67" r="5" fill="#22395c"/>
+      <circle cx="167" cy="65" r="1.5" fill="#fffdf8"/><circle cx="209" cy="65" r="1.5" fill="#fffdf8"/>
+      <path d="M183 88c8 7 17 7 25 0" fill="none" stroke="#b45d5a" stroke-width="4" stroke-linecap="round"/>
+      <path d="M188 105v17" stroke="#b45d5a" stroke-width="3" stroke-linecap="round"/>
+      <path d="M177 126v17M203 126v17" stroke="#ffd0b3" stroke-width="3" stroke-linecap="round"/>
+      <circle cx="177" cy="146" r="4" fill="#f2c46d"/><circle cx="203" cy="146" r="4" fill="#f2c46d"/>
+      <path d="M126 130c-27 9-37 28-39 57l50 11" fill="#ed6b72" stroke="#22395c" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M255 130c27 9 37 28 39 57l-50 11" fill="#ed6b72" stroke="#22395c" stroke-width="4" stroke-linejoin="round"/>
+      <path d="M104 170l39 10" stroke="#ffd0b3" stroke-width="17" stroke-linecap="round"/>
+      <path d="M275 170l-39 10" stroke="#ffd0b3" stroke-width="17" stroke-linecap="round"/>
+      <g filter="url(#small-shadow)">
+        <rect x="32" y="155" width="248" height="126" rx="12" fill="#22395c" stroke="#16263f" stroke-width="4"/>
+        <rect x="46" y="169" width="220" height="92" rx="7" fill="#0f1d32"/>
+        <circle cx="59" cy="181" r="4" fill="#ed6b72"/><circle cx="73" cy="181" r="4" fill="#f2c46d"/><circle cx="87" cy="181" r="4" fill="#5bd1be"/>
+        <text x="56" y="209" fill="#8bd9cf" font-size="10" font-weight="700">var gpu = new HipRuntime();</text>
+        <text x="56" y="229" fill="#f2c46d" font-size="10" font-weight="800">gpu.Initialize();</text>
+        <text x="56" y="249" fill="#70b8ff" font-size="10" font-weight="800">var device = gpu.GetDevice(0);</text>
+      </g>
+      <path d="M48 288h216l-24 20H72z" fill="#c5d1d8" stroke="#22395c" stroke-width="4"/>
+      <path d="M108 296h96" stroke="#8498a9" stroke-width="4" stroke-linecap="round"/>
+      <g transform="translate(-12 187)">
+        <path d="M0 13h26l5 32H5z" fill="#fff1cb" stroke="#22395c" stroke-width="3"/>
+        <path d="M26 20c22-6 21 21 3 20" fill="none" stroke="#22395c" stroke-width="3"/>
+        <path d="M9 7c-4-10 9-10 5-20M19 7c-4-10 9-10 5-20" fill="none" stroke="#ed6b72" stroke-width="3" stroke-linecap="round"/>
+      </g>
+    </g>
+
+    <!-- Code leaves the laptop and becomes a colorful capability stream. -->
+    <g fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M395 478C470 416 472 345 552 344C625 343 630 405 701 405C751 405 773 376 815 360" stroke="#22395c" stroke-width="14" opacity="0.13"/>
+      <path d="M395 478C470 416 472 345 552 344C625 343 630 405 701 405C751 405 773 376 815 360" stroke="#2bb9a8" stroke-width="7" stroke-dasharray="2 18"/>
+      <path d="M404 492C486 456 529 448 594 456C680 467 722 453 811 412" stroke="#ed6b72" stroke-width="6" stroke-dasharray="1 15"/>
+      <path d="M408 462C477 395 508 380 574 388C662 399 711 358 809 346" stroke="#f2c46d" stroke-width="6" stroke-dasharray="1 15"/>
+    </g>
+    <path d="M800 345l28 3-17 22" fill="#f2c46d" stroke="#22395c" stroke-width="3" stroke-linejoin="round"/>
+    <path d="M800 411l28 2-17 22" fill="#ed6b72" stroke="#22395c" stroke-width="3" stroke-linejoin="round"/>
+
+    <g transform="translate(414 317)" filter="url(#small-shadow)">
+      <rect width="96" height="36" rx="18" fill="#dff7f3" stroke="#65beb3" stroke-width="2"/>
+      <text x="48" y="24" text-anchor="middle" fill="#167c73" font-size="14" font-weight="900">C# CODE</text>
+    </g>
+    <g transform="translate(548 377)" filter="url(#small-shadow)">
+      <rect width="121" height="36" rx="18" fill="#e8eafb" stroke="#a7a8de" stroke-width="2"/>
+      <text x="60.5" y="24" text-anchor="middle" fill="#5557a4" font-size="13" font-weight="900">HIP C ABI</text>
+    </g>
+    <g transform="translate(635 444)" filter="url(#small-shadow)">
+      <rect width="85" height="36" rx="18" fill="#fff1cb" stroke="#e4bd68" stroke-width="2"/>
+      <text x="42.5" y="24" text-anchor="middle" fill="#8e6521" font-size="13" font-weight="900">HIPRTC</text>
+    </g>
+
+    <!-- Friendly GPU chip. -->
+    <g transform="translate(824 318)" filter="url(#shadow)">
+      <path d="M-20 38h20M-20 72h20M-20 106h20M-20 140h20M276 38h20M276 72h20M276 106h20M276 140h20" stroke="#22395c" stroke-width="7" stroke-linecap="round"/>
+      <rect width="276" height="178" rx="26" fill="#22395c" stroke="#16263f" stroke-width="4"/>
+      <rect x="23" y="22" width="230" height="135" rx="19" fill="#4968c8" stroke="#182d54" stroke-width="4"/>
+      <path d="M55 22V0M91 22V0M127 22V0M163 22V0M199 22V0M55 157v21M91 157v21M127 157v21M163 157v21M199 157v21" stroke="#22395c" stroke-width="7" stroke-linecap="round"/>
+      <g fill="#5bd1be">
+        <rect x="48" y="45" width="29" height="21" rx="6"/><rect x="84" y="45" width="29" height="21" rx="6"/><rect x="120" y="45" width="29" height="21" rx="6"/><rect x="156" y="45" width="29" height="21" rx="6"/><rect x="192" y="45" width="29" height="21" rx="6"/>
+        <rect x="48" y="73" width="29" height="21" rx="6"/><rect x="84" y="73" width="29" height="21" rx="6" fill="#f2c46d"/><rect x="120" y="73" width="29" height="21" rx="6"/><rect x="156" y="73" width="29" height="21" rx="6"/><rect x="192" y="73" width="29" height="21" rx="6"/>
+        <rect x="48" y="101" width="29" height="21" rx="6"/><rect x="84" y="101" width="29" height="21" rx="6"/><rect x="120" y="101" width="29" height="21" rx="6" fill="#ed6b72"/><rect x="156" y="101" width="29" height="21" rx="6"/><rect x="192" y="101" width="29" height="21" rx="6"/>
+      </g>
+      <circle cx="106" cy="141" r="5" fill="#fffdf8"/><circle cx="170" cy="141" r="5" fill="#fffdf8"/>
+      <path d="M122 149c9 9 23 9 32 0" fill="none" stroke="#fffdf8" stroke-width="4" stroke-linecap="round"/>
+      <text x="138" y="174" text-anchor="middle" fill="#f5f8ff" font-size="13" font-weight="900" letter-spacing="1.4">GPU WORK</text>
+    </g>
+    <g transform="translate(1044 286)" filter="url(#small-shadow)">
+      <path d="M0 22l18-22 18 22-18 22z" fill="#ed6b72" stroke="#22395c" stroke-width="3"/>
+      <path d="M18 13v18M9 22h18" stroke="#fffdf8" stroke-width="3" stroke-linecap="round"/>
+    </g>
+
+    <g transform="translate(430 530)">
+      <text x="0" y="0" fill="#52677f" font-size="12" font-weight="900" letter-spacing="1">THE TOOLBOX</text>
+      <g transform="translate(0 13)">
+        <rect width="86" height="29" rx="14.5" fill="#e7f6f3" stroke="#85cfc4"/><text x="43" y="20" text-anchor="middle" fill="#167c73" font-size="12" font-weight="900">MEMORY</text>
+        <rect x="96" width="91" height="29" rx="14.5" fill="#e8eafb" stroke="#a7a8de"/><text x="141.5" y="20" text-anchor="middle" fill="#5557a4" font-size="12" font-weight="900">STREAMS</text>
+        <rect x="197" width="80" height="29" rx="14.5" fill="#fbe9e4" stroke="#e7a69f"/><text x="237" y="20" text-anchor="middle" fill="#a34c4a" font-size="12" font-weight="900">EVENTS</text>
+        <rect x="287" width="100" height="29" rx="14.5" fill="#fff1cb" stroke="#e4bd68"/><text x="337" y="20" text-anchor="middle" fill="#8e6521" font-size="12" font-weight="900">MODULES</text>
+        <rect x="397" width="84" height="29" rx="14.5" fill="#e7f6f3" stroke="#85cfc4"/><text x="439" y="20" text-anchor="middle" fill="#167c73" font-size="12" font-weight="900">GRAPHS</text>
+        <rect x="491" width="82" height="29" rx="14.5" fill="#e8eafb" stroke="#a7a8de"/><text x="532" y="20" text-anchor="middle" fill="#5557a4" font-size="12" font-weight="900">HIPRTC</text>
+      </g>
+    </g>
+
+    <path d="M72 590H1208" stroke="#d7e0e1" stroke-width="2"/>
+    <text x="430" y="598" fill="#52677f" font-size="13" font-weight="800">JYPPX.ROCm.HIP.CSharp.API</text>
+    <text x="1208" y="598" text-anchor="end" fill="#167c73" font-size="13" font-weight="900">.NET 0.10 preview  /  ROCm ready</text>
+  </g>
+</svg>

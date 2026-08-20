@@ -394,4 +394,54 @@ internal interface IHipNativeApi
     public string GetErrorName(HipError error);
 
     public string GetErrorString(HipError error);
+
+    // Advanced managed interop: external resources, IPC, callbacks, profiler, and driver compatibility.
+    public HipError DestroyExternalMemory(IntPtr externalMemory);
+    public HipError DestroyExternalSemaphore(IntPtr externalSemaphore);
+    public HipError ExternalMemoryGetMappedBuffer(IntPtr devicePointer, IntPtr externalMemory, IntPtr bufferDescriptor);
+    public HipError ExternalMemoryGetMappedMipmappedArray(IntPtr mipmappedArray, IntPtr externalMemory, IntPtr mipmappedArrayDescriptor);
+    public HipError GraphAddExternalSemaphoresSignalNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters);
+    public HipError GraphAddExternalSemaphoresWaitNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters);
+    public HipError GraphExecExternalSemaphoresSignalNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters);
+    public HipError GraphExecExternalSemaphoresWaitNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr parameters);
+    public HipError GraphExternalSemaphoresSignalNodeGetParams(IntPtr node, IntPtr parameters);
+    public HipError GraphExternalSemaphoresSignalNodeSetParams(IntPtr node, IntPtr parameters);
+    public HipError GraphExternalSemaphoresWaitNodeGetParams(IntPtr node, IntPtr parameters);
+    public HipError GraphExternalSemaphoresWaitNodeSetParams(IntPtr node, IntPtr parameters);
+    public HipError GraphicsMapResources(int count, IntPtr resources, IntPtr stream);
+    public HipError GraphicsResourceGetMappedPointer(IntPtr devicePointer, IntPtr size, IntPtr resource);
+    public HipError GraphicsSubResourceGetMappedArray(IntPtr array, IntPtr resource, uint arrayIndex, uint mipLevel);
+    public HipError GraphicsUnmapResources(int count, IntPtr resources, IntPtr stream);
+    public HipError GraphicsUnregisterResource(IntPtr resource);
+    public HipError ImportExternalMemory(IntPtr externalMemory, IntPtr descriptor);
+    public HipError ImportExternalSemaphore(IntPtr externalSemaphore, IntPtr descriptor);
+    public HipError IpcCloseMemHandle(IntPtr devicePointer);
+    public HipError IpcGetEventHandle(IntPtr handle, IntPtr eventHandle);
+    public HipError IpcGetMemHandle(IntPtr handle, IntPtr devicePointer);
+    public HipError IpcOpenEventHandle(IntPtr eventHandle, HipIpcEventHandle handle);
+    public HipError IpcOpenMemHandle(IntPtr devicePointer, HipIpcMemHandle handle, uint flags);
+    public HipError SignalExternalSemaphoresAsync(IntPtr semaphores, IntPtr parameters, uint semaphoreCount, IntPtr stream);
+    public HipError WaitExternalSemaphoresAsync(IntPtr semaphores, IntPtr parameters, uint semaphoreCount, IntPtr stream);
+    public HipError GraphReleaseUserObject(IntPtr graph, IntPtr userObject, uint count);
+    public HipError GraphRetainUserObject(IntPtr graph, IntPtr userObject, uint count, uint flags);
+    public HipError ProfilerStart();
+    public HipError ProfilerStop();
+    public HipError StreamAddCallback(IntPtr stream, IntPtr callback, IntPtr userData, uint flags);
+    public HipError UserObjectCreate(IntPtr userObject, IntPtr value, IntPtr destroy, uint initialRefCount, uint flags);
+    public HipError UserObjectRelease(IntPtr userObject, uint count);
+    public HipError UserObjectRetain(IntPtr userObject, uint count);
+    public HipError DrvGetErrorName(HipError error, IntPtr name);
+    public HipError DrvGetErrorString(HipError error, IntPtr message);
+    public HipError DrvGraphAddMemcpyNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr copyParameters, IntPtr context);
+    public HipError DrvGraphAddMemFreeNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr devicePointer);
+    public HipError DrvGraphAddMemsetNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr memsetParameters, IntPtr context);
+    public HipError DrvGraphExecMemcpyNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr copyParameters, IntPtr context);
+    public HipError DrvGraphExecMemsetNodeSetParams(IntPtr graphExec, IntPtr node, IntPtr memsetParameters, IntPtr context);
+    public HipError DrvGraphMemcpyNodeGetParams(IntPtr node, IntPtr copyParameters);
+    public HipError DrvGraphMemcpyNodeSetParams(IntPtr node, IntPtr copyParameters);
+    public HipError DrvLaunchKernelEx(IntPtr configuration, IntPtr function, IntPtr parameters, IntPtr extra);
+    public HipError DrvMemcpy2DUnaligned(IntPtr copyParameters);
+    public HipError DrvMemcpy3D(IntPtr copyParameters);
+    public HipError DrvMemcpy3DAsync(IntPtr copyParameters, IntPtr stream);
+    public HipError DrvPointerGetAttributes(uint count, IntPtr attributes, IntPtr values, IntPtr devicePointer);
 }

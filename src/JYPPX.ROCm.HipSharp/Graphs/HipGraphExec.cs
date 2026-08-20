@@ -122,6 +122,19 @@ public sealed class HipGraphExec : IDisposable
         ReleaseChecked();
     }
 
+    internal IHipNativeApi NativeApi => _nativeApi;
+
+    internal HipGraph? ExplicitGraph => _explicitGraph;
+
+    internal IntPtr DangerousGetHandle()
+    {
+        lock (_lifetimeSync)
+        {
+            ThrowIfDisposed();
+            return _handle.DangerousGetHandle();
+        }
+    }
+
     private void UpdateCopyCore(HipGraphNode node, HipGraphMemoryOperand source, HipGraphMemoryOperand destination, ulong byteCount)
     {
         HipGraphCompositeLease? leases = new(source.Lease, destination.Lease);

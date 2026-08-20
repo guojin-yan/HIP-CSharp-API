@@ -279,6 +279,15 @@ public sealed class HipGraph : IDisposable
 
     internal IHipNativeApi NativeApi => _nativeApi;
 
+    internal IntPtr DangerousGetHandle()
+    {
+        lock (_lifetimeSync)
+        {
+            ThrowIfDisposed();
+            return _handle.DangerousGetHandle();
+        }
+    }
+
     internal IReadOnlyList<HipGraphNode> GetDependencies(HipGraphNode node)
     {
         lock (_lifetimeSync)
