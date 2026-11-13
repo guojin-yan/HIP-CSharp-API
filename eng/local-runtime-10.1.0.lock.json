@@ -1,0 +1,302 @@
+{
+  "schemaVersion": 1,
+  "sdkVersion": "10.1.0",
+  "platforms": {
+    "win-x64": {
+      "rid": "win-x64",
+      "sdkManifestSha256": "821ea1f170fbb40044cd9328e6ee3e3a28fa70467ca4082121ab6fcf7a59171e",
+      "sourcePolicy": "Pinned installed TheRock files; SHA-256 and build metadata verified, Authenticode NotSigned. Local development only; not the signed official-release policy.",
+      "files": [
+        {
+          "source": "bin/amdhip64_7.dll",
+          "name": "amdhip64_7.dll",
+          "sha256": "f20e2065cee5889789bf73df0c2d1f4efb481e74ade30488c352fd65ad80ac83"
+        },
+        {
+          "source": "bin/hiprtc0716.dll",
+          "name": "hiprtc0716.dll",
+          "sha256": "ee7d306880167ae3c0cec7e27953d14ec14d75576d3ba6fab43497dfa873cde3"
+        },
+        {
+          "source": "bin/hiprtc-builtins0716.dll",
+          "name": "hiprtc-builtins0716.dll",
+          "sha256": "ad40c1bec5fbeb8b9f1f765207d0301982e674766bf86fb0a82fe4b3d7ea9653"
+        },
+        {
+          "source": "bin/amd_comgr.dll",
+          "name": "amd_comgr.dll",
+          "sha256": "da9527847c99efd3df99bd46fe24abae7920b04df0f51e7c677abcccd4924e58"
+        },
+        {
+          "source": "bin/rocm_kpack.dll",
+          "name": "rocm_kpack.dll",
+          "sha256": "2e9734ffe6f6eefe1ff660a55dc85fffbcd2d66f794fce4878c6d95a55787b48"
+        }
+      ],
+      "notices": [
+        {
+          "source": "share/doc/amd_comgr/LICENSE.txt",
+          "name": "COMGR-LICENSE.txt",
+          "sha256": "efa88a0f81075b46f0b5eed592d8c575a7014ba402b912da68926766464f9513"
+        }
+      ],
+      "hostPrerequisites": [
+        "Compatible Windows x64 AMD GPU driver (tested W7900 gfx1100, driver 32.0.21030.2001).",
+        "Microsoft Visual C++ x64 Redistributable / Windows UCRT.",
+        "Core 0.11.0-dev and a compatible .NET runtime."
+      ]
+    },
+    "ubuntu.24.04-x64": {
+      "rid": "linux-x64",
+      "sdkManifestSha256": "1dbf234cdf4d590b7ebd417975108b460d4aea0fe8aa5f5766d09f3b75e87a4a",
+      "sourcePolicy": "Pinned installed TheRock files and build metadata; staged ELF RPATH rewritten to $ORIGIN. Local WSL2 development validation is separate from native Linux public-release validation.",
+      "files": [
+        {
+          "source": "lib/libamd_comgr.so.3",
+          "name": "libamd_comgr.so.3",
+          "sha256": "6bf2f6fe6b243c5ac3621cd5745887933d3a41edd944a447c88c21ec77da5d5b"
+        },
+        {
+          "source": "lib/libamdhip64.so.7",
+          "name": "libamdhip64.so.7",
+          "sha256": "6d1dbee8cb3ad924e4c1bca7734e22f2c93026eb3bc871a7f64a916778d55e36"
+        },
+        {
+          "source": "lib/libhiprtc-builtins.so.7",
+          "name": "libhiprtc-builtins.so.7",
+          "sha256": "589202fe35801ecd97f5046680b1d361891e250b3fd104b96c3d220993d94d26"
+        },
+        {
+          "source": "lib/libhiprtc.so.7",
+          "name": "libhiprtc.so.7",
+          "sha256": "650c66dc333c0d40c019be058325dbfe26ed96078e51f9e436839f35ee42636a"
+        },
+        {
+          "source": "lib/libhsa-runtime64.so.1",
+          "name": "libhsa-runtime64.so.1",
+          "sha256": "12d49db16881b9505629192231d5b3971e9030b26a326fc2c003e92da7de0c44"
+        },
+        {
+          "source": "lib/librocm_kpack.so.0",
+          "name": "librocm_kpack.so.0",
+          "sha256": "e2af394dea58ad53d6074c7aa9d56de5dc027ca186f6bbc27d6f32d7b8f12ac3"
+        },
+        {
+          "source": "lib/librocprofiler-register.so.0",
+          "name": "librocprofiler-register.so.0",
+          "sha256": "a67764cf46d1d579eb27311576ba9c0b4dbfa5052ddd64a062131f716faa11b6"
+        },
+        {
+          "source": "lib/llvm/lib/libLLVM.so.24.0git",
+          "name": "libLLVM.so.24.0git",
+          "sha256": "3e7b50e1f252792eba7380b8503c05c899bf8ae9deeb70faf3f9be5f995c8e0a"
+        },
+        {
+          "source": "lib/llvm/lib/libclang-cpp.so.24.0git",
+          "name": "libclang-cpp.so.24.0git",
+          "sha256": "18ef4cb8bd32366a68599fb6d723ed38814707a2ada1ff34b722dafc7856663b"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so",
+          "name": "librocm_sysdeps_bz2.so",
+          "sha256": "37a39b12a7e6e9f480d10e5e139b9aedbe5824e63b6b9e12a16837baee608602"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2",
+          "name": "librocm_sysdeps_drm.so.2",
+          "sha256": "b715ae24e1d62e407ffceca56b546e8a35abe37ac50878cbb16fa8b93d9c9fd5"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1",
+          "name": "librocm_sysdeps_drm_amdgpu.so.1",
+          "sha256": "b25742cda500eaa61e39b2b32492bb482235ad3e3df8a988d8f4130054d94cad"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1",
+          "name": "librocm_sysdeps_elf.so.1",
+          "sha256": "692dd9fe3575a45df78b319ad0e2a58ee36814958771dd810d5d91f9616c6d8f"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5",
+          "name": "librocm_sysdeps_liblzma.so.5",
+          "sha256": "d17f947bfe3947db5aefee897f6d32dfe98c73bf80b477764ba7f4107594a671"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1",
+          "name": "librocm_sysdeps_numa.so.1",
+          "sha256": "26fffd0f85369950b834cfb8f56fa9e1ea4804be8bbc40db98b788c554802bc3"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1",
+          "name": "librocm_sysdeps_z.so.1",
+          "sha256": "e1d7568f4a0b77eeab26f30cc9d2794dfe7ffd14e34b4ae55a9f80bc4f94ba7a"
+        },
+        {
+          "source": "lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1",
+          "name": "librocm_sysdeps_zstd.so.1",
+          "sha256": "fc3edd0b74fa071079b0095abe7b3f41418ca39be138f4ec0c57d0640a0b2d8b"
+        },
+        {
+          "source": "lib/librocdxg.so.1",
+          "name": "librocdxg.so.1",
+          "sha256": "401b5545dc5cfe27680b0905f62ac5f3da3c09be7e6e5211aabc94f314e0bece"
+        }
+      ],
+      "aliases": {
+        "libamdhip64.so": "libamdhip64.so.7",
+        "libhiprtc.so": "libhiprtc.so.7",
+        "libhiprtc-builtins.so": "libhiprtc-builtins.so.7"
+      },
+      "notices": [
+        {
+          "source": "share/doc/hip/LICENSE.md",
+          "name": "HIP-SDK-LICENSE.md",
+          "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+        },
+        {
+          "source": "share/doc/rocr/LICENSE.md",
+          "name": "HSA-LICENSE.md",
+          "sha256": "dac0a5360f50972cceaed16767bc9e94642aa497d558a74471e842f7192c7403"
+        },
+        {
+          "source": "share/doc/rocdxg/LICENSE.md",
+          "name": "ROCDXG-LICENSE.md",
+          "sha256": "ab34f1e9d0d9a62b6afa212caa73c23bacd152145a16c9d5cb9c4cf5ff58e9f3"
+        },
+        {
+          "source": "share/doc/amd_comgr/LICENSE.txt",
+          "name": "COMGR-LICENSE.txt",
+          "sha256": "6ad4983498652cb8c73c70a705a0d9175c5e3ff5db93c799d8e09557a04af140"
+        },
+        {
+          "source": "share/doc/rocprofiler-register/LICENSE.md",
+          "name": "ROCPROFILER-REGISTER-LICENSE.md",
+          "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+        }
+      ],
+      "hostPrerequisites": [
+        "Ubuntu 24.04 x64 with compatible AMD GPU driver/device access.",
+        "For this WSL2 host: Windows AMD driver, /dev/dxg and host /usr/lib/wsl/lib/DXCore libraries (not packaged).",
+        "System glibc, libstdc++, libgcc and their loader; no system ROCm installation is needed by the tested workloads.",
+        "Core 0.11.0-dev and a compatible .NET runtime."
+      ]
+    }
+  },
+  "downloads": [
+    {
+      "name": "HIP-LICENSE.md",
+      "url": "https://raw.githubusercontent.com/ROCm/rocm-systems/7da43026e4f2ef7600433c38c820732f7a205d22/projects/hip/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223",
+      "archive": false,
+      "platforms": [
+        "win-x64",
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "CLR-LICENSE.md",
+      "url": "https://raw.githubusercontent.com/ROCm/rocm-systems/7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223",
+      "archive": false,
+      "platforms": [
+        "win-x64",
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "KPACK-LICENSE",
+      "url": "https://raw.githubusercontent.com/ROCm/rocm-systems/7da43026e4f2ef7600433c38c820732f7a205d22/shared/kpack/LICENSE",
+      "sha256": "e071e8c7d920817b6415f4b87c115c6aefafe137e36843b3723f28dde5f484c3",
+      "archive": false,
+      "platforms": [
+        "win-x64",
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "LLVM-LICENSE.TXT",
+      "url": "https://raw.githubusercontent.com/ROCm/llvm-project/d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/LICENSE.TXT",
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee",
+      "archive": false,
+      "platforms": [
+        "win-x64",
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "bzip2-1.0.8.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/bzip2-1.0.8.tar.gz",
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+      "archive": true,
+      "platforms": [
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "xz-5.8.1.tar.bz2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/xz-5.8.1.tar.bz2",
+      "sha256": "5965c692c4c8800cd4b33ce6d0f6ac9ac9d6ab227b17c512b6561bce4f08d47e",
+      "archive": true,
+      "platforms": [
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "zlib-1.3.2.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/zlib-1.3.2.tar.gz",
+      "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+      "archive": true,
+      "platforms": [
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "zstd-1.5.7.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/zstd-1.5.7.tar.gz",
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "archive": true,
+      "platforms": [
+        "win-x64",
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "elfutils-0.195.tar.bz2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/elfutils-0.195.tar.bz2",
+      "sha256": "37629fdf7f1f3dc2818e138fca2b8094177d6c2d0f701d3bb650a561218dc026",
+      "archive": true,
+      "platforms": [
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "libdrm-libdrm-2.4.134.tar.bz2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/libdrm-libdrm-2.4.134.tar.bz2",
+      "sha256": "d77e5af336b6491f9e2427378244912ef5295c3c034af76846c0fcffe2eb869c",
+      "archive": true,
+      "platforms": [
+        "ubuntu.24.04-x64"
+      ],
+      "embeddedNotices": true
+    },
+    {
+      "name": "numactl-2.0.19.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/numactl-2.0.19.tar.gz",
+      "sha256": "f2672a0381cb59196e9c246bf8bcc43d5568bc457700a697f1a1df762b9af884",
+      "archive": true,
+      "platforms": [
+        "ubuntu.24.04-x64"
+      ]
+    },
+    {
+      "name": "msgpack-cxx-7.0.0.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/msgpack-cxx-7.0.0.tar.gz",
+      "sha256": "7504b7af7e7b9002ce529d4f941e1b7fb1fb435768780ce7da4abaac79bb156f",
+      "archive": true,
+      "platforms": [
+        "win-x64",
+        "ubuntu.24.04-x64"
+      ]
+    }
+  ]
+}

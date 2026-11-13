@@ -100,6 +100,8 @@ foreach (HipDevice device in runtime.GetDevices())
 
 Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部署资产，采用独立版本并受到更严格的发布门禁。原生文件边界见 [Linux Runtime 包指南](docs/guides/linux-runtime-package.md)。
 
+本机 TheRock SDK 10.1.0 可通过独立的[本地 Runtime 打包入口](docs/guides/local-runtime-packages.md)生成 Windows 和 Ubuntu 的 `10.1.0-local.*` NuGet 包，保留已发布包及原有发布检查。
+
 ## 🌐 公开包与 Release 资产
 
 Core `0.10.0` 和 Ubuntu 24.04 Runtime `7.2.1` 已位于 NuGet.org；当前源码 `0.11.0-dev` 尚未发布。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。

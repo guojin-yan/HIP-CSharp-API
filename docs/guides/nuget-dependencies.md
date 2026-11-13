@@ -2,6 +2,8 @@
 
 The HIP user-mode runtime dependencies can be distributed through NuGet. Keep the managed Core package separate from each platform's native Runtime package, so an application can choose packaged native libraries or an existing compatible system installation. A GPU driver and compatible GPU remain host prerequisites.
 
+For the installed TheRock SDK 10.1.0, use the separate [local-development packaging entry point](local-runtime-packages.md). Its `10.1.0-local.*` packages do not enable the old Windows 7.2.0 project or replace the published Linux 7.2.1 payload.
+
 ## Package selection
 
 | Package | Current state | Purpose |

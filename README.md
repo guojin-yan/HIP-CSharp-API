@@ -100,6 +100,8 @@ Applications using the managed package must still provide compatible native `amd
 
 The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [NuGet dependency guide](docs/guides/nuget-dependencies.md) for package selection, host prerequisites, and the Windows packaging gaps, and the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact Linux native boundary.
 
+For the installed TheRock SDK 10.1.0, a separate [local Runtime packaging workflow](docs/guides/local-runtime-packages.md) produces `10.1.0-local.*` Windows and Ubuntu packages without changing the published packages or their release gates.
+
 ## 🌐 Public Packages And Release Assets
 
 Core `0.10.0` and Ubuntu 24.04 Runtime `7.2.1` are available on NuGet.org. Current source `0.11.0-dev` is unpublished. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
