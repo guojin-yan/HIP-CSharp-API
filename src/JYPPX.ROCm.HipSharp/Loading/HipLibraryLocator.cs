@@ -121,11 +121,11 @@ internal sealed class HipLibraryLocator
     {
         if (_platform.IsWindows && _libraryKind == HipNativeLibraryKind.Rtc)
         {
-            directory = Path.GetFullPath(directory);
+            directory = NormalizeDirectory(directory);
             try
             {
                 string[] files = _fileEnumerator(directory)
-                    .Where(path => Path.IsPathRooted(path) && string.Equals(Path.GetDirectoryName(Path.GetFullPath(path)), directory, StringComparison.OrdinalIgnoreCase))
+                    .Where(path => Path.IsPathRooted(path) && string.Equals(NormalizeDirectory(Path.GetDirectoryName(Path.GetFullPath(path))!), directory, StringComparison.OrdinalIgnoreCase))
                     .Where(path => Regex.IsMatch(Path.GetFileName(path), @"^hiprtc[0-9]{4}\.dll$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
                     .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase).ToArray();
                 foreach (string file in files) Add(candidates, seen, file, source);
@@ -136,6 +136,18 @@ internal sealed class HipLibraryLocator
             }
         }
         Add(candidates, seen, Path.Combine(directory, fileName), source);
+    }
+
+    private static string NormalizeDirectory(string directory)
+    {
+        string fullPath = Path.GetFullPath(directory);
+        int rootLength = Path.GetPathRoot(fullPath)!.Length;
+        while (fullPath.Length > rootLength &&
+               (fullPath[fullPath.Length - 1] == Path.DirectorySeparatorChar || fullPath[fullPath.Length - 1] == Path.AltDirectorySeparatorChar))
+        {
+            fullPath = fullPath.Substring(0, fullPath.Length - 1);
+        }
+        return fullPath;
     }
 
     private void AddEnvironmentRoot(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string variableName, string fileName)

@@ -3,12 +3,16 @@ param(
     [Parameter(Mandatory = $true)][string]$RuntimePackage,
     [Parameter(Mandatory = $true)][string]$CorePackage,
     [Parameter(Mandatory = $true)][string]$OutputRoot,
-    [Parameter(Mandatory = $true)][ValidatePattern('^gfx[0-9a-f]+$')][string]$Architecture
+    [Parameter(Mandatory = $true)][ValidatePattern('^gfx[0-9a-f]+$')][string]$Architecture,
+    [string]$ReferenceAssembliesFeed
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $repository = Split-Path -Parent $PSScriptRoot
+$validationCommit = (& git -C $repository rev-parse HEAD).Trim()
+if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve validation source commit.' }
+$sourceTreeDirty = @(& git -C $repository status --porcelain).Count -ne 0
 $output = [IO.Path]::GetFullPath($OutputRoot)
 if ($output.StartsWith($repository.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar, [StringComparison]::OrdinalIgnoreCase) -or $output -eq $repository) {
     throw 'OutputRoot must be outside the source repository.'
@@ -18,6 +22,19 @@ New-Item -ItemType Directory -Path $output -Force | Out-Null
 $feed = Join-Path $output 'feed'
 New-Item -ItemType Directory $feed | Out-Null
 Copy-Item -LiteralPath $RuntimePackage, $CorePackage -Destination $feed
+if ($IsWindows) {
+    $referenceFeed = if ($ReferenceAssembliesFeed) { $ReferenceAssembliesFeed } else {
+        $line = (& dotnet nuget locals global-packages --list | Select-Object -First 1)
+        if ($LASTEXITCODE -ne 0) { throw 'Cannot locate cached Framework reference assemblies.' }
+        ($line -replace '^global-packages:\s*', '').Trim()
+    }
+    foreach ($id in @('microsoft.netframework.referenceassemblies', 'microsoft.netframework.referenceassemblies.net48')) {
+        $candidate = Join-Path $referenceFeed "$id/1.0.3/$id.1.0.3.nupkg"
+        if (-not (Test-Path -LiteralPath $candidate)) { $candidate = Join-Path $referenceFeed "$id.1.0.3.nupkg" }
+        if (-not (Test-Path -LiteralPath $candidate)) { throw "Restore $id 1.0.3 into a reference-only cache first, or supply ReferenceAssembliesFeed." }
+        Copy-Item -LiteralPath $candidate -Destination $feed
+    }
+}
 $runtimePath = (Resolve-Path -LiteralPath $RuntimePackage).Path
 $corePath = (Resolve-Path -LiteralPath $CorePackage).Path
 $archive = [IO.Compression.ZipFile]::OpenRead($runtimePath)
@@ -146,11 +163,60 @@ try {
             $results += [pscustomobject]@{ workload = 'MissingHipRtcRejected'; status = $(if ($rejected) { 'passed' } else { 'failed' }); exitCode = $negativeCode }
             Write-Host "MissingHipRtcRejected : $($results[-1].status)"
         } finally { Move-Item -LiteralPath $hiddenPath -Destination $nativePath }
+
+        foreach ($appHost in @($false, $true)) {
+            $label = if ($appHost) { 'RidPublishAppHost' } else { 'RidPublishDotnet' }
+            $ridPublish = Join-Path $output $label
+            $publishLog = @(& dotnet publish $project -c Release -r $rid --self-contained false "-p:UseAppHost=$($appHost.ToString().ToLowerInvariant())" --configfile $config -o $ridPublish --nologo 2>&1)
+            $publishLog | Set-Content -LiteralPath (Join-Path $output "$label-build.log") -Encoding utf8
+            if ($LASTEXITCODE -ne 0) { throw "RID publish failed: $label" }
+            $runLog = if ($appHost) {
+                $exe = Join-Path $ridPublish $(if ($IsWindows) { 'consumer.exe' } else { 'consumer' })
+                @(& $exe --arch $Architecture --length 1000 --repeat 20 2>&1)
+            } else { @(& dotnet (Join-Path $ridPublish 'consumer.dll') --arch $Architecture --length 1000 --repeat 20 2>&1) }
+            $exitCode = $LASTEXITCODE
+            $runLog | Set-Content -LiteralPath (Join-Path $output "$label.log") -Encoding utf8
+            $results += [pscustomobject]@{ workload = $label; status = $(if ($exitCode -eq 0) { 'passed' } else { 'failed' }); exitCode = $exitCode }
+            Write-Host "$label : $($results[-1].status)"
+        }
+        if ($IsWindows) {
+            $framework = Join-Path $output 'FrameworkPackage'
+            New-Item -ItemType Directory $framework | Out-Null
+            $source = [Security.SecurityElement]::Escape((Join-Path $PSScriptRoot 'local-runtime/FrameworkPackageSmoke.cs'))
+@"
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType><TargetFramework>net48</TargetFramework><LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks><PlatformTarget>x64</PlatformTarget><NuGetAudit>false</NuGetAudit>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="$source"/>
+    <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="[$coreVersion]"/>
+    <PackageReference Include="$($manifest.packageId)" Version="[$($manifest.packageVersion)]"/>
+    <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all"/>
+  </ItemGroup>
+</Project>
+"@ | Set-Content -LiteralPath (Join-Path $framework 'FrameworkPackage.csproj') -Encoding utf8
+            $hashFile = Join-Path $framework 'native-hashes.tsv'
+            $manifest.files | ForEach-Object { "$($_.name)`t$($_.sha256)" } | Set-Content -LiteralPath $hashFile -Encoding utf8
+            $buildLog = @(& dotnet build (Join-Path $framework 'FrameworkPackage.csproj') -c Release --configfile $config --nologo 2>&1)
+            $buildLog | Set-Content -LiteralPath (Join-Path $framework 'build.log') -Encoding utf8
+            if ($LASTEXITCODE -ne 0) { throw 'Framework PackageReference consumer build failed.' }
+            $runLog = @(& (Join-Path $framework 'bin/Release/net48/FrameworkPackage.exe') $Architecture $hashFile 2>&1)
+            $exitCode = $LASTEXITCODE
+            $runLog | Set-Content -LiteralPath (Join-Path $framework 'run.log') -Encoding utf8
+            $results += [pscustomobject]@{ workload = 'FrameworkPackage'; status = $(if ($exitCode -eq 0) { 'passed' } else { 'failed' }); exitCode = $exitCode }
+            Write-Host "FrameworkPackage : $($results[-1].status)"
+        }
     }
 } finally {
     foreach ($name in $saved.Keys) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
     [pscustomobject]@{
         scope = 'local-package-consumers'; platform = $rid; architecture = $Architecture
+        sourceCommit = $expectedCommit; validationCommit = $validationCommit
+        sourceTreeDirty = ($sourceTreeDirty -or @(& git -C $repository status --porcelain).Count -ne 0 -or (& git -C $repository rev-parse HEAD).Trim() -ne $validationCommit)
+        host = $(if ($IsWindows) { 'windows' } elseif (Test-Path /dev/dxg) { 'wsl2' } elseif (Test-Path /dev/kfd) { 'linux-kfd' } else { 'linux-other' })
+        completed = ($results.Count -eq $(if ($IsWindows) { 23 } else { 22 }))
         runtimePackageSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
         corePackageSha256 = (Get-FileHash -LiteralPath $corePath -Algorithm SHA256).Hash.ToLowerInvariant()
         workloads = $results

@@ -126,6 +126,26 @@ public sealed class HipLibraryLoaderTests
     }
 
     [TestMethod]
+    public void WindowsRtcDiscoveryFindsApplicationLocalDllWithTrailingSeparatorAndAtRoot()
+    {
+        string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
+        foreach (string app in new[] { Path.Combine(root, "published-app") + Path.DirectorySeparatorChar, root })
+        {
+            string rtc = Path.Combine(app, "hiprtc0716.dll");
+            string outside = Path.Combine(app, "elsewhere", "hiprtc0999.dll");
+            var platform = new HipPlatformInfo(true, false, "Windows", "x64", ".NET 10", "win-x64");
+            var locator = new HipLibraryLocator(platform, app, _ => null, HipNativeLibraryKind.Rtc,
+                _ => Array.Empty<string>(), _ => new[] { rtc, outside });
+            HipLibraryCandidate[] candidates = locator.GetCandidates(null).ToArray();
+            Assert.AreEqual(rtc, candidates[0].Value);
+            Assert.AreEqual("application-base", candidates[0].Source);
+            Assert.IsFalse(candidates.Any(candidate => candidate.Value == outside));
+            var loader = new HipNativeLibraryLoader(platform, locator, new NamedCandidateBackend(rtc), HipNativeLibraryKind.Rtc);
+            Assert.AreEqual(rtc, loader.Load(null).Candidate.Value);
+        }
+    }
+
+    [TestMethod]
     public void RtcDiscoveryNormalizesConfiguredDirectoryBeforeComparingEnumeratedFiles()
     {
         string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
