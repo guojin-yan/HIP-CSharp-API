@@ -6,4 +6,4 @@ The host must be Ubuntu 24.04 x64 with the AMD `amdgpu`/`amdkfd` kernel driver, 
 
 The package includes its deterministic CycloneDX SBOM, per-component license texts, and the exact signed-source/file manifest. ROCm and HIP versions are fixed to 7.2.1/7.2.53211 for this package version.
 
-The payload source, dependency closure, licenses, and SBOM derive from the audited Ubuntu 24.04 baseline. Its manifest intentionally blocks final packing and publication until a fresh exact-package content/size audit and GPU validation produce a promotion receipt for this exact distribution-specific identity.
+Version `7.2.1` is published on NuGet.org. Its payload source, dependency closure, licenses, SBOM, and tracked promotion receipt derive from the audited Ubuntu 24.04 baseline. New package bytes require fresh exact-package content/size audits and GPU validation; the existing receipt does not authorize a different native payload or SDK version.

@@ -98,7 +98,7 @@ Applications using the managed package must still provide compatible native `amd
 | <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64</code> | Published Ubuntu 24.04 x64 ROCm 7.2.1 user-mode runtime |
 | <code>JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64</code> | Disabled Windows runtime skeleton with no native inventory; not a usable runtime package |
 
-The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact native boundary.
+The Core package is dependency-free and never installs a GPU driver. Runtime packages are optional deployment artifacts with independent versioning and stricter publication gates. Read the [NuGet dependency guide](docs/guides/nuget-dependencies.md) for package selection, host prerequisites, and the Windows packaging gaps, and the [Linux runtime package guide](docs/guides/linux-runtime-package.md) for the exact Linux native boundary.
 
 ## 🌐 Public Packages And Release Assets
 
