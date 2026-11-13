@@ -11,6 +11,10 @@ public enum HipGraphNodeType
     MemorySet = 2,
     /// <summary>空操作节点 / Empty no-op node.</summary>
     Empty = 5,
+    /// <summary>外部 semaphore signal 节点 / External semaphore signal node.</summary>
+    ExternalSemaphoreSignal = 8,
+    /// <summary>外部 semaphore wait 节点 / External semaphore wait node.</summary>
+    ExternalSemaphoreWait = 9,
     /// <summary>Graph-local 内存分配节点 / Graph-local memory-allocation node.</summary>
     MemoryAllocation = 10,
     /// <summary>Graph-local 内存释放节点 / Graph-local memory-free node.</summary>

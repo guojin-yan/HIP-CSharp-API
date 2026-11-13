@@ -16,6 +16,12 @@ internal static class Program
             using var runtime = new HipRuntime();
             runtime.Initialize();
             HipDevice device = runtime.GetCurrentDevice();
+            if (runtime.GetDeviceAttribute(HipDeviceAttribute.ManagedMemory, device.Ordinal) == 0 ||
+                runtime.GetDeviceAttribute(HipDeviceAttribute.ConcurrentManagedAccess, device.Ordinal) == 0)
+            {
+                Console.WriteLine("Skipped: device reports no managed-memory allocation or concurrent managed access required by this advice/prefetch example.");
+                return 0;
+            }
 
             using (HipManagedMemory managed = runtime.AllocateManaged((ulong)source.Length))
             using (HipStream stream = runtime.CreateStream(HipStreamFlags.NonBlocking))

@@ -12,6 +12,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+$env:HIPSHARP_REPOSITORY_ROOT = $repositoryRoot
 $manifestPath = Join-Path $repositoryRoot "eng/interop/interop-manifest.json"
 $generatorProject = Join-Path $repositoryRoot "tools/JYPPX.ROCm.HipSharp.BindingGenerator/JYPPX.ROCm.HipSharp.BindingGenerator.csproj"
 $manifest = Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json

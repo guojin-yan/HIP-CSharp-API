@@ -89,7 +89,7 @@ public sealed class CorePackageContentTests
             return Path.GetFullPath(configured);
         }
 
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        DirectoryInfo? directory = new(Environment.GetEnvironmentVariable("HIPSHARP_REPOSITORY_ROOT") ?? AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "HipSharp.sln")))
         {
             directory = directory.Parent;
@@ -103,7 +103,7 @@ public sealed class CorePackageContentTests
 
     private static string CoreVersion()
     {
-        DirectoryInfo? directory = new(AppContext.BaseDirectory);
+        DirectoryInfo? directory = new(Environment.GetEnvironmentVariable("HIPSHARP_REPOSITORY_ROOT") ?? AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "HipSharp.sln")))
         {
             directory = directory.Parent;

@@ -166,6 +166,16 @@ public sealed partial class HipStream : IDisposable
     internal IHipNativeApi NativeApi => _nativeApi;
     internal IntPtr DangerousGetHandle() { lock (_sync) { ThrowIfDisposed(); return _handle.DangerousGetHandle(); } }
 
+    internal void ExecuteInterop(Action<IntPtr> operation)
+    {
+        lock (_sync)
+        {
+            ThrowIfDisposed();
+            if (_captureActive) throw new InvalidOperationException("External interop is not supported during HIP graph capture.");
+            operation(_handle.DangerousGetHandle());
+        }
+    }
+
     internal void AddPendingLease(IDisposable lease)
     {
         if (lease is null) throw new ArgumentNullException(nameof(lease));

@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 $coreVersion = Get-HipSharpVersion -Kind Core -RepositoryRoot $repositoryRoot
 $tool = Join-Path $repositoryRoot "tools/JYPPX.ROCm.HipSharp.ApiSurface/JYPPX.ROCm.HipSharp.ApiSurface.csproj"
@@ -20,8 +21,8 @@ $frameworks = @(
 )
 
 function Invoke-Snapshot([string]$framework, [string]$target, [string]$mode) {
-    $assembly = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HIP.CSharp.API.dll"
-    $xml = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/JYPPX.ROCm.HIP.CSharp.API.xml"
+    $assembly = Get-HipSharpAssemblyPath $repositoryRoot "JYPPX.ROCm.HipSharp" $Configuration $framework "JYPPX.ROCm.HIP.CSharp.API.dll" "src/JYPPX.ROCm.HipSharp"
+    $xml = [IO.Path]::ChangeExtension($assembly, '.xml')
     if (-not (Test-Path -LiteralPath $assembly -PathType Leaf) -or -not (Test-Path -LiteralPath $xml -PathType Leaf)) {
         throw "Public API input is missing for $framework. Build all target frameworks first."
     }
@@ -38,7 +39,7 @@ if (-not (Test-Path -LiteralPath $snapshot -PathType Leaf)) {
 }
 
 Invoke-Snapshot "net10.0" $snapshot "--check"
-$comparisonRoot = Join-Path $repositoryRoot "artifacts/public-api"
+$comparisonRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts/public-api"
 New-Item -ItemType Directory -Force -Path $comparisonRoot | Out-Null
 foreach ($framework in $frameworks | Where-Object { $_ -ne "net10.0" }) {
     $candidate = Join-Path $comparisonRoot "$framework.txt"

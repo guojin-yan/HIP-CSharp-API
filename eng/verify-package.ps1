@@ -13,6 +13,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 $ExpectedVersion = Get-HipSharpVersion -Kind Core -Override $ExpectedVersion -RepositoryRoot $repositoryRoot
 if ([string]::IsNullOrWhiteSpace($ExpectedRepositoryCommit)) {
@@ -23,9 +24,9 @@ $resolvedPackage = (Resolve-Path -LiteralPath $PackagePath).Path
 $auditDirectory = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
 } else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputDirectory))
+    Get-HipSharpOutputPath $repositoryRoot $OutputDirectory
 }
-$artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))
+$artifactsRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts"
 $consumerRoot = [System.IO.Path]::GetFullPath((Join-Path $artifactsRoot "consumer"))
 $frameworks = @(
     "net46", "net461", "net462", "net47", "net471", "net472", "net48", "net481",
@@ -33,8 +34,8 @@ $frameworks = @(
 )
 $consumerFrameworks = @("net46", "netcoreapp3.1", "net7.0", "net10.0")
 
-if (-not $consumerRoot.StartsWith($artifactsRoot, [System.StringComparison]::OrdinalIgnoreCase)) {
-    throw "Consumer output must remain under the repository artifacts directory."
+if (-not $consumerRoot.StartsWith($artifactsRoot.TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) {
+    throw "Consumer output must remain under the configured artifacts directory."
 }
 
 Add-Type -AssemblyName System.IO.Compression.FileSystem
@@ -93,6 +94,9 @@ finally {
 
 New-Item -ItemType Directory -Force -Path $auditDirectory | Out-Null
 if (Test-Path -LiteralPath $consumerRoot) {
+    $consumerFullPath = [IO.Path]::GetFullPath($consumerRoot)
+    $artifactsPrefix = [IO.Path]::GetFullPath($artifactsRoot).TrimEnd([IO.Path]::DirectorySeparatorChar) + [IO.Path]::DirectorySeparatorChar
+    if (-not $consumerFullPath.StartsWith($artifactsPrefix, [StringComparison]::OrdinalIgnoreCase)) { throw 'Consumer cleanup must stay within the configured artifacts directory.' }
     Remove-Item -LiteralPath $consumerRoot -Recurse -Force
 }
 New-Item -ItemType Directory -Force -Path $consumerRoot | Out-Null
@@ -236,7 +240,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "core-0.10.0-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
+    runtimeAndGpuValidation = "core-$ExpectedVersion; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

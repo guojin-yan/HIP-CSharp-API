@@ -1,6 +1,8 @@
 # Public API freeze
 
-`JYPPX.ROCm.HipSharp.0.10.0.txt` is the committed public API baseline for the HIPRTC Program/Linker work plus the M8.13 managed-interface promotion. It is an explicitly reviewed additive change from the frozen and separately retained `0.9.2` snapshot; the `0.9.3` candidate snapshot is retained unchanged as history. The M8.13 additions cover typed common queries, virtual-memory owners, arrays, mipmapped arrays, textures, surfaces, and borrowed legacy texture references. The assembly identity is `JYPPX.ROCm.HIP.CSharp.API`, while exported namespaces remain under `JYPPX.ROCm.HipSharp`. The snapshot records exported types and their declared public or protected constructors, methods, properties, events, and fields. Enum backing fields and framework-supplied enum interfaces are excluded; enum values are included.
+The current development baseline is `JYPPX.ROCm.HipSharp.0.11.0-dev.txt`. It includes advanced interop owners and the external-semaphore graph node kinds. `0.10.0.txt` matches the immutable published 0.10.0 package; subsequent additions belong to the development baseline. Development package validation does not authorize publication.
+
+The `0.10.0` baseline covers the published HIPRTC Program/Linker work and M8.13 managed-interface promotion, including typed common queries, virtual-memory owners, arrays, mipmapped arrays, textures, surfaces, and borrowed legacy texture references. The separately retained `0.9.2` and `0.9.3` snapshots remain historical inputs. The assembly identity is `JYPPX.ROCm.HIP.CSharp.API`, while exported namespaces remain under `JYPPX.ROCm.HipSharp`. Snapshots record exported types and their declared public or protected constructors, methods, properties, events, and fields. Enum backing fields and framework-supplied enum interfaces are excluded; enum values are included.
 
 Run the compatibility gate after building Release:
 

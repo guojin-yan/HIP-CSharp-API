@@ -1,7 +1,7 @@
 using System;
+using System.Runtime.InteropServices;
 #if NETCOREAPP3_1_OR_GREATER
 using System.Reflection;
-using System.Runtime.InteropServices;
 #endif
 using JYPPX.ROCm.HipSharp.Generated;
 using JYPPX.ROCm.HipSharp.Types;
@@ -19,10 +19,10 @@ internal static class HipImportResolver
     private static string? _runtimeExplicitLibraryPath;
     private static string? _rtcExplicitLibraryPath;
     private static string? _closureIdentity;
+    private static IntPtr _rtcHandle;
 #if NETCOREAPP3_1_OR_GREATER
     private static bool _resolverInstalled;
     private static IntPtr _runtimeHandle;
-    private static IntPtr _rtcHandle;
 #endif
 
     internal static void EnsureLoaded(HipNativeLibraryKind libraryKind, string? explicitLibraryPath)
@@ -45,6 +45,7 @@ internal static class HipImportResolver
             HipNativeLibraryLoadResult result = new HipNativeLibraryLoader(libraryKind).Load(explicitLibraryPath);
             if (_closureIdentity is not null && !string.Equals(_closureIdentity, result.ClosureIdentity, StringComparison.OrdinalIgnoreCase))
             {
+                new NativeLibraryBackend().Free(result.Handle);
                 throw new InvalidOperationException(
                     "HIP Runtime and HIPRTC must be loaded from the same user-mode closure. " +
                     "A package-local/system ROCm mix or two different native directories is not allowed.");
@@ -68,9 +69,7 @@ internal static class HipImportResolver
             }
             else
             {
-#if NETCOREAPP3_1_OR_GREATER
                 _rtcHandle = handle;
-#endif
                 _rtcExplicitLibraryPath = explicitLibraryPath;
                 _rtcLoaded = true;
             }
@@ -78,6 +77,19 @@ internal static class HipImportResolver
             _closureIdentity ??= result.ClosureIdentity;
         }
     }
+
+#if NETFRAMEWORK
+    internal static T GetRtcDelegate<T>(string entryPoint) where T : Delegate
+    {
+        lock (Sync)
+        {
+            if (!_rtcLoaded) throw new InvalidOperationException("Load HIPRTC before calling its entry points.");
+            if (!new NativeLibraryBackend().TryGetExport(_rtcHandle, entryPoint, out IntPtr address, out string detail))
+                throw new EntryPointNotFoundException(detail);
+            return Marshal.GetDelegateForFunctionPointer<T>(address);
+        }
+    }
+#endif
 
 #if NETCOREAPP3_1_OR_GREATER
     private static IntPtr Resolve(string libraryName, Assembly assembly, DllImportSearchPath? searchPath)

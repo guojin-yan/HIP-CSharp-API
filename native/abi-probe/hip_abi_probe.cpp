@@ -29,6 +29,9 @@ static_assert(hipDeviceAttributeComputeCapabilityMajor == 23, "hipDeviceAttribut
 static_assert(hipDeviceAttributeComputeCapabilityMinor == 61, "hipDeviceAttributeComputeCapabilityMinor value mismatch");
 static_assert(hipDeviceAttributeMultiprocessorCount == 63, "hipDeviceAttributeMultiprocessorCount value mismatch");
 static_assert(hipDeviceAttributeWarpSize == 87, "hipDeviceAttributeWarpSize value mismatch");
+static_assert(hipDeviceAttributeConcurrentManagedAccess == 9, "hipDeviceAttributeConcurrentManagedAccess value mismatch");
+static_assert(hipDeviceAttributeManagedMemory == 24, "hipDeviceAttributeManagedMemory value mismatch");
+static_assert(hipDeviceAttributeVirtualMemoryManagementSupported == 89, "hipDeviceAttributeVirtualMemoryManagementSupported value mismatch");
 static_assert(std::is_same<decltype(&hipMallocManaged), hipError_t (*)(void**, std::size_t, unsigned int)>::value, "hipMallocManaged signature mismatch");
 static_assert(std::is_same<decltype(&hipMemPrefetchAsync), hipError_t (*)(const void*, std::size_t, int, hipStream_t)>::value, "hipMemPrefetchAsync signature mismatch");
 static_assert(std::is_same<decltype(&hipMemAdvise), hipError_t (*)(const void*, std::size_t, hipMemoryAdvise, int)>::value, "hipMemAdvise signature mismatch");

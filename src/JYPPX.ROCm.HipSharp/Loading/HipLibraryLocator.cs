@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace JYPPX.ROCm.HipSharp.Loading;
 
@@ -15,19 +16,22 @@ internal sealed class HipLibraryLocator
     private readonly Func<string, string?> _environmentReader;
     private readonly Func<string, IEnumerable<string>> _directoryEnumerator;
     private readonly HipNativeLibraryKind _libraryKind;
+    private readonly Func<string, IEnumerable<string>> _fileEnumerator;
 
     internal HipLibraryLocator(
         HipPlatformInfo platform,
         string applicationBase,
         Func<string, string?> environmentReader,
         HipNativeLibraryKind libraryKind = HipNativeLibraryKind.Runtime,
-        Func<string, IEnumerable<string>>? directoryEnumerator = null)
+        Func<string, IEnumerable<string>>? directoryEnumerator = null,
+        Func<string, IEnumerable<string>>? fileEnumerator = null)
     {
         _platform = platform ?? throw new ArgumentNullException(nameof(platform));
         _applicationBase = applicationBase ?? throw new ArgumentNullException(nameof(applicationBase));
         _environmentReader = environmentReader ?? throw new ArgumentNullException(nameof(environmentReader));
         _libraryKind = libraryKind;
         _directoryEnumerator = directoryEnumerator ?? EnumerateDirectories;
+        _fileEnumerator = fileEnumerator ?? EnumerateRtcFiles;
     }
 
     internal IList<HipLibraryCandidate> GetCandidates(string? explicitLibraryPath)
@@ -46,8 +50,8 @@ internal sealed class HipLibraryLocator
             Add(candidates, seen, Path.GetFullPath(explicitLibraryPath), "explicit-path");
         }
 
-        Add(candidates, seen, Path.Combine(_applicationBase, fileName), "application-base");
-        Add(candidates, seen, Path.Combine(_applicationBase, "runtimes", _platform.RuntimeIdentifier, "native", fileName), "runtime-asset");
+        AddDirectory(candidates, seen, _applicationBase, fileName, "application-base");
+        AddDirectory(candidates, seen, Path.Combine(_applicationBase, "runtimes", _platform.RuntimeIdentifier, "native"), fileName, "runtime-asset");
 
         AddEnvironmentRoot(candidates, seen, "ROCM_PATH", fileName);
         AddEnvironmentRoot(candidates, seen, "HIP_PATH", fileName);
@@ -89,7 +93,8 @@ internal sealed class HipLibraryLocator
         {
             installedRoots = _directoryEnumerator(rocmRoot)
                 .Where(Path.IsPathRooted)
-                .OrderByDescending(path => path, StringComparer.OrdinalIgnoreCase)
+                .OrderByDescending(path => Version.TryParse(Path.GetFileName(path), out Version? version) ? version : new Version())
+                .ThenByDescending(path => path, StringComparer.OrdinalIgnoreCase)
                 .ToArray();
         }
         catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
@@ -99,7 +104,8 @@ internal sealed class HipLibraryLocator
 
         foreach (string installedRoot in installedRoots)
         {
-            Add(candidates, seen, Path.Combine(installedRoot, "bin", fileName), "standard-rocm");
+            AddDirectory(candidates, seen, Path.Combine(installedRoot, "bin"), fileName, "standard-rocm");
+            AddDirectory(candidates, seen, Path.Combine(installedRoot, "HIP", "bin"), fileName, "standard-rocm");
         }
 
         Add(candidates, seen, Path.Combine(rocmRoot, "bin", fileName), "standard-rocm");
@@ -107,6 +113,30 @@ internal sealed class HipLibraryLocator
 
     private static IEnumerable<string> EnumerateDirectories(string path) =>
         Directory.Exists(path) ? Directory.EnumerateDirectories(path) : Array.Empty<string>();
+
+    private static IEnumerable<string> EnumerateRtcFiles(string path) =>
+        Directory.Exists(path) ? Directory.EnumerateFiles(path, "hiprtc*.dll") : Array.Empty<string>();
+
+    private void AddDirectory(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string directory, string fileName, string source)
+    {
+        if (_platform.IsWindows && _libraryKind == HipNativeLibraryKind.Rtc)
+        {
+            directory = Path.GetFullPath(directory);
+            try
+            {
+                string[] files = _fileEnumerator(directory)
+                    .Where(path => Path.IsPathRooted(path) && string.Equals(Path.GetDirectoryName(Path.GetFullPath(path)), directory, StringComparison.OrdinalIgnoreCase))
+                    .Where(path => Regex.IsMatch(Path.GetFileName(path), @"^hiprtc[0-9]{4}\.dll$", RegexOptions.IgnoreCase | RegexOptions.CultureInvariant))
+                    .OrderByDescending(path => Path.GetFileName(path), StringComparer.OrdinalIgnoreCase).ToArray();
+                foreach (string file in files) Add(candidates, seen, file, source);
+            }
+            catch (Exception exception) when (exception is IOException || exception is UnauthorizedAccessException)
+            {
+                // Keep the legacy candidate and subsequent roots available for diagnostics.
+            }
+        }
+        Add(candidates, seen, Path.Combine(directory, fileName), source);
+    }
 
     private void AddEnvironmentRoot(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string variableName, string fileName)
     {
@@ -117,8 +147,8 @@ internal sealed class HipLibraryLocator
         }
 
         string subdirectory = _platform.IsWindows ? "bin" : "lib";
-        Add(candidates, seen, Path.Combine(root, subdirectory, fileName), variableName);
-        Add(candidates, seen, Path.Combine(root, fileName), variableName);
+        AddDirectory(candidates, seen, Path.Combine(root, subdirectory), fileName, variableName);
+        AddDirectory(candidates, seen, root!, fileName, variableName);
     }
 
     private static void Add(ICollection<HipLibraryCandidate> candidates, ISet<string> seen, string value, string source)

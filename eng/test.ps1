@@ -11,10 +11,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
+$env:HIPSHARP_REPOSITORY_ROOT = $repositoryRoot
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
 $Version = Get-HipSharpVersion -Kind Core -Override $Version -RepositoryRoot $repositoryRoot
 $solution = Join-Path $repositoryRoot "HipSharp.sln"
-$resultsDirectory = Join-Path $repositoryRoot "artifacts/test-results"
+$resultsDirectory = Get-HipSharpOutputPath $repositoryRoot "artifacts/test-results"
 
 if (-not $NoBuild) {
     & (Join-Path $PSScriptRoot "build.ps1") -Configuration $Configuration -Version $Version
@@ -29,7 +31,7 @@ if (-not $NoBuild) {
 $packageDirectory = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
 } else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputDirectory))
+    Get-HipSharpOutputPath $repositoryRoot $OutputDirectory
 }
 $packagePath = Join-Path $packageDirectory "JYPPX.ROCm.HIP.CSharp.API.$Version.nupkg"
 $previousPackagePath = $env:HIPSHARP_PACKAGE_PATH

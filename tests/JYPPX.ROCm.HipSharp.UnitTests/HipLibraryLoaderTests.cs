@@ -104,6 +104,56 @@ public sealed class HipLibraryLoaderTests
     }
 
     [TestMethod]
+    public void WindowsRtcDiscoveryUsesVersionedDllsWithinEachRootAndExcludesBuiltins()
+    {
+        string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
+        string app = Path.Combine(root, "rtc-app");
+        string sdk = Path.Combine(root, "rtc-sdk");
+        string bin = Path.Combine(sdk, "bin");
+        var platform = new HipPlatformInfo(true, false, "Windows", "x64", ".NET 10", "win-x64");
+        var locator = new HipLibraryLocator(platform, app, name => name == "HIP_PATH" ? sdk : null,
+            HipNativeLibraryKind.Rtc, _ => Array.Empty<string>(), directory => directory == bin
+                ? new[] { Path.Combine(bin, "hiprtc0702.dll"), Path.Combine(bin, "hiprtc-builtins0716.dll"), Path.Combine(bin, "hiprtc0716.dll"), Path.Combine(bin, "hiprtcXXXX.dll"), Path.Combine(root, "elsewhere", "hiprtc0999.dll") }
+                : Array.Empty<string>());
+        HipLibraryCandidate[] candidates = locator.GetCandidates(null).ToArray();
+        int current = Array.FindIndex(candidates, item => item.Value == Path.Combine(bin, "hiprtc0716.dll"));
+        int legacy = Array.FindIndex(candidates, item => item.Value == Path.Combine(bin, "hiprtc0702.dll"));
+        Assert.IsTrue(current >= 0 && current < legacy);
+        Assert.IsTrue(Array.FindIndex(candidates, item => item.Source == "application-base") < current);
+        Assert.IsFalse(candidates.Any(item => item.Value.Contains("builtins", StringComparison.Ordinal) || item.Value.Contains("XXXX", StringComparison.Ordinal) || item.Value.Contains("elsewhere", StringComparison.Ordinal)));
+        var loader = new HipNativeLibraryLoader(platform, locator, new NamedCandidateBackend(Path.Combine(bin, "hiprtc0716.dll")), HipNativeLibraryKind.Rtc);
+        Assert.AreEqual("directory:" + bin, loader.Load(null).ClosureIdentity);
+    }
+
+    [TestMethod]
+    public void RtcDiscoveryNormalizesConfiguredDirectoryBeforeComparingEnumeratedFiles()
+    {
+        string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
+        string sdk = Path.Combine(root, "rtc-sdk");
+        string configured = Path.Combine(root, "unused", "..", "rtc-sdk");
+        if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows)) configured = configured.Replace('\\', '/');
+        string bin = Path.Combine(sdk, "bin");
+        string rtc = Path.Combine(bin, "hiprtc0716.dll");
+        var platform = new HipPlatformInfo(true, false, "Windows", "x64", ".NET 10", "win-x64");
+        var locator = new HipLibraryLocator(platform, Path.Combine(root, "app"), name => name == "HIP_PATH" ? configured : null,
+            HipNativeLibraryKind.Rtc, _ => Array.Empty<string>(), directory => directory == bin ? new[] { rtc } : Array.Empty<string>());
+        Assert.IsTrue(locator.GetCandidates(null).Any(candidate => candidate.Value == rtc && candidate.Source == "HIP_PATH"));
+    }
+
+    [TestMethod]
+    public void WindowsRtcDiscoveryKeepsExplicitPathFirstAndSurvivesUnavailableDirectories()
+    {
+        string root = Path.GetPathRoot(AppContext.BaseDirectory)!;
+        string explicitPath = Path.Combine(root, "custom", "hiprtc0716.dll");
+        var platform = new HipPlatformInfo(true, false, "Windows", "x64", ".NET 10", "win-x64");
+        var locator = new HipLibraryLocator(platform, Path.Combine(root, "app"), _ => null,
+            HipNativeLibraryKind.Rtc, _ => Array.Empty<string>(), _ => throw new UnauthorizedAccessException());
+        HipLibraryCandidate[] candidates = locator.GetCandidates(explicitPath).ToArray();
+        Assert.AreEqual(explicitPath, candidates[0].Value);
+        Assert.AreEqual("hiprtc0702.dll", candidates[^1].Value);
+    }
+
+    [TestMethod]
     public void SuccessfulLoadsRecordAClosureIdentityThatDistinguishesPackageAndSystemModes()
     {
         var platform = new HipPlatformInfo(false, true, "Linux test", "x64", ".NET 10", "linux-x64");

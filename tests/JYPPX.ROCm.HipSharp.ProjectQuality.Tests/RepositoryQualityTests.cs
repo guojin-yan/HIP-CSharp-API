@@ -48,7 +48,7 @@ public sealed class RepositoryQualityTests
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.10.0", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        Assert.AreEqual("0.11.0-dev", versions.Descendants("HipSharpCoreVersion").Single().Value);
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpUbuntu2404RuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -283,9 +283,13 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(File.Exists(managedInterfaceMapPath));
 
         string before = File.ReadAllText(ledgerPath);
-        ProcessResult generated = RunProcess("pwsh", "-NoProfile", "-File", generatorPath);
+        string generatedRoot = Path.Combine(OutputRoot, "artifacts", "interface-coverage");
+        Directory.CreateDirectory(generatedRoot);
+        string generatedLedger = Path.Combine(generatedRoot, "interface-coverage.jsonl");
+        string generatedSummary = Path.Combine(generatedRoot, "interface-coverage.md");
+        ProcessResult generated = RunProcess("pwsh", "-NoProfile", "-File", generatorPath, "-OutputJsonl", generatedLedger, "-OutputMarkdown", generatedSummary);
         Assert.AreEqual(0, generated.ExitCode, generated.Output);
-        Assert.AreEqual(before, File.ReadAllText(ledgerPath), "Ledger generation must be byte deterministic.");
+        Assert.AreEqual(before.Replace("\r\n", "\n", StringComparison.Ordinal), File.ReadAllText(generatedLedger).Replace("\r\n", "\n", StringComparison.Ordinal), "Ledger generation must be deterministic across checkout line endings.");
 
         using JsonDocument complete = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "complete-api-model.json")));
         using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "interop-manifest.json")));
@@ -802,7 +806,7 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.10.0.txt");
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.11.0-dev.txt");
         Assert.IsTrue(File.Exists(snapshot));
         string currentSurface = File.ReadAllText(snapshot);
         StringAssert.StartsWith(currentSurface, "# HipSharp public API snapshot schema 1");
@@ -857,7 +861,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "core-0.10.0-hiprtc-program-linker; local-package-gates-passed; fresh-exact-package-gpu-validation-required");
+        StringAssert.Contains(packageVerifier, "local-package-gates-passed; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
         string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
         StringAssert.Contains(pairingGate, "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64");
@@ -876,15 +880,16 @@ public sealed class RepositoryQualityTests
         string windowsBuild = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.ps1"));
         string linuxBuild = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "build.sh"));
         StringAssert.Contains(windowsBuild, "-p:ContinuousIntegrationBuild=true");
-        StringAssert.Contains(linuxBuild, "-p:ContinuousIntegrationBuild=true");
+        StringAssert.Contains(linuxBuild, "eng/build.ps1");
+        StringAssert.Contains(linuxBuild, "eng/test.ps1");
     }
 
     [TestMethod]
     public void AssemblySemanticSnapshotHandlesConstructors()
     {
         string tool = Path.Combine(RepositoryRoot, "tools", "JYPPX.ROCm.HipSharp.ApiSurface", "JYPPX.ROCm.HipSharp.ApiSurface.csproj");
-        string assembly = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", "net10.0", "JYPPX.ROCm.HIP.CSharp.API.dll");
-        string snapshot = Path.Combine(RepositoryRoot, "artifacts", "project-quality", "semantic-net10.0.txt");
+        string assembly = CoreAssemblyPath("net10.0");
+        string snapshot = Path.Combine(OutputRoot, "artifacts", "project-quality", "semantic-net10.0.txt");
         ProcessResult result = RunProcess("dotnet", "run", "--project", tool, "--configuration", "Release", "--no-build", "--no-restore", "--", "--assembly", assembly, "--semantic", snapshot);
 
         Assert.AreEqual(0, result.ExitCode, result.Output);
@@ -910,7 +915,7 @@ public sealed class RepositoryQualityTests
 
     private static void AssertBuilt(string framework)
     {
-        string path = Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", framework, "JYPPX.ROCm.HIP.CSharp.API.dll");
+        string path = CoreAssemblyPath(framework);
         Assert.IsTrue(File.Exists(path), $"Representative compile output is missing: {path}");
     }
 
@@ -947,6 +952,11 @@ public sealed class RepositoryQualityTests
 
     private static string FindRepositoryRoot()
     {
+        string? configured = Environment.GetEnvironmentVariable("HIPSHARP_REPOSITORY_ROOT");
+        if (!string.IsNullOrWhiteSpace(configured) && File.Exists(Path.Combine(configured, "HipSharp.sln")))
+        {
+            return Path.GetFullPath(configured);
+        }
         DirectoryInfo? directory = new(AppContext.BaseDirectory);
         while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "HipSharp.sln")))
         {
@@ -955,4 +965,10 @@ public sealed class RepositoryQualityTests
 
         return directory?.FullName ?? throw new InvalidOperationException("Could not locate repository root.");
     }
+
+    private static string OutputRoot => Environment.GetEnvironmentVariable("HIPSHARP_OUTPUT_ROOT") is string root && !string.IsNullOrWhiteSpace(root) ? Path.GetFullPath(root) : RepositoryRoot;
+
+    private static string CoreAssemblyPath(string framework) => string.IsNullOrWhiteSpace(Environment.GetEnvironmentVariable("HIPSHARP_OUTPUT_ROOT"))
+        ? Path.Combine(RepositoryRoot, "src", "JYPPX.ROCm.HipSharp", "bin", "Release", framework, "JYPPX.ROCm.HIP.CSharp.API.dll")
+        : Path.Combine(OutputRoot, "bin", "JYPPX.ROCm.HipSharp", "Release", framework, "JYPPX.ROCm.HIP.CSharp.API.dll");
 }

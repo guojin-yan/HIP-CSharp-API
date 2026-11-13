@@ -54,6 +54,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     private readonly List<IntPtr> _advancedStrings = new();
 
     internal List<string> AdvancedCalls { get; } = new();
+    internal List<uint> UserObjectReleaseCounts { get; } = new();
+    internal List<uint> UserObjectRetainCounts { get; } = new();
 
     internal HipError AdvancedResult { get; set; } = HipError.Success;
 
@@ -2156,8 +2158,16 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return AdvancedResult;
     }
     public HipError UserObjectCreate(IntPtr userObject, IntPtr value, IntPtr destroy, uint initialRefCount, uint flags) => WriteAdvancedHandle("hipUserObjectCreate", userObject);
-    public HipError UserObjectRelease(IntPtr userObject, uint count) => RecordAdvanced("hipUserObjectRelease");
-    public HipError UserObjectRetain(IntPtr userObject, uint count) => RecordAdvanced("hipUserObjectRetain");
+    public HipError UserObjectRelease(IntPtr userObject, uint count)
+    {
+        UserObjectReleaseCounts.Add(count);
+        return RecordAdvanced("hipUserObjectRelease");
+    }
+    public HipError UserObjectRetain(IntPtr userObject, uint count)
+    {
+        UserObjectRetainCounts.Add(count);
+        return RecordAdvanced("hipUserObjectRetain");
+    }
     public HipError DrvGetErrorName(HipError error, IntPtr name) => WriteAdvancedText("hipDrvGetErrorName", name, "hipErrorFake");
     public HipError DrvGetErrorString(HipError error, IntPtr message) => WriteAdvancedText("hipDrvGetErrorString", message, "fake driver error");
     public HipError DrvGraphAddMemcpyNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr copyParameters, IntPtr context) => AddAdvancedNode("hipDrvGraphAddMemcpyNode", node, graph, dependencies, dependencyCount);

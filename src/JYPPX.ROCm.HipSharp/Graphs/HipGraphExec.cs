@@ -126,6 +126,17 @@ public sealed class HipGraphExec : IDisposable
 
     internal HipGraph? ExplicitGraph => _explicitGraph;
 
+    internal void UpdateInteropNode(HipGraphNode node, HipGraphNodeType type, Action<IntPtr> operation)
+    {
+        lock (_lifetimeSync)
+        {
+            ThrowIfDisposed();
+            ThrowIfLaunchPending("Interop node update");
+            ValidateUpdateNode(node, type);
+            operation(_handle.DangerousGetHandle());
+        }
+    }
+
     internal IntPtr DangerousGetHandle()
     {
         lock (_lifetimeSync)

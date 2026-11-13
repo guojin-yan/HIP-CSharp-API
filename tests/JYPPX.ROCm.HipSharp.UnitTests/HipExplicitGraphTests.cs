@@ -13,7 +13,7 @@ namespace JYPPX.ROCm.HipSharp.UnitTests;
 [TestClass]
 public sealed class HipExplicitGraphTests
 {
-    private static readonly int[] ExpectedGraphNodeTypes = { 0, 1, 2, 5, 10, 11 };
+    private static readonly int[] ExpectedGraphNodeTypes = { 0, 1, 2, 5, 8, 9, 10, 11 };
     private static readonly int[] ExpectedGraphUpdateResults = { 0, 1, 2, 3, 4, 5, 6, 7 };
 
     [TestMethod]

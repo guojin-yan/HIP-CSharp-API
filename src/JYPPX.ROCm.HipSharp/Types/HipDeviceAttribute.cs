@@ -11,6 +11,15 @@ public enum HipDeviceAttribute
     /// <summary>每个 block 的共享内存字节数 / Shared-memory bytes per block.</summary>
     MaxSharedMemoryPerBlock = 74,
 
+    /// <summary>是否支持 CPU/GPU 并发访问托管内存 / Whether concurrent CPU/GPU managed-memory access is supported.</summary>
+    ConcurrentManagedAccess = 9,
+
+    /// <summary>是否支持本系统的托管内存分配 / Whether managed-memory allocation is supported on this system.</summary>
+    ManagedMemory = 24,
+
+    /// <summary>是否支持虚拟内存管理 / Whether virtual-memory management is supported.</summary>
+    VirtualMemoryManagementSupported = 89,
+
     /// <summary>是否支持单设备 cooperative launch / Whether single-device cooperative launch is supported.</summary>
     CooperativeLaunch = 10,
 

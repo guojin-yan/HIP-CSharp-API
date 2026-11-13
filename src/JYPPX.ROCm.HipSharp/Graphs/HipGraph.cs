@@ -279,6 +279,36 @@ public sealed class HipGraph : IDisposable
 
     internal IHipNativeApi NativeApi => _nativeApi;
 
+    internal HipGraphNode AddInteropNode(IReadOnlyList<HipGraphNode>? dependencies, HipGraphNodeType type, Func<IntPtr, IntPtr, UIntPtr, HipError> create, IntPtr output, string operation)
+    {
+        lock (_lifetimeSync)
+        {
+            List<HipGraphNode> validated = ValidateDependencies(dependencies);
+            HipError error = WithDependencyHandles(validated, (handles, count) => create(Handle, handles, count));
+            return CompleteNodeAdd(error, Marshal.ReadIntPtr(output), type, validated, operation);
+        }
+    }
+
+    internal void AccessInteropNode(HipGraphNode node, HipGraphNodeType type, bool mutate, Action<IntPtr> operation)
+    {
+        lock (_lifetimeSync)
+        {
+            if (mutate) ValidateMutable(); else ValidateExplicit();
+            ValidateNode(node, nameof(node));
+            if (node.Type != type) throw new ArgumentException("Node type does not match the interop operation.", nameof(node));
+            operation(node.Handle);
+        }
+    }
+
+    internal void MutateInterop(Action<IntPtr> operation)
+    {
+        lock (_lifetimeSync)
+        {
+            ValidateMutable();
+            operation(Handle);
+        }
+    }
+
     internal IntPtr DangerousGetHandle()
     {
         lock (_lifetimeSync)

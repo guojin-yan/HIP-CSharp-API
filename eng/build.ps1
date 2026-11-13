@@ -12,6 +12,8 @@ $ErrorActionPreference = "Stop"
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 $versionModule = Join-Path $PSScriptRoot "version.psm1"
 Import-Module $versionModule -Force
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
+$env:HIPSHARP_REPOSITORY_ROOT = $repositoryRoot
 $Version = Get-HipSharpVersion -Kind Core -Override $Version -RepositoryRoot $repositoryRoot
 $solution = Join-Path $repositoryRoot "HipSharp.sln"
 $frameworks = @(
@@ -37,7 +39,7 @@ try {
     $missing = [System.Collections.Generic.List[string]]::new()
     foreach ($framework in $frameworks) {
         foreach ($file in @("JYPPX.ROCm.HIP.CSharp.API.dll", "JYPPX.ROCm.HIP.CSharp.API.xml")) {
-            $path = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/bin/$Configuration/$framework/$file"
+            $path = Get-HipSharpAssemblyPath $repositoryRoot "JYPPX.ROCm.HipSharp" $Configuration $framework $file "src/JYPPX.ROCm.HipSharp"
             if (-not (Test-Path -LiteralPath $path -PathType Leaf)) {
                 $missing.Add("$framework/$file")
             }

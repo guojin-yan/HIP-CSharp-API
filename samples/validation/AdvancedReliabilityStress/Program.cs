@@ -40,6 +40,12 @@ private static int Main(string[] args)
     HipKernel kernel = module.GetKernel("VectorAdd");
 
     int failureIndex = -1;
+    bool managedMemoryAvailable = runtime.GetDeviceAttribute(HipDeviceAttribute.ManagedMemory) != 0
+        && runtime.GetDeviceAttribute(HipDeviceAttribute.ConcurrentManagedAccess) != 0;
+    if (!managedMemoryAvailable)
+    {
+        Console.WriteLine("Skipped: managed-memory advice/prefetch subtest; device reports no required capability. Graph and multi-stream tests continue.");
+    }
     foreach (int length in options.Lengths)
     {
         failureIndex = RunGraphVectorAdd(runtime, kernel, length, options.GraphLaunchRepeats);
@@ -47,7 +53,10 @@ private static int Main(string[] args)
         {
             break;
         }
-        ValidateManagedMemory(runtime, length);
+        if (managedMemoryAvailable)
+        {
+            ValidateManagedMemory(runtime, length);
+        }
     }
 
     string peerResult = ProbePeer(runtime, devices);
@@ -74,7 +83,7 @@ private static int Main(string[] args)
         "; lengths=" + string.Join(",", options.Lengths) +
         "; graphLaunchRepeats=" + options.GraphLaunchRepeats.ToString(CultureInfo.InvariantCulture) +
         "; lifecycleRepeats=" + options.LifecycleRepeats.ToString(CultureInfo.InvariantCulture) +
-        "; asyncAllocation=true; managedMemory=true; graphCapture=true; " + peerResult + "; failureIndex=-1");
+        "; asyncAllocation=true; managedMemory=" + (managedMemoryAvailable ? "true" : "skipped(device-capability)") + "; graphCapture=true; " + peerResult + "; failureIndex=-1");
     Console.WriteLine(stressResult);
         return 0;
     }

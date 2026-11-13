@@ -35,3 +35,13 @@ These 15 advanced ABI entries are optional in the managed manifest so older runt
 这 15 个高级 ABI 入口在托管 manifest 中标记为 optional，使旧 runtime 仍可加载核心库。缺少原生导出时统一映射为 `HipError.NotSupported`；native capability 失败则在 `HipException` 中保留原始 `HipError` 和 operation。函数存在不代表每种 GPU、设备对、内存模式或 capture 操作都支持它。
 
 See the module-oriented tutorials under `samples/tutorials` for focused examples. The former combined workload now lives at `samples/validation/AdvancedReliabilityStress` and retains CPU/GPU comparison, graph replay, managed-memory validation, repeated owner lifecycles, P2P copy-or-skip, and the optional multi-stream reliability mode. Its output intentionally contains no timing or performance claim.
+
+## Advanced interop ownership / 高级互操作所有权
+
+`HipRuntime.AdvancedInterop` imports external memory/semaphores and owns graphics/IPC resources. Disposal blocks new use immediately; a failed native cleanup retains the handle so `Dispose` can be retried. Mapped buffers/mipmaps retain their parent import. Asynchronous semaphore operations retain every semaphore until stream completion and reject foreign Runtime clients and graph capture. Graphics mappings retain their registered resources and stream; dispose the mapping before its stream. Unmapping retains resources until the stream completes, including cleanup retry after a native failure.
+
+`HipRuntime.AdvancedInterop` 导入外部 memory/semaphore，并管理 graphics/IPC 资源。请求释放后立即禁止新使用；原生清理失败时保留句柄，可重试 `Dispose`。映射 buffer/mipmap 保活父导入。异步 semaphore 操作在 stream 完成前保活全部 semaphore，并拒绝其他 Runtime client 的资源及 graph capture。graphics mapping 保活注册资源和 stream，必须先释放 mapping 再释放 stream；取消映射后仍保活资源至 stream 完成，原生清理失败可重试。
+
+Advanced graph nodes join the same topology, dependency, sealing, node-kind and pending-launch checks as ordinary nodes. Descriptor storage and all resources embedded in `HipNativeDescriptor` remain caller-owned: graph parameter calls do not inspect descriptors or automatically retain embedded handles. Keep those resources alive through graph/executable use and every submitted launch. The managed `RetainUserObject` accepts flags zero only; ownership-moving flags require the low-level API. A `HipUserObject` releases all its initial and additional local references on disposal; graph-owned references follow native graph lifetime.
+
+高级 graph node 与普通 node 共享拓扑、依赖、封存、node 类型及 pending launch 检查。`HipNativeDescriptor` 的存储及其中嵌入的资源仍由调用方拥有：graph 参数接口不解析 descriptor，也不自动保活其中的句柄。必须在 graph/executable 使用期间及所有已提交 launch 完成前保留这些资源。托管 `RetainUserObject` 只接受零 flags，所有权移动需使用底层 API。`HipUserObject.Dispose` 释放全部初始及额外的本地引用；graph 所拥有的引用遵循原生 graph 生命周期。

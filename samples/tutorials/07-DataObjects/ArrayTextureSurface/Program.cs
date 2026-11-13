@@ -22,6 +22,7 @@ internal static class Program
             using HipArray array = runtime.AllocateArray(channel, width, height, HipArrayFlags.SurfaceLoadStore);
             array.Copy2DFrom(source, width, height);
             array.Copy2DTo(destination, width, height);
+            Console.WriteLine("Array allocation and copy completed.");
 
             using HipTextureObject texture = runtime.CreateTextureObject(array, new HipTextureDescriptor
             {
@@ -41,7 +42,7 @@ internal static class Program
         }
         catch (HipException exception) when (exception.Error == HipError.NotSupported)
         {
-            Console.WriteLine("Skipped: array, texture, or surface objects are not supported by this HIP Runtime.");
+            Console.WriteLine("Skipped: " + exception.Operation + " returned NotSupported on this HIP Runtime; array/texture/surface validation is incomplete.");
             return 0;
         }
         catch (Exception exception)
