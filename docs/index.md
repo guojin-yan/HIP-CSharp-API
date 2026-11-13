@@ -4,6 +4,8 @@ HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.10.0` 
 
 HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.10.0` 与可选 Linux Runtime `7.2.1` 已公开。精确 Core 包已通过官方宿主和隔离 package-only GPU/ABI 门禁。未来任何 `1.0.0` 仍必须取得 Windows AMD GPU 实机验证。
 
+Current source is `0.11.0-dev`; see [0.11.0 preparation / 发布准备](releases/0.11.0.md). Local Windows and WSL2 results are separate from historical public-package evidence.
+
 ## Documentation / 文档
 
 - [Framework compatibility / 框架兼容性](compatibility/frameworks.md)
@@ -18,7 +20,7 @@ HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `
 - [1.0.0 readiness matrix / 1.0.0 就绪矩阵](releases/1.0.0-readiness.md)
 - [M8.10 controlled cleanup / M8.10 受控清理](releases/1.0.0-cleanup.md)
 - [1.0.0 manual publishing checklist / 1.0.0 人工发布清单](releases/publishing-checklist.md)
-- [1.0 API freeze review / 1.0 API 冻结审查](guides/api-freeze.md)
+- [Current API baseline / 当前 API 基线](guides/api-freeze.md)
 - [JYPPX ROCm naming migration / JYPPX ROCm 命名迁移](design/jyppx-rocm-naming-migration.md)
 - [MIGraphX adapter pending-lease boundary / MIGraphX 适配器 pending 租约边界](design/migraphx-adapter-pending-lease.md)
 - [HIPRTC VectorAdd guide / HIPRTC VectorAdd 指南](guides/hiprtc-vectoradd.md)

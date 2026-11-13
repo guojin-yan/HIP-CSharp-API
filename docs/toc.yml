@@ -48,6 +48,12 @@
       href: design/migraphx-adapter-pending-lease.md
 - name: Releases / 版本
   items:
+    - name: 0.11.0 Preparation / 发布准备
+      href: releases/0.11.0.md
+    - name: Reviewed Core Candidate / Core 候选包发布
+      href: guides/core-release-candidate.md
+    - name: Native Redistribution / 原生依赖再分发
+      href: guides/runtime-redistribution.md
     - name: 0.10.0 Release / 发布说明
       href: releases/0.10.0.md
     - name: 0.9.3 HIPRTC Program and Linker / HIPRTC Program 与 Linker

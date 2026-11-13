@@ -59,6 +59,6 @@ HIPRTC 的链接器在未显式指定链接目标时查询当前设备。使用 
   -Architecture gfx1100
 ```
 
-该入口创建独立 NuGet 缓存、仅使用本地源、以 PackageReference 构建 18 个工作负载；清除 HIP/ROCm SDK 搜索环境，并校验进程实际加载的原生模块来自消费者目录且哈希与包一致。Linux 上通过 PowerShell 7 使用同一入口，替换为 Linux 包和路径。能力不足的 managed memory 或 array/texture 子项应明确跳过；打包不会增加驱动本身不支持的能力。
+该入口创建独立 NuGet 缓存、仅使用本地源，以 PackageReference 构建 18 个工作负载，并额外检查无 RID 发布、缺失 HIPRTC 反向场景、RID 发布后用 dotnet/apphost 运行；Windows 另测 .NET Framework 4.8，共 Windows 23 项、Linux 22 项。Windows 需事先缓存 Framework reference assemblies 1.0.3，或通过 `-ReferenceAssembliesFeed` 提供只含引用程序集的本地源。入口清除 SDK 搜索环境，校验实际加载模块的路径和哈希。Linux 使用 PowerShell 7 的同一入口。managed memory 或 array/texture 能力不足时明确跳过；部署回归不能跳过。
 
-验证范围是本机 Windows 和 Ubuntu 24.04/WSL2、W7900 `gfx1100`、.NET 10 的包消费运行。Core 的 15 TFM 构建能力与各 TFM 的原生包部署验证是不同范围。这些本地包没有经过原有公开发布 promotion 流程；Windows 本机 DLL 没有 Authenticode 签名，采用固定安装文件和来源元数据哈希记录，不修改旧 Windows `7.2.0` 清单的签名策略。公开再分发还需完成独立的来源、许可证/源码提供义务及目标机器验证。
+验证范围是本机 Windows 和 Ubuntu 24.04/WSL2、W7900 `gfx1100`、.NET 10，以及 Windows .NET Framework 4.8 的包消费运行。其余 TFM 仍属于构建/API 验证范围。摘要同时记录包来源提交、验证提交和源码是否脏，只有精确一致的干净提交才可用于候选审查。Windows DLL 没有 Authenticode 签名；本地哈希策略不修改旧 `7.2.0` 发布策略。公开再分发需完成[来源、许可证及源码提供材料](runtime-redistribution.md)。

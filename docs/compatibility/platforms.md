@@ -1,5 +1,7 @@
 # Platform compatibility
 
+Current source is `0.11.0-dev`. The expanded local PackageReference matrix covers 23 Windows and 22 Linux/WSL2 cases, including RID publish through dotnet/apphost and Windows .NET Framework 4.8. These 10.1.0 local packages are development dependencies; bare Linux/KFD and current Core with public Runtime 7.2.1 require fresh regression. See [0.11.0 preparation](../releases/0.11.0.md) for supported evidence, capability skips and experimental integration areas. Historical public-package results below retain their original scope.
+
 | Platform | Core build/package | GPU evidence | Runtime package state |
 | --- | --- | --- | --- |
 | Windows x64 | Core builds all 15 TFMs; loader and PE paths pass static audit | Local `0.11.0-dev` development worktree on W7900/gfx1100 with installed platform SDK 10.1.0: 17/18 workloads passed, managed-memory tutorial capability skip; .NET Framework 4.8 HIPRTC/kernel smoke passed | Installed HIP SDK supplies native libraries; Runtime 7.2.0 package remains a disabled, inventory-empty skeleton |

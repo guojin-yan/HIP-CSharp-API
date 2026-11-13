@@ -8,9 +8,11 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
+$env:HIPSHARP_REPOSITORY_ROOT = $repositoryRoot
 $project = Join-Path $repositoryRoot "src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj"
 $docfxConfig = Join-Path $repositoryRoot "docs/docfx.json"
-$repositoryRootFull = [System.IO.Path]::GetFullPath($repositoryRoot).TrimEnd(
+$outputRootFull = (Get-HipSharpOutputPath $repositoryRoot ".").TrimEnd(
     [System.IO.Path]::DirectorySeparatorChar,
     [System.IO.Path]::AltDirectorySeparatorChar)
 
@@ -19,13 +21,13 @@ function Resolve-RepositoryOutputDirectory([string]$RelativePath) {
         throw "Documentation output must be a non-empty repository-relative path."
     }
 
-    $resolved = [System.IO.Path]::GetFullPath((Join-Path $repositoryRootFull $RelativePath)).TrimEnd(
+    $resolved = [System.IO.Path]::GetFullPath((Join-Path $outputRootFull $RelativePath)).TrimEnd(
         [System.IO.Path]::DirectorySeparatorChar,
         [System.IO.Path]::AltDirectorySeparatorChar)
-    $repositoryPrefix = $repositoryRootFull + [System.IO.Path]::DirectorySeparatorChar
-    if ($resolved -eq $repositoryRootFull -or
+    $repositoryPrefix = $outputRootFull + [System.IO.Path]::DirectorySeparatorChar
+    if ($resolved -eq $outputRootFull -or
         -not $resolved.StartsWith($repositoryPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
-        throw "Documentation output escapes the repository root: $RelativePath"
+        throw "Documentation output escapes the configured output root: $RelativePath"
     }
 
     return $resolved
@@ -48,7 +50,8 @@ function Remove-DocumentationOutput([string]$Path) {
 
 $apiOutput = Resolve-RepositoryOutputDirectory "docs/api"
 $siteOutput = Resolve-RepositoryOutputDirectory "_site"
-$script:allowedOutputs = @($apiOutput, $siteOutput)
+$stagedDocs = Resolve-RepositoryOutputDirectory "artifacts/docfx/content"
+$script:allowedOutputs = @($apiOutput, $siteOutput, $stagedDocs)
 $legacyNamespace = "JYPPX" + ".HipSharp"
 
 Push-Location $repositoryRoot
@@ -63,7 +66,31 @@ try {
     & dotnet build $project --configuration $Configuration --framework net10.0
     if ($LASTEXITCODE -ne 0) { throw "Documentation build prerequisite failed with exit code $LASTEXITCODE." }
 
-    & dotnet docfx $docfxConfig
+    # Keep the tracked config immutable; all generated config/cache/API/site files
+    # follow HIPSHARP_OUTPUT_ROOT, including DocFX's relative intermediate paths.
+    $configOutput = Resolve-RepositoryOutputDirectory "artifacts/docfx"
+    New-Item -ItemType Directory -Force -Path $configOutput | Out-Null
+    $config = Get-Content -LiteralPath $docfxConfig -Raw | ConvertFrom-Json
+    New-Item -ItemType Directory -Force -Path $stagedDocs | Out-Null
+    $docsRoot = Join-Path $repositoryRoot "docs"
+    foreach ($file in Get-ChildItem -LiteralPath $docsRoot -File -Recurse) {
+        $relative = [IO.Path]::GetRelativePath($docsRoot, $file.FullName)
+        if ($relative -match '^api[/\\]') { continue }
+        $target = Join-Path $stagedDocs $relative
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $target) | Out-Null
+        Copy-Item -LiteralPath $file.FullName -Destination $target
+    }
+    $config.metadata[0].src[0].src = [IO.Path]::GetRelativePath($configOutput, (Split-Path -Parent $project))
+    $config.metadata[0].dest = $apiOutput
+    $config.build.content[0].src = [IO.Path]::GetRelativePath($configOutput, (Join-Path $stagedDocs "api"))
+    $config.build.content[1] | Add-Member -NotePropertyName src -NotePropertyValue ([IO.Path]::GetRelativePath($configOutput, $stagedDocs)) -Force
+    $config.build.dest = $siteOutput
+    $generatedConfig = Join-Path $configOutput "docfx.json"
+    $config | ConvertTo-Json -Depth 20 | Set-Content -LiteralPath $generatedConfig -Encoding utf8
+    & dotnet docfx metadata $generatedConfig
+    if ($LASTEXITCODE -ne 0) { throw "DocFX metadata failed with exit code $LASTEXITCODE." }
+    Copy-Item -LiteralPath $apiOutput -Destination (Join-Path $stagedDocs "api") -Recurse
+    & dotnet docfx build $generatedConfig --warningsAsErrors
     if ($LASTEXITCODE -ne 0) { throw "DocFX failed with exit code $LASTEXITCODE." }
 
     $legacyApiFiles = @(Get-ChildItem -LiteralPath $apiOutput, (Join-Path $siteOutput "api") -File -Recurse |

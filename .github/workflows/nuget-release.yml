@@ -1,155 +1,164 @@
 name: NuGet release
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Package version to publish (for example 0.10.0)'
+        description: 'Reviewed stable Core version (MAJOR.MINOR.PATCH)'
+        required: true
+        type: string
+      candidate_run_id:
+        description: 'Successful run containing hipsharp-release-candidate artifact, from this repository'
+        required: true
+        type: string
+      manifest_sha256:
+        description: 'SHA-256 approved after reviewing candidate.json and all referenced evidence'
         required: true
         type: string
 
 permissions:
   contents: read
+  actions: read
 
 concurrency:
-  group: nuget-release-${{ github.ref }}
+  group: nuget-production
   cancel-in-progress: false
 
 jobs:
   publish:
-    name: Test, pack, publish, and verify NuGet package
+    name: Verify reviewed candidate, publish Core, compare public payload
     runs-on: windows-latest
+    environment: nuget-production
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_NOLOGO: '1'
       RELEASE_INPUT_VERSION: ${{ inputs.version }}
-      RELEASE_REF_NAME: ${{ github.ref_name }}
+      CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
+      MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
 
     steps:
-      - name: Checkout exact release ref
+      - name: Checkout exact reviewed source
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
-          ref: ${{ github.ref }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
-          cache: true
-          cache-dependency-path: '**/packages.lock.json'
 
-      - name: Resolve and validate release version
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Configure external build outputs
+        shell: pwsh
+        run: '"HIPSHARP_OUTPUT_ROOT=$env:RUNNER_TEMP/hipsharp-build" >> $env:GITHUB_ENV'
+
+      - name: Validate release identity and candidate run
         id: release
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          $version = $env:RELEASE_INPUT_VERSION
-          if ([string]::IsNullOrWhiteSpace($version)) {
-            $tag = $env:RELEASE_REF_NAME
-            if ($tag -notmatch '^v(?<version>[0-9]+\.[0-9]+\.[0-9]+)$') {
-              throw "A release tag must use vMAJOR.MINOR.PATCH; found '$tag'."
-            }
-            $version = $Matches.version
-          }
-
-          if ($version -notmatch '^[0-9]+\.[0-9]+\.[0-9]+$') {
-            throw "Release version must use MAJOR.MINOR.PATCH; found '$version'."
-          }
-
-          $projectVersion = (& dotnet msbuild .\src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion).Trim()
-          if ($LASTEXITCODE -ne 0 -or [string]::IsNullOrWhiteSpace($projectVersion)) {
-            throw 'Unable to resolve HipSharpCoreVersion from the project.'
-          }
-          if ($projectVersion -ne $version) {
-            throw "Release version $version does not match eng/Versions.props version $projectVersion."
-          }
-
+          if ($env:RELEASE_INPUT_VERSION -cnotmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'A stable version is required.' }
+          if ($env:CANDIDATE_RUN_ID -notmatch '^[0-9]+$') { throw 'Invalid candidate run ID.' }
+          if ($env:MANIFEST_SHA256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid reviewed manifest hash.' }
+          $version = (& dotnet msbuild ./src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion).Trim()
+          if ($LASTEXITCODE -ne 0 -or $version -ne $env:RELEASE_INPUT_VERSION) { throw 'Source version mismatch.' }
           $sha = (git rev-parse HEAD).Trim()
-          if ($LASTEXITCODE -ne 0 -or $sha -notmatch '^[0-9a-f]{40}$') {
-            throw 'The release checkout did not resolve to a full Git SHA.'
+          if ($LASTEXITCODE -ne 0 -or $sha -cnotmatch '^[0-9a-f]{40}$') { throw 'Invalid checkout SHA.' }
+          if (@(git status --porcelain).Count -ne 0) { throw 'Release checkout must be clean.' }
+          $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
+          $uri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:CANDIDATE_RUN_ID"
+          $run = Invoke-RestMethod -Uri $uri -Headers $headers
+          if ($run.conclusion -ne 'success' -or $run.head_sha -ne $sha -or $run.head_repository.full_name -ne $env:GITHUB_REPOSITORY) {
+            throw 'Candidate artifact must belong to a successful same-repository run at the exact source commit.'
           }
-          if ((git status --porcelain).Trim()) {
-            throw 'The release checkout is not clean.'
-          }
-
           "version=$version" >> $env:GITHUB_OUTPUT
           "sha=$sha" >> $env:GITHUB_OUTPUT
-          Write-Host "Release version: $version"
-          Write-Host "Release commit: $sha"
 
-      - name: Run Release build, tests, package audit, and clean consumers
+      - name: Download exact candidate bundle
+        uses: actions/download-artifact@v5
+        with:
+          name: hipsharp-release-candidate
+          path: ${{ runner.temp }}/hipsharp-candidate
+          run-id: ${{ inputs.candidate_run_id }}
+          github-token: ${{ github.token }}
+
+      - name: Verify reviewed manifest, package bytes, and dual-platform deployment receipts
+        id: candidate
         shell: pwsh
-        run: .\eng\test.ps1 -Configuration Release -Version ${{ steps.release.outputs.version }}
+        env:
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          $manifest = Join-Path $env:RUNNER_TEMP 'hipsharp-candidate/candidate.json'
+          $relative = (& python ./eng/release-candidate.py verify --manifest $manifest --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION)
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate validation failed.' }
+          $package = Join-Path (Split-Path -Parent $manifest) $relative
+          "package=$package" >> $env:GITHUB_OUTPUT
 
-      - name: Regenerate and validate documentation
+      - name: Run managed tests, API checks, package audit, and documentation regression
         shell: pwsh
-        run: .\eng\test-docs.ps1 -Configuration Release
+        env:
+          CANDIDATE_PACKAGE: ${{ steps.candidate.outputs.package }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
+        run: |
+          python ./eng/test-release-candidate.py
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate gate regression failed.' }
+          ./eng/test.ps1 -Configuration Release
+          ./eng/verify-package.ps1 -PackagePath $env:CANDIDATE_PACKAGE -ExpectedVersion $env:RELEASE_INPUT_VERSION -ExpectedRepositoryCommit $env:RELEASE_SHA -OutputDirectory artifacts/candidate-package-audit
+          ./eng/test-docs.ps1 -Configuration Release
 
-      - name: Confirm publish credential is available
+      - name: Reject existing public version and publish the reviewed Core package
         shell: pwsh
         env:
           NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          CANDIDATE_PACKAGE: ${{ steps.candidate.outputs.package }}
+          RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
-          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) {
-            throw 'The NUGET_API_KEY repository secret is missing.'
+          # Repeat the binding check immediately before push. The package produced by test.ps1 is never uploaded.
+          python ./eng/release-candidate.py verify --manifest "$env:RUNNER_TEMP/hipsharp-candidate/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate changed before publication.' }
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is missing.' }
+          $id = 'jyppx.rocm.hip.csharp.api'
+          $uri = "https://api.nuget.org/v3-flatcontainer/$id/$env:RELEASE_INPUT_VERSION/$id.$env:RELEASE_INPUT_VERSION.nupkg"
+          try {
+            $null = Invoke-WebRequest -Method Head -TimeoutSec 30 -Uri $uri
+            throw 'The version is already public; refusing to treat it as this candidate.'
+          } catch {
+            if ($null -eq $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw }
           }
+          dotnet nuget push $env:CANDIDATE_PACKAGE --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --timeout 600
+          if ($LASTEXITCODE -ne 0) { throw 'NuGet push failed.' }
 
-      - name: Publish Core package to NuGet.org
+      - name: Verify repository signature and every protected published entry
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-        run: |
-          $package = Join-Path $PWD "artifacts/packages/JYPPX.ROCm.HIP.CSharp.API.${{ steps.release.outputs.version }}.nupkg"
-          if (-not (Test-Path -LiteralPath $package -PathType Leaf)) {
-            throw "Expected package was not found: $package"
-          }
-          dotnet nuget push $package `
-            --api-key $env:NUGET_API_KEY `
-            --source https://api.nuget.org/v3/index.json `
-            --skip-duplicate `
-            --timeout 600
-          if ($LASTEXITCODE -ne 0) {
-            throw "NuGet push failed with exit code $LASTEXITCODE."
-          }
-
-      - name: Verify published package and NuGet.org repository signature
-        shell: pwsh
+          CANDIDATE_PACKAGE: ${{ steps.candidate.outputs.package }}
         run: |
           $id = 'jyppx.rocm.hip.csharp.api'
-          $version = '${{ steps.release.outputs.version }}'
-          $uri = "https://api.nuget.org/v3-flatcontainer/$id/$version/$id.$version.nupkg"
-          $download = Join-Path $env:RUNNER_TEMP "$id.$version.nupkg"
-          $published = $false
-
+          $uri = "https://api.nuget.org/v3-flatcontainer/$id/$env:RELEASE_INPUT_VERSION/$id.$env:RELEASE_INPUT_VERSION.nupkg"
+          $download = Join-Path $env:RUNNER_TEMP 'published-core.nupkg'
           for ($attempt = 1; $attempt -le 30; $attempt++) {
-            try {
-              Invoke-WebRequest -UseBasicParsing -TimeoutSec 30 $uri -OutFile $download
-              $published = $true
-              Write-Host "NuGet package became downloadable on attempt $attempt."
-              break
-            }
-            catch {
-              if ($attempt -eq 30) { throw }
-              Start-Sleep -Seconds 10
-            }
+            try { Invoke-WebRequest -TimeoutSec 30 -Uri $uri -OutFile $download; break }
+            catch { if ($attempt -eq 30) { throw }; Start-Sleep -Seconds 10 }
           }
-
-          if (-not $published) { throw 'NuGet package did not become downloadable.' }
           dotnet nuget verify $download --all
-          if ($LASTEXITCODE -ne 0) {
-            throw "Published NuGet package signature verification failed with exit code $LASTEXITCODE."
-          }
+          if ($LASTEXITCODE -ne 0) { throw 'Public repository signature verification failed.' }
+          python ./eng/release-candidate.py compare --candidate $env:CANDIDATE_PACKAGE --published $download
+          if ($LASTEXITCODE -ne 0) { throw 'Public payload differs from the reviewed candidate.' }
 
       - name: Upload release evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: hipsharp-nuget-release-${{ steps.release.outputs.version || 'unknown' }}
+          name: hipsharp-nuget-release-${{ inputs.version }}
           if-no-files-found: warn
           path: |
-            artifacts/test-results/**
-            artifacts/package-audit/**
-            artifacts/packages/*.nupkg
+            ${{ runner.temp }}/hipsharp-candidate/candidate.json
+            ${{ runner.temp }}/published-core.nupkg
+            ${{ runner.temp }}/hipsharp-build/artifacts/test-results/**
+            ${{ runner.temp }}/hipsharp-build/artifacts/package-audit/**
+            ${{ runner.temp }}/hipsharp-build/artifacts/candidate-package-audit/**

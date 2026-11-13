@@ -8,9 +8,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $legacyNamespace = "JYPPX" + ".HipSharp"
-$apiSentinel = Join-Path $repositoryRoot "docs/api/$legacyNamespace.LegacySentinel.yml"
-$siteSentinel = Join-Path $repositoryRoot "_site/api/$legacyNamespace.LegacySentinel.html"
+$apiOutput = Get-HipSharpOutputPath $repositoryRoot "docs/api"
+$siteOutput = Get-HipSharpOutputPath $repositoryRoot "_site/api"
+$apiSentinel = Join-Path $apiOutput "$legacyNamespace.LegacySentinel.yml"
+$siteSentinel = Join-Path $siteOutput "$legacyNamespace.LegacySentinel.html"
 
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $apiSentinel), (Split-Path -Parent $siteSentinel) | Out-Null
 [System.IO.File]::WriteAllText($apiSentinel, "legacy namespace sentinel")
@@ -23,7 +26,7 @@ if ((Test-Path -LiteralPath $apiSentinel) -or (Test-Path -LiteralPath $siteSenti
     throw "Documentation clean generation retained a legacy sentinel."
 }
 
-$legacyPages = @(Get-ChildItem -LiteralPath (Join-Path $repositoryRoot "docs/api"), (Join-Path $repositoryRoot "_site/api") -File -Recurse |
+$legacyPages = @(Get-ChildItem -LiteralPath $apiOutput, $siteOutput -File -Recurse |
     Where-Object { $_.Name -like "$legacyNamespace*" })
 if ($legacyPages.Count -ne 0) {
     throw "Documentation clean generation retained legacy namespace pages: $($legacyPages.FullName -join ', ')"

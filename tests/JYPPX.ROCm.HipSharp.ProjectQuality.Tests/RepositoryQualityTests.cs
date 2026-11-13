@@ -48,7 +48,9 @@ public sealed class RepositoryQualityTests
 
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("PackageId").Single().Value);
         Assert.AreEqual("JYPPX.ROCm.HIP.CSharp.API", project.Descendants("AssemblyName").Single().Value);
-        Assert.AreEqual("0.11.0-dev", versions.Descendants("HipSharpCoreVersion").Single().Value);
+        string coreVersion = versions.Descendants("HipSharpCoreVersion").Single().Value;
+        StringAssert.Matches(coreVersion, new Regex(@"^[0-9]+\.[0-9]+\.[0-9]+(?:-[0-9A-Za-z.-]+)?$", RegexOptions.CultureInvariant));
+        Assert.IsTrue(File.Exists(Path.Combine(RepositoryRoot, "eng", "public-api", $"JYPPX.ROCm.HipSharp.{coreVersion}.txt")), "A version-selected API baseline is required.");
         Assert.AreEqual("7.2.1", versions.Descendants("HipSharpUbuntu2404RuntimeVersion").Single().Value);
         Assert.AreEqual("7.2.0", versions.Descendants("HipSharpWindowsRuntimeVersion").Single().Value);
         Assert.AreEqual("$(HipSharpCoreVersion)", props.Descendants("VersionPrefix").Single().Value);
@@ -806,7 +808,8 @@ public sealed class RepositoryQualityTests
     [TestMethod]
     public void PublicApiFreezeInputsAreVersionedAndReproducible()
     {
-        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", "JYPPX.ROCm.HipSharp.0.11.0-dev.txt");
+        string coreVersion = XDocument.Load(Path.Combine(RepositoryRoot, "eng", "Versions.props")).Descendants("HipSharpCoreVersion").Single().Value;
+        string snapshot = Path.Combine(RepositoryRoot, "eng", "public-api", $"JYPPX.ROCm.HipSharp.{coreVersion}.txt");
         Assert.IsTrue(File.Exists(snapshot));
         string currentSurface = File.ReadAllText(snapshot);
         StringAssert.StartsWith(currentSurface, "# HipSharp public API snapshot schema 1");
@@ -873,7 +876,7 @@ public sealed class RepositoryQualityTests
         string candidateAttestation = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "create-core-candidate-attestation.ps1"));
         StringAssert.Contains(candidateAttestation, "normalizedContentSha256");
         StringAssert.Contains(candidateAttestation, "protectedContentSha256");
-        StringAssert.Contains(candidateAttestation, "equalToHistorical = $true");
+        StringAssert.Contains(candidateAttestation, "equalToHistorical = ($apiHash -eq $historicalApiHash)");
         StringAssert.Contains(candidateAttestation, "gpuValidated = $false");
         StringAssert.Contains(candidateAttestation, "publishable = $false");
         StringAssert.Contains(candidateAttestation, "releaseAuthorized = $false");

@@ -1,0 +1,56 @@
+name: Stage reviewed Core candidate
+
+on:
+  workflow_dispatch:
+    inputs:
+      bundle_url:
+        description: 'HTTPS URL of reviewed candidate ZIP (candidate.json at ZIP root)'
+        required: true
+        type: string
+      bundle_sha256:
+        description: 'SHA-256 of candidate ZIP'
+        required: true
+        type: string
+      manifest_sha256:
+        description: 'Reviewed candidate.json SHA-256'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+jobs:
+  stage:
+    runs-on: ubuntu-latest
+    env:
+      BUNDLE_URL: ${{ inputs.bundle_url }}
+      BUNDLE_SHA256: ${{ inputs.bundle_sha256 }}
+      MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Download and verify reviewed candidate without rebuilding
+        shell: pwsh
+        run: |
+          $uri = [Uri]$env:BUNDLE_URL
+          if ($uri.Scheme -ne 'https') { throw 'Candidate URL must use HTTPS.' }
+          if ($env:BUNDLE_SHA256 -cnotmatch '^[0-9a-f]{64}$' -or $env:MANIFEST_SHA256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid SHA-256.' }
+          $archive = Join-Path $env:RUNNER_TEMP 'candidate.zip'
+          $bundle = Join-Path $env:RUNNER_TEMP 'candidate'
+          Invoke-WebRequest -Uri $uri -OutFile $archive -TimeoutSec 600
+          python ./eng/release-candidate.py unpack --archive $archive --archive-sha256 $env:BUNDLE_SHA256 --output $bundle
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate archive rejected.' }
+          [xml]$versions = Get-Content ./eng/Versions.props -Raw
+          $version = $versions.Project.PropertyGroup.HipSharpCoreVersion
+          $sha = (git rev-parse HEAD).Trim()
+          python ./eng/release-candidate.py verify --manifest "$bundle/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $sha --version $version
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate review binding rejected.' }
+      - uses: actions/upload-artifact@v4
+        with:
+          name: hipsharp-release-candidate
+          path: ${{ runner.temp }}/candidate/**
+          include-hidden-files: true
+          if-no-files-found: error
+          retention-days: 30

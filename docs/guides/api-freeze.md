@@ -1,23 +1,21 @@
-# 1.0 public API freeze review / 1.0 公开 API 冻结审查
+# Current public API baseline / 当前公开 API 基线
 
-The pre-release JYPPX ROCm family rename invalidated the former namespace snapshot. The post-migration `JYPPX.ROCm.HipSharp` surface described below is the new freeze baseline; no legacy namespace or forwarding assembly is part of the contract. See the [naming migration decision](../design/jyppx-rocm-naming-migration.md).
+Current source version is `0.11.0-dev`. The active snapshot is `eng/public-api/JYPPX.ROCm.HipSharp.0.11.0-dev.txt`: **122 exported types and 1,372 members**. The gate checks all 15 TFM assemblies and bilingual XML summaries against the version-selected snapshot. Packing also validates package compatibility. The BCL `ISpanFormattable` enum suppression is not a HipSharp contract change.
 
-发布前 JYPPX ROCm 家族重命名使原 namespace snapshot 作废。下述迁移后的 `JYPPX.ROCm.HipSharp` surface 是新的冻结基线；旧 namespace 和类型转发程序集都不属于契约。参见[命名迁移决策](../design/jyppx-rocm-naming-migration.md)。
+当前开发版的基线为 **122 个公开类型、1,372 个成员**；相对已发布 `0.10.0` 的 109 类型、1,295 成员，新增 90 条快照记录，没有删除记录。集合比较不能替代所有权、ABI 或 GPU 行为验证。历史 `1.0.0`/`0.9.1` 的 68 类型、1,002 成员快照仅是历史记录，不能作为当前冻结凭据。
 
-The `1.0.0` candidate freezes the exported surface recorded in `eng/public-api/JYPPX.ROCm.HipSharp.1.0.0.txt`. The automated gate compares that baseline with every one of the 15 target-framework assemblies and checks bilingual Chinese/English XML summaries. The `1.0.0` and historical `0.9.1` snapshots are byte-identical, providing an explicit semantic difference result of zero types and zero members. Package validation provides a second compatibility check during packing. Its only suppression category covers the BCL-provided `ISpanFormattable` enum interface introduced in .NET 8, not a HipSharp-declared contract.
-
-`1.0.0` 候选冻结 `eng/public-api/JYPPX.ROCm.HipSharp.1.0.0.txt` 中记录的导出面。自动门禁会比较该基线与全部 15 个目标框架程序集，并检查中英文双语 XML summary；`1.0.0` 与历史 `0.9.1` 快照逐字节相同，语义差异为 0 types/0 members；打包时的 package validation 提供第二层兼容性检查。
+A stable `0.11.0` package has not been declared. Selecting a stable version requires updating `eng/Versions.props`, creating its reviewed snapshot and validating its exact clean-commit package. See [release preparation](../releases/0.11.0.md) and [candidate publication](core-release-candidate.md).
 
 ## Surface categories / API 分类
 
 | Category | Contract |
 | --- | --- |
 | Formal | Public runtime, device, memory, stream/event, module/kernel, HIPRTC, peer, graph, value, enum, and exception types under `JYPPX.ROCm.HipSharp` |
-| Diagnostic | Public loader attempts, diagnostics, and load exception under `JYPPX.ROCm.HipSharp.Loading`; stable for 0.9 but not the primary compute API |
+| Diagnostic | Public loader attempts, diagnostics, and load exception under `JYPPX.ROCm.HipSharp.Loading`; included in the version-selected snapshot |
 | Sample-only | Types compiled only from projects under `samples/tutorials`, `samples/consumers`, or `samples/validation`; they are not core package API. The M8.7 validation result model is sample-only and does not change the frozen Core surface. |
 | Internal | All non-exported implementation types, including generated interop, native handles, leases, and native boundaries |
 
-The frozen `1.0.0` namespace surface remains 68 exported types and 1,002 members across all 15 TFMs. M8.9 exercised the immutable public `0.9.1` bytes. That evidence is a regression baseline only; the version and package bytes change for `1.0.0`, so the exact candidate requires fresh validation even though the namespace surface is unchanged.
+Historical M8.9/M8.10 evidence applies only to the recorded package bytes. It does not validate the current development surface.
 
 ## Ownership and disposal / 所有权与释放
 
@@ -44,4 +42,4 @@ HIP runtime failures become `HipException`, preserving the `HipError`, numeric c
 
 ## Freeze rule / 冻结规则
 
-For the `1.0.0` freeze, no public API change is permitted inside M8.10. Removing, adding, or renaming types or members; changing signatures, enum values, default values, ownership, disposal ordering, error normalization, ABI, or target-framework parity requires a separate design review and a new candidate. Documentation clarifications that do not change contract semantics remain allowed. No public API change may land as an unreviewed generated-file refresh.
+Changes to the current baseline require review. Removing, adding, or renaming types or members; changing signatures, enum values, default values, ownership, disposal ordering, error normalization, ABI, or target-framework parity requires a separate design review and a new candidate. Documentation clarifications that do not change contract semantics remain allowed. No public API change may land as an unreviewed generated-file refresh.

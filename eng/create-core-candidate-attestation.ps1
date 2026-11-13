@@ -12,6 +12,7 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $coreVersion = Get-HipSharpVersion -Kind Core -RepositoryRoot $repositoryRoot
 $packageId = "JYPPX.ROCm.HIP.CSharp.API"
 $assemblyName = $packageId
@@ -19,13 +20,13 @@ $frameworks = @(
     "net46", "net461", "net462", "net47", "net471", "net472", "net48", "net481",
     "netcoreapp3.1", "net5.0", "net6.0", "net7.0", "net8.0", "net9.0", "net10.0"
 )
-$artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts")).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
+$artifactsRoot = (Get-HipSharpOutputPath $repositoryRoot "artifacts").TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 $artifactsPrefix = $artifactsRoot + [System.IO.Path]::DirectorySeparatorChar
 $resolvedPackage = (Resolve-Path -LiteralPath $PackagePath).Path
 $outputRoot = if ([System.IO.Path]::IsPathRooted($OutputDirectory)) {
     [System.IO.Path]::GetFullPath($OutputDirectory)
 } else {
-    [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $OutputDirectory))
+    Get-HipSharpOutputPath $repositoryRoot $OutputDirectory
 }
 if ($outputRoot -eq $artifactsRoot -or -not $outputRoot.StartsWith($artifactsPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
     throw "Core candidate attestation output must remain below the repository artifacts directory."
@@ -75,11 +76,7 @@ function Get-PackageEntries([string]$Path) {
 }
 
 function Test-NuGetContainerMetadata([string]$Path) {
-    return $Path -eq "_rels/.rels" -or
-        $Path -eq "[Content_Types].xml" -or
-        $Path -eq ".signature.p7s" -or
-        $Path -match '^[^/]+\.nuspec$' -or
-        $Path -match '^package/services/metadata/core-properties/[^/]+\.psmdcp$'
+    return $Path -eq ".signature.p7s"
 }
 
 function Get-EntrySetDigest([System.Collections.IDictionary]$Entries, [bool]$ProtectedOnly) {
@@ -146,17 +143,19 @@ if ($metadata.repository.commit -ne $ExpectedRepositoryCommit) {
 }
 
 $apiSnapshot = Join-Path $repositoryRoot "eng/public-api/JYPPX.ROCm.HipSharp.$coreVersion.txt"
-$historicalSnapshot = Join-Path $repositoryRoot "eng/public-api/JYPPX.ROCm.HipSharp.0.9.1.txt"
+$historicalSnapshot = Join-Path $repositoryRoot "eng/public-api/JYPPX.ROCm.HipSharp.0.10.0.txt"
 if (-not (Test-Path -LiteralPath $apiSnapshot -PathType Leaf) -or -not (Test-Path -LiteralPath $historicalSnapshot -PathType Leaf)) {
     throw "Current and historical API snapshots are required."
 }
 $apiHash = Get-Sha256 $apiSnapshot
 $historicalApiHash = Get-Sha256 $historicalSnapshot
-if ($apiHash -ne $historicalApiHash) { throw "Core 1.0.0 API snapshot differs from 0.9.1." }
 $apiLines = @(Get-Content -LiteralPath $apiSnapshot | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.StartsWith("#") })
+$historicalLines = @(Get-Content -LiteralPath $historicalSnapshot | Where-Object { -not [string]::IsNullOrWhiteSpace($_) -and -not $_.StartsWith("#") })
+$removedApi = @($historicalLines | Where-Object { $_ -cnotin $apiLines })
+$addedApi = @($apiLines | Where-Object { $_ -cnotin $historicalLines })
 $exportedTypes = @($apiLines | Where-Object { $_.StartsWith("T|") }).Count
 $members = $apiLines.Count - $exportedTypes
-if ($exportedTypes -ne 68 -or $members -ne 1002) {
+if ($exportedTypes -eq 0 -or $members -eq 0) {
     throw "Unexpected public API counts: types=$exportedTypes members=$members."
 }
 
@@ -205,7 +204,7 @@ $referenceComparison = if ([string]::IsNullOrWhiteSpace($ReferencePackagePath)) 
 
 $report = [ordered]@{
     schemaVersion = 1
-    mode = "linux-core-1.0.0-clean-sha-candidate"
+    mode = "core-clean-sha-candidate"
     status = "candidate-built-local"
     generatedAtUtc = [DateTimeOffset]::UtcNow.ToString("O")
     gitSha = $ExpectedRepositoryCommit
@@ -224,22 +223,19 @@ $report = [ordered]@{
     publicApi = [ordered]@{
         snapshot = "eng/public-api/JYPPX.ROCm.HipSharp.$coreVersion.txt"
         sha256 = $apiHash
-        historicalVersion = "0.9.1"
+        historicalVersion = "0.10.0"
         historicalSha256 = $historicalApiHash
-        equalToHistorical = $true
+        equalToHistorical = ($apiHash -eq $historicalApiHash)
+        addedEntries = $addedApi.Count
+        removedEntries = $removedApi.Count
         exportedTypes = $exportedTypes
         members = $members
     }
     frameworks = $frameworkEvidence.ToArray()
     referenceComparison = $referenceComparison
-    runtime = [ordered]@{
-        packageId = "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64"
-        version = "7.2.1"
-        publicSha256 = "21d0a2e511964923de4be2c7f1bf02ce19e9abd9e9bf535cb915c7d7c81b5799"
-        repacked = $false
-    }
+    runtime = $null
     gpuValidated = $false
-    windowsRuntime = "disabled/unverified/static-only"
+    windowsRuntime = "not-supplied"
     performanceClaim = $false
     publishable = $false
     releaseAuthorized = $false
@@ -247,5 +243,5 @@ $report = [ordered]@{
 $outputPath = Join-Path $outputRoot "core-candidate-attestation.json"
 $json = (($report | ConvertTo-Json -Depth 20) -replace "`r`n", "`n") + "`n"
 [System.IO.File]::WriteAllText($outputPath, $json, [System.Text.UTF8Encoding]::new($false))
-Write-Host "Core candidate attestation generated: 15 TFMs, 68 types, 1002 members, publishable=false."
+Write-Host "Core candidate attestation generated: 15 TFMs, $exportedTypes types, $members members, publishable=false."
 Write-Output $outputPath

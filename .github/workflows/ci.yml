@@ -24,6 +24,11 @@ jobs:
       - name: Build all target frameworks
         shell: pwsh
         run: ./eng/build.ps1 -Configuration Release
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+      - name: Test release candidate trust boundary
+        run: python ./eng/test-release-candidate.py
       - name: Test and audit package
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild
@@ -57,6 +62,8 @@ jobs:
           cache-dependency-path: '**/packages.lock.json'
       - name: Restore, build, pack, and test
         run: bash ./eng/build.sh Release
+      - name: Test release candidate trust boundary
+        run: python3 ./eng/test-release-candidate.py
       - name: Upload Linux test artifacts
         if: always()
         uses: actions/upload-artifact@v4
