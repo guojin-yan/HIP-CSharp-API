@@ -60,7 +60,15 @@ try {
         Remove-DocumentationOutput $output
     }
 
-    & dotnet tool restore
+    $toolArguments = @('tool', 'restore')
+    if (-not [string]::IsNullOrWhiteSpace($env:HIPSHARP_SUPPORT_FEED)) {
+        $toolConfig = Get-HipSharpOutputPath $repositoryRoot 'artifacts/docfx/tool-restore.config'
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $toolConfig) | Out-Null
+        $supportFeed = [Security.SecurityElement]::Escape((Get-HipSharpSupportFeed))
+        [IO.File]::WriteAllText($toolConfig, "<configuration><packageSources><clear/><add key=`"offline`" value=`"$supportFeed`"/></packageSources></configuration>")
+        $toolArguments += @('--configfile', $toolConfig)
+    }
+    & dotnet @toolArguments
     if ($LASTEXITCODE -ne 0) { throw "dotnet tool restore failed with exit code $LASTEXITCODE." }
 
     & dotnet build $project --configuration $Configuration --framework net10.0

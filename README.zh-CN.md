@@ -45,7 +45,7 @@ HIP CSharp API 为 AMD HIP Runtime 与 HIPRTC C API 提供直接 .NET 绑定。�
 
 ## 📢 当前状态：已发布预览版 / 0.x 验证
 
-Core `0.10.0` 和可选 Linux Runtime `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` 已在 nuget.org 公开。精确的 Core 包已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过官方宿主和隔离 package-only Linux GPU/ABI 门禁。当前源码为未发布的 `0.11.0-dev`，新增高级 interop 所有权、Graph 契约和 Windows HIPRTC 加载修复；不能将这些修改归入已发布的 `0.10.0`。
+Core `0.10.0` 和可选 Linux Runtime `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` 已在 nuget.org 公开。精确的 Core 包已在 Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100` 通过官方宿主和隔离 package-only Linux GPU/ABI 门禁。当前源码为未发布的 `1.0.0`，新增高级 interop 所有权、Graph 契约和 Windows HIPRTC 加载修复；不能将这些修改归入已发布的 `0.10.0`。
 
 Core `0.10.0` 包含 HIPRTC Program/Linker 托管扩展，以及更新后的可运行教程与综合案例。固定 ROCm 7.2.1 runtime 仍有已记录的上游 `hipMemRetainAllocationHandle` 引用计数缺陷，详见 [0.10.0 发布说明](docs/releases/0.10.0.md)。未来任何 `1.0.0` 仍必须满足 Windows AMD GPU 实机验证；本次 `0.10.0` 工作不能替代或绕过该条件。
 
@@ -104,7 +104,7 @@ Core 包不含依赖，也不会安装 GPU 驱动。Runtime 包属于可选部�
 
 ## 🌐 公开包与 Release 资产
 
-Core `0.10.0` 和 Ubuntu 24.04 Runtime `7.2.1` 已位于 NuGet.org；当前源码 `0.11.0-dev` 尚未发布。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。
+Core `0.10.0` 和 Ubuntu 24.04 Runtime `7.2.1` 已位于 NuGet.org；当前源码 `1.0.0` 尚未发布。仓库存在标注的 `v0.10.0` Git tag，未上传 Release 资产。
 
 后续稳定版 Core 包由基于 tag 的 [NuGet 发布 workflow](.github/workflows/nuget-release.yml) 发布；它只在发布时读取 Actions Secret `NUGET_API_KEY`。
 Ubuntu 24.04 Runtime 完成精确包晋级后，由专用的 [Runtime 发布 workflow](.github/workflows/runtime-ubuntu-24.04-release.yml) 发布到 NuGet.org，并把 nupkg 与 SHA-256 同步附加到 GitHub Release。

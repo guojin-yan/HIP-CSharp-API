@@ -10,11 +10,12 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $manifestPath = if ([System.IO.Path]::IsPathRooted($Manifest)) { $Manifest } else { Join-Path $repositoryRoot $Manifest }
 $runtimeVersion = (Get-Content -Raw -LiteralPath $manifestPath | ConvertFrom-Json).packageVersion
-if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = "eng/native-assets/cache/rocm-$runtimeVersion-noble" }
+if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = Get-HipSharpOutputPath $repositoryRoot "eng/native-assets/cache/rocm-$runtimeVersion-noble" }
 $cacheRoot = if ([System.IO.Path]::IsPathRooted($CacheDirectory)) { $CacheDirectory } else { Join-Path $repositoryRoot $CacheDirectory }
-$testRoot = Join-Path $repositoryRoot "artifacts/runtime-source-tests"
+$testRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts/runtime-source-tests"
 
 function Write-Manifest([hashtable]$value, [string]$path) {
     $value | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $path -Encoding utf8NoBOM

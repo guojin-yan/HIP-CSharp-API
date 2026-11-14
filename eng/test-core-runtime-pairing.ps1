@@ -97,6 +97,7 @@ if ($expectedNativeAssets.Count -ne 14 -or @($expectedNativeAssets.Name | Select
 }
 
 $escapedFeed = [System.Security.SecurityElement]::Escape($feed)
+$supportFeed = [System.Security.SecurityElement]::Escape((Get-HipSharpSupportFeed))
 $nugetConfig = Join-Path $testRoot "NuGet.config"
 [System.IO.File]::WriteAllText($nugetConfig, @"
 <?xml version="1.0" encoding="utf-8"?>
@@ -104,14 +105,14 @@ $nugetConfig = Join-Path $testRoot "NuGet.config"
   <packageSources>
     <clear />
     <add key="Exact candidate feed" value="$escapedFeed" />
-    <add key="nuget.org framework packs" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+    <add key="Framework support" value="$supportFeed" />
   </packageSources>
   <packageSourceMapping>
     <packageSource key="Exact candidate feed">
       <package pattern="JYPPX.ROCm.HIP.CSharp.API" />
       <package pattern="$runtimeId" />
     </packageSource>
-    <packageSource key="nuget.org framework packs">
+    <packageSource key="Framework support">
       <package pattern="Microsoft.*" />
     </packageSource>
   </packageSourceMapping>
@@ -143,7 +144,7 @@ $runtimeReference
 "@)
     [System.IO.File]::WriteAllText((Join-Path $directory "Program.cs"), "using JYPPX.ROCm.HipSharp;`nreturn typeof(HipRuntime).Assembly.GetName().Name == `"JYPPX.ROCm.HIP.CSharp.API`" ? 0 : 1;`n")
 
-    & dotnet restore (Join-Path $directory "Consumer.csproj") --configfile $nugetConfig --packages $packages --force --no-cache --verbosity minimal | Out-Host
+    & dotnet restore (Join-Path $directory "Consumer.csproj") --configfile $nugetConfig --source $feed --source (Get-HipSharpSupportFeed) --packages $packages --force --no-cache --verbosity minimal | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Isolated restore failed for $Name." }
     & dotnet build (Join-Path $directory "Consumer.csproj") --configuration $Configuration --no-restore -p:RestorePackagesPath=$packages | Out-Host
     if ($LASTEXITCODE -ne 0) { throw "Isolated build failed for $Name." }

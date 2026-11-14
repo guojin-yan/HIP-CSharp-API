@@ -15,12 +15,12 @@ This checklist is a handoff only. It never authorizes push, tag creation, NuGet 
 
 - Require a clean detached checkout at the exact 40-character candidate SHA and no source/package/protected-entry drift since validation.
 - Recompute Core `1.0.0` nupkg size/SHA-256, normalized content digest, API snapshot hash, assembly/XML hashes for all 15 TFMs, nuspec `RepositoryCommit`, package entry manifest and attestation; require exact equality with the reviewed envelope.
-- Require an exact `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` candidate SHA-256 and a matching promotion receipt; do not substitute evidence from another package identity.
+- Require the fixed repository-signed public `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` identity from `eng/published-runtime-7.2.1.lock.json` (SHA-256 `1b8463fccbc364b9e0b7a1bc58cfc76c7ecfc8f73f1e3eaac1bdfadb197dc23d`). Do not substitute an unsigned candidate or the historical generic Runtime.
 - Confirm both system-native Core-only and package-only Core + Runtime modes were tested without source `bin`, staging, private cache or accidental `/opt/rocm` fallback.
-- Require fresh exact-candidate loader/maps, owner symbols `91/91 + 9/9`, complete symbols `458/459 + 18/18`, schema-7 ABI, 1,127 comparisons, bounded reliability, and missing/tampered/mixed/wrong-package negatives.
+- Require fresh exact-candidate loader/maps, owner symbols `91/91 + 18/18`, complete symbols with every absence recorded, schema-7 ABI, actual comparison counts, bounded reliability, and missing/tampered/mixed/wrong-package negatives. Run retained-allocation version protection as well as ordinary VMM; ordinary samples missed the native double-release defect.
 - Record P2P as pass only with capability evidence; otherwise keep the honest skip. Do not add a performance claim.
 - Review rendered English/Chinese README, `1.0.0` notes, compatibility matrix, EOL TFM warnings, icon, Apache-2.0 license, repository metadata and managed-only package boundary.
-- Confirm Windows Runtime remains `disabled/unverified/static-only` and that Core Windows compile compatibility is not described as Windows GPU/runtime support.
+- Require Windows GPU validation of the exact Core and declared native closure, including RID/apphost and net48. The historical public Windows Runtime `7.2.0` skeleton remains disabled/static-only; the separately tested local `10.1.0-local.*` packages do not grant public redistribution approval.
 - Run secret, endpoint, absolute-path, native payload, stale PackageId/assembly name and generated-output scans.
 
 ## Authorized release only / 仅获授权后执行

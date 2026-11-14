@@ -23,6 +23,8 @@ The resulting `candidate.json` binds the packages, summaries and five evidence f
 
 Keep only the manifest and its listed files in the candidate directory; validation rejects unlisted files, symbolic links and Windows junctions. JSON objects must have unique keys. Bundle and ZIP paths must work on both Windows and Linux: reserved device names, illegal characters, case aliases and file/directory collisions are rejected before extraction. Store additional working notes outside the candidate directory.
 
+For offline verification, set `HIPSHARP_SUPPORT_FEED` to an existing local directory of Microsoft framework/reference packages (and the pinned DocFX package for documentation). Consumer audits use source mapping so the tested HipSharp package can only resolve from its exact candidate feed. This also avoids a global `RestoreSources` override replacing the candidate source during a clean restore. Documentation tool restore uses a generated configuration containing only the offline source.
+
 ## Authorized publication / 获授权后发布
 
 Zip the candidate contents with `candidate.json` at the archive root. Record the ZIP hash and stage it at an HTTPS download URL. Run **Stage reviewed Core candidate** at the exact reviewed source commit with the URL, ZIP hash and reviewed manifest hash. It verifies all bindings without executing bundle content, then uploads `hipsharp-release-candidate`. Supply that successful same-repository Actions run ID, version and manifest hash to **NuGet release**.

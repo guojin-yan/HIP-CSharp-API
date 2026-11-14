@@ -488,9 +488,13 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError RuntimeGetVersion(out int runtimeVersion)
     {
-        runtimeVersion = 70200001;
-        return HipError.Success;
+        runtimeVersion = RuntimeVersion;
+        return RuntimeVersionResult;
     }
+
+    internal int RuntimeVersion { get; set; } = 70200001;
+    internal HipError RuntimeVersionResult { get; set; } = HipError.Success;
+    internal int RetainAllocationCallCount { get; private set; }
 
     public HipError DriverGetVersion(out int driverVersion)
     {
@@ -748,6 +752,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError MemRetainAllocationHandle(IntPtr handle, IntPtr address)
     {
+        RetainAllocationCallCount++;
         if (!_virtualAddresses.Contains(address)) return HipError.InvalidValue;
         if (ManagedNextResult != HipError.Success) return ManagedNextResult;
         IntPtr allocation = new IntPtr(_nextVirtualAllocationHandle++);

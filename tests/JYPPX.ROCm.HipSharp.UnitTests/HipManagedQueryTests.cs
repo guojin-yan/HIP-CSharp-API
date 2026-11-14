@@ -10,6 +10,42 @@ namespace JYPPX.ROCm.HipSharp.UnitTests;
 public class HipManagedQueryTests
 {
     [TestMethod]
+    public void RetainRejectsUnsafeNativeVersionsBeforeCreatingAnOwner()
+    {
+        using var native = new FakeHipNativeApi { RuntimeVersion = 70253211 };
+        using var runtime = new HipRuntime(native);
+        using var reservation = runtime.ReserveVirtualMemory(4096);
+        using var allocation = runtime.CreatePhysicalMemory(4096, new HipVirtualMemoryAllocationOptions(0));
+        using var mapping = reservation.Map(allocation, 4096);
+        Assert.ThrowsExactly<PlatformNotSupportedException>(() => runtime.RetainPhysicalMemory(reservation.DangerousGetAddress(), 4096));
+        Assert.AreEqual(0, native.RetainAllocationCallCount);
+        Assert.IsFalse(allocation.IsDisposed);
+    }
+
+    [TestMethod]
+    public void RetainOnFixedNativeVersionOwnsItsIndependentReference()
+    {
+        using var native = new FakeHipNativeApi { RuntimeVersion = 71200000 };
+        using var runtime = new HipRuntime(native);
+        using var reservation = runtime.ReserveVirtualMemory(4096);
+        using var allocation = runtime.CreatePhysicalMemory(4096, new HipVirtualMemoryAllocationOptions(0));
+        using var mapping = reservation.Map(allocation, 4096);
+        using var retained = runtime.RetainPhysicalMemory(reservation.DangerousGetAddress(), 4096);
+        retained.Dispose();
+        Assert.AreEqual(1, native.RetainAllocationCallCount);
+        Assert.IsFalse(allocation.IsDisposed);
+    }
+
+    [TestMethod]
+    public void RetainPropagatesVersionQueryFailureWithoutCallingNativeRetain()
+    {
+        using var native = new FakeHipNativeApi { RuntimeVersionResult = HipError.InvalidValue };
+        using var runtime = new HipRuntime(native);
+        Assert.ThrowsExactly<HipException>(() => runtime.RetainPhysicalMemory(new IntPtr(1), 4096));
+        Assert.AreEqual(0, native.RetainAllocationCallCount);
+    }
+
+    [TestMethod]
     public void DeviceQueriesReturnTypedValues()
     {
         using var native = new FakeHipNativeApi();

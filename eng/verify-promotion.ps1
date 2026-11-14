@@ -10,6 +10,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $lockPath = if ([System.IO.Path]::IsPathRooted($LockFile)) { [System.IO.Path]::GetFullPath($LockFile) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $LockFile)) }
 
 function Fail([string]$message) { throw "HIPSHARP1001: $message" }
@@ -41,7 +42,7 @@ function Resolve-Input([hashtable]$item, [string]$role) {
     if ([string]$item.sha256 -notmatch '^[0-9a-f]{64}$') { Fail "Promotion lock input '$role' has an invalid SHA-256." }
     if ($item.ContainsKey("gitObject")) {
         if ([string]$item.gitObject -notmatch '^[0-9a-f]{40}:[A-Za-z0-9._/-]+$') { Fail "Promotion input '$role' has an invalid immutable Git object." }
-        $cacheRoot = Join-Path $repositoryRoot "artifacts/promotion/input-cache"
+        $cacheRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts/promotion/input-cache"
         New-Item -ItemType Directory -Force -Path $cacheRoot | Out-Null
         $path = Join-Path $cacheRoot "$role.json"
         $startInfo = [System.Diagnostics.ProcessStartInfo]::new("git")

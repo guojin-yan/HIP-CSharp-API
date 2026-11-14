@@ -4,7 +4,7 @@ HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.10.0` 
 
 HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.10.0` 与可选 Linux Runtime `7.2.1` 已公开。精确 Core 包已通过官方宿主和隔离 package-only GPU/ABI 门禁。未来任何 `1.0.0` 仍必须取得 Windows AMD GPU 实机验证。
 
-Current source is `0.11.0-dev`; see [0.11.0 preparation / 发布准备](releases/0.11.0.md). Local Windows and WSL2 results are separate from historical public-package evidence.
+Current source is `1.0.0`; see [1.0.0 candidate / 发布候选](releases/1.0.0.md). Local Windows and WSL2 results are separate from historical public-package evidence.
 
 ## Documentation / 文档
 

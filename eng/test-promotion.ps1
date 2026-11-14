@@ -8,8 +8,9 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $lockPath = if ([System.IO.Path]::IsPathRooted($LockFile)) { [System.IO.Path]::GetFullPath($LockFile) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $LockFile)) }
-$root = Join-Path $repositoryRoot "artifacts/promotion/self-test"
+$root = Get-HipSharpOutputPath $repositoryRoot "artifacts/promotion/self-test"
 $caseRoot = Join-Path $root ([Guid]::NewGuid().ToString("N"))
 New-Item -ItemType Directory -Force -Path $caseRoot | Out-Null
 
@@ -116,7 +117,7 @@ try {
     Write-Host "Promotion receipt self-test passed: positive fixture and 15 fail-closed mutations."
 } finally {
     $resolvedCaseRoot = [System.IO.Path]::GetFullPath($caseRoot)
-    $resolvedArtifacts = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))
+    $resolvedArtifacts = Get-HipSharpOutputPath $repositoryRoot "artifacts"
     if ($resolvedCaseRoot.StartsWith($resolvedArtifacts + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase) -and
         (Test-Path -LiteralPath $resolvedCaseRoot)) {
         Remove-Item -LiteralPath $resolvedCaseRoot -Recurse -Force

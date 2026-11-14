@@ -117,14 +117,24 @@ foreach ($referencePackage in @("microsoft.netframework.referenceassemblies", "m
 }
 
 $escapedFeed = [System.Security.SecurityElement]::Escape($feed)
+$supportFeed = [System.Security.SecurityElement]::Escape((Get-HipSharpSupportFeed))
 $nugetConfig = @"
 <?xml version="1.0" encoding="utf-8"?>
 <configuration>
   <packageSources>
     <clear />
     <add key="Local candidate" value="$escapedFeed" />
-    <add key="nuget.org" value="https://api.nuget.org/v3/index.json" protocolVersion="3" />
+    <add key="Framework support" value="$supportFeed" />
   </packageSources>
+  <packageSourceMapping>
+    <packageSource key="Local candidate">
+      <package pattern="JYPPX.ROCm.HIP.CSharp.API" />
+      <package pattern="Microsoft.*" />
+    </packageSource>
+    <packageSource key="Framework support">
+      <package pattern="Microsoft.*" />
+    </packageSource>
+  </packageSourceMapping>
 </configuration>
 "@
 [System.IO.File]::WriteAllText((Join-Path $consumerRoot "NuGet.config"), $nugetConfig)
@@ -210,6 +220,7 @@ internal static class Program
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
+        --source $feed --source (Get-HipSharpSupportFeed) `
         --packages $packages `
         --force `
         --no-cache
@@ -240,7 +251,7 @@ $report = [pscustomobject]@{
     assets = @($entries | Sort-Object)
     contentAudit = "passed"
     consumers = $consumerResults
-    runtimeAndGpuValidation = "core-$ExpectedVersion; local-package-gates-passed; fresh-exact-package-gpu-validation-required"
+    runtimeAndGpuValidation = "not-run-build-audit-only; fresh-exact-package-gpu-validation-required"
     publishable = $false
     releaseAuthorized = $false
 }

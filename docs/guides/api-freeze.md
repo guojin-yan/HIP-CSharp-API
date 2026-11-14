@@ -1,10 +1,10 @@
 # Current public API baseline / 当前公开 API 基线
 
-Current source version is `0.11.0-dev`. The active snapshot is `eng/public-api/JYPPX.ROCm.HipSharp.0.11.0-dev.txt`: **122 exported types and 1,372 members**. The gate checks all 15 TFM assemblies and bilingual XML summaries against the version-selected snapshot. Packing also validates package compatibility. The BCL `ISpanFormattable` enum suppression is not a HipSharp contract change.
+Current source version is `1.0.0`. The active snapshot is `eng/public-api/JYPPX.ROCm.HipSharp.1.0.0.txt`: **122 exported types and 1,372 members**. The gate checks all 15 TFM assemblies and bilingual XML summaries against the version-selected snapshot. Packing also validates package compatibility. The BCL `ISpanFormattable` enum suppression is not a HipSharp contract change.
 
-当前开发版的基线为 **122 个公开类型、1,372 个成员**；相对已发布 `0.10.0` 的 109 类型、1,295 成员，新增 90 条快照记录，没有删除记录。集合比较不能替代所有权、ABI 或 GPU 行为验证。历史 `1.0.0`/`0.9.1` 的 68 类型、1,002 成员快照仅是历史记录，不能作为当前冻结凭据。
+当前开发版的基线为 **122 个公开类型、1,372 个成员**；相对已发布 `0.10.0` 的 109 类型、1,295 成员，新增 90 条快照记录，没有删除记录。集合比较不能替代所有权、ABI 或 GPU 行为验证。历史 8 月 `1.0.0`/`0.9.1` 的 68 类型、1,002 成员快照仅是历史记录，不能作为当前冻结凭据。
 
-A stable `0.11.0` package has not been declared. Selecting a stable version requires updating `eng/Versions.props`, creating its reviewed snapshot and validating its exact clean-commit package. See [release preparation](../releases/0.11.0.md) and [candidate publication](core-release-candidate.md).
+The selected candidate version is `1.0.0`; it remains unpublished. Its active snapshot preserves the 122-type / 1,372-member development surface. The August 1.0.0 snapshot is preserved under `eng/public-api/history/`. See [release preparation](../releases/1.0.0.md) and [candidate publication](core-release-candidate.md).
 
 ## Surface categories / API 分类
 
@@ -39,6 +39,8 @@ Owners serialize their own mutable bookkeeping, but they are not advertised as g
 ## Errors / 错误
 
 HIP runtime failures become `HipException`, preserving the `HipError`, numeric code, operation, native error name, and native message. HIPRTC failures become `HipRtcException`, preserving result, operation, native description, and compilation log when available. Missing optional advanced exports normalize to `HipError.NotSupported`. Invalid arguments, invalid ownership relationships, cross-stream misuse, and disposed-object use fail as managed argument, invalid-operation, or disposed-object exceptions before unsafe native work where possible. Cleanup finalizers are non-throwing; explicit disposal remains the observable error path.
+
+`RetainPhysicalMemory` rejects HIP before 7.12 with `PlatformNotSupportedException` before calling native retain. The affected native implementation can return success without retaining an independent reference, then crash during release. Preserve the original allocation through all mappings; do not bypass this protection with a raw call. The 1.0.0 VirtualMemory workload checks rejection on affected versions and independent-reference disposal on the tested 7.16 runtime. This protection does not patch native binaries.
 
 ## Freeze rule / 冻结规则
 

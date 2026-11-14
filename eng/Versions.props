@@ -1,6 +1,6 @@
 <Project>
   <PropertyGroup>
-    <HipSharpCoreVersion>0.11.0-dev</HipSharpCoreVersion>
+    <HipSharpCoreVersion>1.0.0</HipSharpCoreVersion>
     <HipSharpUbuntu2404RuntimeVersion>7.2.1</HipSharpUbuntu2404RuntimeVersion>
     <HipSharpWindowsRuntimeVersion>7.2.0</HipSharpWindowsRuntimeVersion>
   </PropertyGroup>

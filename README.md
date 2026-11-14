@@ -45,7 +45,7 @@ The public API includes bilingual Chinese/English XML documentation and is kept 
 
 ## 📢 Current Status: Published Preview / 0.x Validation
 
-Core `0.10.0` and the optional Linux Runtime `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` are published on nuget.org. The exact Core package passed the official-host and isolated package-only Linux GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`. Current source is the unpublished `0.11.0-dev`, with advanced interop ownership, graph-contract, and Windows HIPRTC loading fixes; these changes are separate from the immutable published `0.10.0` package.
+Core `0.10.0` and the optional Linux Runtime `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` `7.2.1` are published on nuget.org. The exact Core package passed the official-host and isolated package-only Linux GPU/ABI gates on Ubuntu 24.04.4 / ROCm 7.2.1 / `gfx1100`. Current source is the unpublished `1.0.0`, with advanced interop ownership, graph-contract, and Windows HIPRTC loading fixes; these changes are separate from the immutable published `0.10.0` package.
 
 Core `0.10.0` includes the HIPRTC Program/Linker managed expansion and the updated runnable tutorial and showcase set. The pinned ROCm 7.2.1 runtime retains a documented upstream `hipMemRetainAllocationHandle` reference-counting defect; see the [0.10.0 release notes](docs/releases/0.10.0.md). Windows AMD GPU validation remains mandatory before any future `1.0.0` release; this `0.10.0` work does not satisfy or bypass that condition.
 
@@ -104,7 +104,7 @@ For the installed TheRock SDK 10.1.0, a separate [local Runtime packaging workfl
 
 ## 🌐 Public Packages And Release Assets
 
-Core `0.10.0` and Ubuntu 24.04 Runtime `7.2.1` are available on NuGet.org. Current source `0.11.0-dev` is unpublished. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
+Core `0.10.0` and Ubuntu 24.04 Runtime `7.2.1` are available on NuGet.org. Current source `1.0.0` is unpublished. The repository has an annotated `v0.10.0` Git tag; release assets are not uploaded.
 
 Future stable Core package releases are published by the tag-triggered [NuGet release workflow](.github/workflows/nuget-release.yml), which reads the `NUGET_API_KEY` Actions secret only at publish time.
 After exact-package promotion, the Ubuntu 24.04 Runtime is published to NuGet.org and attached with its SHA-256 to GitHub Releases by the dedicated [Runtime release workflow](.github/workflows/runtime-ubuntu-24.04-release.yml).

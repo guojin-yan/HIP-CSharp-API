@@ -57,11 +57,16 @@ public sealed partial class HipRuntime
     }
 
     /// <summary>保活该资源 / Retains an owning allocation handle for a mapped virtual address.</summary>
+    /// <remarks>HIP 7.12 之前的原生实现缺少独立引用保活，禁止创建会导致重复释放的 owner / Native HIP before 7.12 does not retain an independent reference; creating a second owner is rejected to prevent invalid release.</remarks>
+    /// <exception cref="PlatformNotSupportedException">HIP 版本早于 7.12 / The HIP version predates 7.12.</exception>
     public unsafe HipPhysicalMemoryAllocation RetainPhysicalMemory(IntPtr mappedAddress, ulong byteLength)
     {
         ThrowIfDisposed();
         if (mappedAddress == IntPtr.Zero) throw new ArgumentException("A non-null mapped address is required.", nameof(mappedAddress));
         if (byteLength == 0) throw new ArgumentOutOfRangeException(nameof(byteLength));
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.RuntimeGetVersion(out int runtimeVersion), "hipRuntimeGetVersion");
+        if (runtimeVersion < 71200000)
+            throw new PlatformNotSupportedException("RetainPhysicalMemory requires HIP 7.12 or later. Older HIP runtimes do not retain the native allocation reference and may crash when both owners are released. Use the original allocation owner and keep it alive until all mappings are disposed.");
         IntPtr handle = IntPtr.Zero;
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemRetainAllocationHandle((IntPtr)(&handle), mappedAddress), "hipMemRetainAllocationHandle");
         if (handle == IntPtr.Zero) throw new InvalidOperationException("hipMemRetainAllocationHandle succeeded but returned a null allocation handle.");

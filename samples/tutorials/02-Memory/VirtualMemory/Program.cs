@@ -44,6 +44,30 @@ internal static class Program
             {
                 var location = new HipMemLocation(1, device.Ordinal);
                 reservation.SetAccess(byteLength, new HipVirtualMemoryAccessDescriptor(location, HipMemoryAccessFlags.ReadWrite));
+                int version = runtime.GetVersionInfo().RuntimeVersion.RawValue;
+                if (version < 71200000)
+                {
+                    try
+                    {
+                        using var unsafeOwner = runtime.RetainPhysicalMemory(reservation.DangerousGetAddress(), byteLength);
+                        throw new InvalidOperationException("Unsafe native retain was not rejected.");
+                    }
+                    catch (PlatformNotSupportedException)
+                    {
+                        Console.WriteLine("Retained allocation safety: protected-known-runtime; native retain was not called.");
+                    }
+                }
+                else
+                {
+                    using (HipPhysicalMemoryAllocation retained = runtime.RetainPhysicalMemory(reservation.DangerousGetAddress(), byteLength))
+                    {
+                        if (retained.ByteLength != byteLength)
+                        {
+                            throw new InvalidOperationException("Retained allocation length differs.");
+                        }
+                    }
+                    Console.WriteLine("Retained allocation safety: independent reference released; original mapping remains alive.");
+                }
                 bool passed = reservation.GetAccess(location) == HipMemoryAccessFlags.ReadWrite;
                 Console.WriteLine(passed ? "Virtual memory reserve/map/access passed." : "Virtual memory access verification failed.");
                 return passed ? 0 : 1;

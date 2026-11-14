@@ -864,7 +864,7 @@ public sealed class RepositoryQualityTests
         Assert.IsTrue(entries.All(entry => entry.Element("Left")?.Value == "lib/net7.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         Assert.IsTrue(entries.All(entry => entry.Element("Right")?.Value == "lib/net8.0/JYPPX.ROCm.HIP.CSharp.API.dll"));
         string packageVerifier = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "verify-package.ps1"));
-        StringAssert.Contains(packageVerifier, "local-package-gates-passed; fresh-exact-package-gpu-validation-required");
+        StringAssert.Contains(packageVerifier, "not-run-build-audit-only; fresh-exact-package-gpu-validation-required");
         StringAssert.Contains(packageVerifier, "releaseAuthorized = $false");
         string pairingGate = File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "test-core-runtime-pairing.ps1"));
         StringAssert.Contains(pairingGate, "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64");

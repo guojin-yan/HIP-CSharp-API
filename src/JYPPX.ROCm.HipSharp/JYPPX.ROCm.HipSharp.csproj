@@ -20,7 +20,7 @@
     <SuppressDependenciesWhenPacking>true</SuppressDependenciesWhenPacking>
     <EnablePackageValidation>true</EnablePackageValidation>
     <EnableStrictModeForCompatibleFrameworksInPackage>true</EnableStrictModeForCompatibleFrameworksInPackage>
-    <PackageReleaseNotes>Development build: advanced interop ownership, graph-state validation, and versioned Windows HIPRTC loading. Not a published release; ROCm 7.2.1 retains the documented hipMemRetainAllocationHandle upstream limitation.</PackageReleaseNotes>
+    <PackageReleaseNotes>1.0.0 candidate: managed HIP/HIPRTC owners, 15 target frameworks, versioned Windows HIPRTC discovery, exact-package deployment checks, and safe rejection of retained-allocation ownership on HIP before 7.12. Native capabilities and experimental interop remain subject to the documented support matrix. Publication requires exact-candidate review.</PackageReleaseNotes>
     <WarningsAsErrors>$(WarningsAsErrors);CS1591</WarningsAsErrors>
     <!-- This dependency-free package intentionally has lib groups without nuspec dependency groups.
          Package tests enforce the exact 15-TFM asset matrix, so suppress only this NuGet heuristic. -->

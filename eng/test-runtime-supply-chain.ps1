@@ -5,6 +5,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
 $manifestPath = if ([System.IO.Path]::IsPathRooted($Manifest)) { $Manifest } else { Join-Path $repositoryRoot $Manifest }
 
@@ -86,7 +87,7 @@ try {
     Write-Host "Rejected as expected: Windows runtime manifest"
 }
 
-$digestRoot = Join-Path $repositoryRoot "artifacts/runtime-staging-digest-test"
+$digestRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts/runtime-staging-digest-test"
 if (Test-Path -LiteralPath $digestRoot) { Remove-Item -LiteralPath $digestRoot -Recurse -Force }
 try {
     New-Item -ItemType Directory -Force -Path (Join-Path $digestRoot "nested") | Out-Null
@@ -102,7 +103,7 @@ try {
     if (Test-Path -LiteralPath $digestRoot) { Remove-Item -LiteralPath $digestRoot -Recurse -Force }
 }
 
-$nupkgRoot = Join-Path $repositoryRoot "artifacts/runtime-nupkg-determinism-test"
+$nupkgRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts/runtime-nupkg-determinism-test"
 if (Test-Path -LiteralPath $nupkgRoot) { Remove-Item -LiteralPath $nupkgRoot -Recurse -Force }
 try {
     Add-Type -AssemblyName System.IO.Compression.FileSystem

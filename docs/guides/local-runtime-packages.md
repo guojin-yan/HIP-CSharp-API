@@ -1,6 +1,6 @@
 # 本机 ROCm 10.1.0 NuGet 包
 
-`eng/pack-local-runtime.py` 将当前已安装的 TheRock SDK 用户态文件制作成供本机使用的 NuGet Runtime 包。版本必须为 `10.1.0-local.<唯一构建标识>`。配套 Core 使用当前源码的 `0.11.0-dev`；这套本地包不覆盖 NuGet.org 上的 Core `0.10.0` 或 Ubuntu Runtime `7.2.1`。
+`eng/pack-local-runtime.py` 将当前已安装的 TheRock SDK 用户态文件制作成供本机使用的 NuGet Runtime 包。版本必须为 `10.1.0-local.<唯一构建标识>`。配套 Core 使用当前源码的 `1.0.0`；这套本地包不覆盖 NuGet.org 上的 Core `0.10.0` 或 Ubuntu Runtime `7.2.1`。
 
 ## 包和宿主要求
 
@@ -41,7 +41,7 @@ python3 eng/pack-local-runtime.py --hip-root /opt/AMD/ROCm/10.1.0/HIP \
 
 ```powershell
 dotnet nuget add source E:/GitSpace/HIP-CSharp-API/build/local-nuget/feed --name hipsharp-local
-dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.11.0-dev
+dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 1.0.0
 dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64 --version 10.1.0-local.20261113.3
 ```
 
@@ -54,7 +54,7 @@ HIPRTC 的链接器在未显式指定链接目标时查询当前设备。使用 
 ```powershell
 ./eng/test-local-runtime-package.ps1 `
   -RuntimePackage E:/GitSpace/HIP-CSharp-API/build/local-nuget/feed/JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64.10.1.0-local.20261113.3.nupkg `
-  -CorePackage E:/GitSpace/HIP-CSharp-API/build/local-nuget/feed/JYPPX.ROCm.HIP.CSharp.API.0.11.0-dev.nupkg `
+  -CorePackage E:/GitSpace/HIP-CSharp-API/build/local-nuget/feed/JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg `
   -OutputRoot E:/GitSpace/HIP-CSharp-API/build/local-nuget/validation/windows-final `
   -Architecture gfx1100
 ```

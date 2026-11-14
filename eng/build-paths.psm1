@@ -14,4 +14,11 @@ function Get-HipSharpAssemblyPath {
     return Join-Path ([IO.Path]::GetFullPath($env:HIPSHARP_OUTPUT_ROOT)) "bin/$ProjectName/$Configuration/$Framework/$FileName"
 }
 
-Export-ModuleMember -Function Get-HipSharpOutputPath, Get-HipSharpAssemblyPath
+function Get-HipSharpSupportFeed {
+    if ([string]::IsNullOrWhiteSpace($env:HIPSHARP_SUPPORT_FEED)) { return 'https://api.nuget.org/v3/index.json' }
+    $path = [IO.Path]::GetFullPath($env:HIPSHARP_SUPPORT_FEED)
+    if (-not (Test-Path -LiteralPath $path -PathType Container)) { throw "HIPSHARP_SUPPORT_FEED must be an existing local package directory." }
+    return $path
+}
+
+Export-ModuleMember -Function Get-HipSharpOutputPath, Get-HipSharpAssemblyPath, Get-HipSharpSupportFeed
