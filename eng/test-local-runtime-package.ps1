@@ -138,6 +138,7 @@ try {
             $sampleFiles = [Security.SecurityElement]::Escape((Join-Path $sample[0].DirectoryName '*.cs'))
         }
         $runner = [Security.SecurityElement]::Escape((Join-Path $PSScriptRoot 'local-runtime/PackageRunner.cs'))
+        $moduleAudit = [Security.SecurityElement]::Escape((Join-Path $PSScriptRoot 'local-runtime/PackageModuleAudit.cs'))
         $project = Join-Path $work 'consumer.csproj'
 @"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -148,7 +149,7 @@ try {
     <NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$sampleFiles"/><Compile Include="$runner"/>
+    <Compile Include="$sampleFiles"/><Compile Include="$runner"/><Compile Include="$moduleAudit"/>
     <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="[$coreVersion]"/>
     <PackageReference Include="$($manifest.packageId)" Version="[$($manifest.packageVersion)]"/>
   </ItemGroup>
@@ -217,7 +218,7 @@ try {
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks><PlatformTarget>x64</PlatformTarget><NuGetAudit>false</NuGetAudit>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="$source"/>
+    <Compile Include="$source"/><Compile Include="$moduleAudit"/>
     <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="[$coreVersion]"/>
     <PackageReference Include="$($manifest.packageId)" Version="[$($manifest.packageVersion)]"/>
     <PackageReference Include="Microsoft.NETFramework.ReferenceAssemblies" Version="1.0.3" PrivateAssets="all"/>

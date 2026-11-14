@@ -10,6 +10,7 @@ import json
 from pathlib import Path, PurePosixPath
 import re
 import shutil
+import stat
 import sys
 import xml.etree.ElementTree as ET
 import zipfile
@@ -36,14 +37,61 @@ def sha256(path):
         return hashlib.file_digest(stream, "sha256").hexdigest()
 
 
+def read_json(path):
+    def unique_object(pairs):
+        result = {}
+        for key, value in pairs:
+            require(key not in result, f"Duplicate JSON key: {key}")
+            result[key] = value
+        return result
+    return json.loads(Path(path).read_text(encoding="utf-8-sig"), object_pairs_hook=unique_object)
+
+
 def safe_name(name):
-    require(isinstance(name, str) and bool(name) and "\\" not in name and ":" not in name,
+    require(isinstance(name, str) and bool(name) and not re.search(r'[<>:"\\|?*\x00-\x1f\x7f]', name),
             "Invalid relative file name")
     parts = name.split("/")
     require(all(p not in ("", ".", "..") and p == p.strip() and not p.endswith(".") for p in parts),
             f"Unsafe relative path: {name}")
     require(not PurePosixPath(name).is_absolute(), f"Absolute path: {name}")
+    require(not any(re.fullmatch(r"(?:CON|PRN|AUX|NUL|COM[1-9¹²³]|LPT[1-9¹²³])(?:\..*)?", p, re.IGNORECASE)
+                    for p in parts), f"Reserved Windows path: {name}")
     return name
+
+
+def check_path_tree(paths):
+    # Windows merges A/one and a/two into one directory. Reject that ambiguity
+    # on both hosts, as well as a file also used as another entry's parent.
+    nodes = {}
+    for path, directory in paths:
+        safe_name(path)
+        parts = path.split("/")
+        for length in range(1, len(parts) + 1):
+            prefix = "/".join(parts[:length])
+            kind = "directory" if length < len(parts) or directory else "file"
+            previous = nodes.get(prefix.casefold())
+            require(previous is None or previous == (prefix, kind), f"Conflicting archive path: {prefix}")
+            nodes[prefix.casefold()] = (prefix, kind)
+
+
+def check_bundle_files(root, files):
+    expected = set(files) | {"candidate.json"}
+    actual = set()
+    paths = []
+    for path in root.rglob("*"):
+        attributes = path.lstat()
+        require(not path.is_symlink() and not (getattr(attributes, "st_file_attributes", 0) &
+                getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0)), f"Linked candidate entry: {path.name}")
+        name = path.relative_to(root).as_posix()
+        paths.append((name, path.is_dir()))
+        if path.is_file():
+            actual.add(name)
+        else:
+            require(path.is_dir(), f"Unsupported candidate entry: {name}")
+    check_path_tree(paths)
+    # seal validates just before writing candidate.json; verify requires it.
+    require(actual - {"candidate.json"} == expected - {"candidate.json"},
+            "Candidate directory contains missing or unlisted files")
 
 
 def bundle_file(root, name):
@@ -58,6 +106,8 @@ def package_entries(path):
     names = set()
     with zipfile.ZipFile(path) as archive:
         require(sum(i.file_size for i in archive.infolist()) < 2_000_000_000, "Oversized package")
+        require(len(archive.infolist()) <= 50000, "Too many archive entries")
+        check_path_tree([(i.filename.rstrip("/") if i.is_dir() else i.filename, i.is_dir()) for i in archive.infolist()])
         for item in archive.infolist():
             name = safe_name(item.filename.rstrip("/") if item.is_dir() else item.filename)
             require(name.casefold() not in names, f"Duplicate package entry: {name}")
@@ -111,6 +161,7 @@ def unpack(archive_path, digest, output):
 
 
 def validate(root, manifest, expected_commit, expected_version, allow_prerelease=False):
+    require(isinstance(manifest, dict), "Candidate manifest must be an object")
     require(manifest.get("schemaVersion") == 1, "Unsupported candidate schema")
     require(re.fullmatch(r"[0-9a-f]{40}", expected_commit or ""), "Invalid source commit")
     pattern = r"[0-9]+\.[0-9]+\.[0-9]+" + (r"(?:-[0-9A-Za-z.-]+)?" if allow_prerelease else "")
@@ -119,10 +170,12 @@ def validate(root, manifest, expected_commit, expected_version, allow_prerelease
     require(manifest.get("version") == expected_version, "Candidate version mismatch")
     files = manifest.get("files", {})
     require(isinstance(files, dict) and files, "Missing candidate files")
+    require("candidate.json" not in files, "Candidate manifest cannot hash itself")
     require(len({p.casefold() for p in files}) == len(files), "Ambiguous bundle paths")
     for name, digest in files.items():
         require(re.fullmatch(r"[0-9a-f]{64}", digest or ""), "Invalid file SHA-256")
         require(sha256(bundle_file(root, name)) == digest, f"Candidate hash mismatch: {name}")
+    check_bundle_files(root, files)
     core_name = manifest.get("corePackage")
     require(core_name in files, "Core package is not hashed")
     core = bundle_file(root, core_name)
@@ -139,7 +192,8 @@ def validate(root, manifest, expected_commit, expected_version, allow_prerelease
     for rid, validation in validations.items():
         summary_name, runtime_name = validation["summary"], validation["runtimePackage"]
         require(summary_name in files and runtime_name in files, "Unhashed validation input")
-        summary = json.loads(bundle_file(root, summary_name).read_text(encoding="utf-8-sig"))
+        summary = read_json(bundle_file(root, summary_name))
+        require(isinstance(summary, dict), "Validation summary must be an object")
         require(summary.get("scope") == "local-package-consumers" and summary.get("platform") == rid,
                 "Incorrect validation platform or scope")
         require(summary.get("completed") is True and summary.get("sourceTreeDirty") is False,
@@ -231,7 +285,7 @@ def main():
     else:
         path = Path(args.manifest).resolve()
         require(sha256(path) == args.manifest_sha256, "Reviewed manifest SHA-256 mismatch")
-        manifest = json.loads(path.read_text(encoding="utf-8-sig"))
+        manifest = read_json(path)
         core = validate(path.parent, manifest, args.commit, args.version, args.allow_prerelease)
         print(core)
 

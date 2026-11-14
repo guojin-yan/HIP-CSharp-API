@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Security.Cryptography;
+using System.Linq;
 using JYPPX.ROCm.HipSharp;
 using JYPPX.ROCm.HipSharp.Interop;
 using JYPPX.ROCm.HipSharp.Memory;
@@ -42,22 +42,12 @@ internal static class FrameworkPackageSmoke
                 string[] fields = line.Split('\t');
                 expected.Add(fields[0], fields[1]);
             }
-            int observed = 0;
             using Process process = Process.GetCurrentProcess();
-            foreach (ProcessModule loaded in process.Modules)
-            {
-                string path = Path.GetFullPath(loaded.FileName);
-                if (!expected.TryGetValue(Path.GetFileName(path), out string hash)) continue;
-                if (!path.StartsWith(Path.GetFullPath(AppDomain.CurrentDomain.BaseDirectory), StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Native library outside application: " + path);
-                using SHA256 sha = SHA256.Create();
-                using FileStream source = File.OpenRead(path);
-                if (!string.Equals(BitConverter.ToString(sha.ComputeHash(source)).Replace("-", ""), hash, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("Native library hash mismatch: " + path);
-                observed++;
+            var observed = PackageModuleAudit.Verify(AppDomain.CurrentDomain.BaseDirectory, expected,
+                process.Modules.Cast<ProcessModule>().Select(loaded => loaded.FileName));
+            foreach (string path in observed)
                 Console.WriteLine("PACKAGE_MODULE=" + path);
-            }
-            if (observed < 3) throw new InvalidOperationException("Expected packaged Runtime, HIPRTC and COMGR modules.");
+            if (observed.Count < 3) throw new InvalidOperationException("Expected packaged Runtime, HIPRTC and COMGR modules.");
             return 0;
         }
         catch (Exception exception)

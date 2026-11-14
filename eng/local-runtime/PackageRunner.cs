@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text.Json;
 
 // Test-only entry point linked alongside an existing sample in an external,
@@ -28,24 +28,15 @@ internal static class PackageRunner
         try
         {
             using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Environment.GetEnvironmentVariable("HIPSHARP_LOCAL_RUNTIME_MANIFEST")!));
-            string app = Path.GetFullPath(AppContext.BaseDirectory);
-            string[] expected = manifest.RootElement.GetProperty("files").EnumerateArray()
-                .Select(item => item.GetProperty("name").GetString()!).ToArray();
+            var expected = new Dictionary<string, string>(OperatingSystem.IsWindows() ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+            foreach (JsonElement item in manifest.RootElement.GetProperty("files").EnumerateArray())
+                expected.Add(item.GetProperty("name").GetString()!, item.GetProperty("sha256").GetString()!);
             var modules = Process.GetCurrentProcess().Modules.Cast<ProcessModule>()
                 .Select(module => Path.GetFullPath(module.FileName)).Distinct().ToArray();
-            string[] packaged = modules.Where(path => expected.Contains(Path.GetFileName(path), StringComparer.OrdinalIgnoreCase)).ToArray();
-            foreach (string path in packaged)
-            {
-                if (!path.StartsWith(app, StringComparison.OrdinalIgnoreCase))
-                    throw new InvalidOperationException("A packaged library was loaded outside the consumer: " + path);
-                string hash = Convert.ToHexString(SHA256.HashData(File.ReadAllBytes(path))).ToLowerInvariant();
-                if (!manifest.RootElement.GetProperty("files").EnumerateArray().Any(item => item.GetProperty("sha256").GetString() == hash))
-                    throw new InvalidOperationException("Loaded native library hash differs from the package: " + path);
-            }
+            var packaged = PackageModuleAudit.Verify(AppContext.BaseDirectory, expected, modules);
             string[] leaked = modules.Where(path => path.Replace('\\', '/').Contains("/AMD/ROCm/", StringComparison.OrdinalIgnoreCase)
                 || path.StartsWith("/opt/rocm/", StringComparison.OrdinalIgnoreCase)).ToArray();
             if (leaked.Length != 0) throw new InvalidOperationException("Installed SDK library leakage: " + string.Join(", ", leaked));
-            if (packaged.Length == 0) throw new InvalidOperationException("No packaged native library was observed.");
             Console.WriteLine("PACKAGE_MODULE_AUDIT=" + JsonSerializer.Serialize(new { passed = true, modules = packaged }));
         }
         catch (Exception exception)

@@ -21,6 +21,8 @@ For local rehearsal only, `seal`/`verify` accept `--allow-prerelease`. Neither p
 
 The resulting `candidate.json` binds the packages, summaries and five evidence files. Review the manifest AND its evidence, especially exact-package ABI, isolation, supported hosts and capability skips, then record its SHA-256 independently. A self-generated hash is not GPU proof or approval. `create-core-candidate-attestation.ps1` remains an optional package/API inventory with `publishable=false`; it does not replace review.
 
+Keep only the manifest and its listed files in the candidate directory; validation rejects unlisted files, symbolic links and Windows junctions. JSON objects must have unique keys. Bundle and ZIP paths must work on both Windows and Linux: reserved device names, illegal characters, case aliases and file/directory collisions are rejected before extraction. Store additional working notes outside the candidate directory.
+
 ## Authorized publication / 获授权后发布
 
 Zip the candidate contents with `candidate.json` at the archive root. Record the ZIP hash and stage it at an HTTPS download URL. Run **Stage reviewed Core candidate** at the exact reviewed source commit with the URL, ZIP hash and reviewed manifest hash. It verifies all bindings without executing bundle content, then uploads `hipsharp-release-candidate`. Supply that successful same-repository Actions run ID, version and manifest hash to **NuGet release**.

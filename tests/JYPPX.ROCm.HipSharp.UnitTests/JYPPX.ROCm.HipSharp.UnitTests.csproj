@@ -13,5 +13,6 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\JYPPX.ROCm.HipSharp\JYPPX.ROCm.HipSharp.csproj" />
+    <Compile Include="../../eng/local-runtime/PackageModuleAudit.cs" Link="PackageModuleAudit.cs" />
   </ItemGroup>
 </Project>
