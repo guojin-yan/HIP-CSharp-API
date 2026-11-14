@@ -1,0 +1,12 @@
+{
+  "schemaVersion": 1,
+  "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
+  "packageVersion": "7.2.1",
+  "rid": "linux-x64",
+  "url": "https://api.nuget.org/v3-flatcontainer/jyppx.rocm.hip.csharp.api.runtime.ubuntu.24.04-x64/7.2.1/jyppx.rocm.hip.csharp.api.runtime.ubuntu.24.04-x64.7.2.1.nupkg",
+  "sha256": "1b8463fccbc364b9e0b7a1bc58cfc76c7ecfc8f73f1e3eaac1bdfadb197dc23d",
+  "bytes": 162907087,
+  "nativeAssetCount": 14,
+  "identity": "NuGet.org repository-signed public distribution; not the pre-publication unsigned candidate",
+  "record": "docs/articles/zh-cn/01-release/linux-rocm-7.2.1-runtime-package.md"
+}

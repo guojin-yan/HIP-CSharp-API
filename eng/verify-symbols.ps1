@@ -13,6 +13,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $resolvedLibrary = (Resolve-Path -LiteralPath $LibraryPath).Path
 $manifest = Get-Content -Raw -LiteralPath (Join-Path $repositoryRoot "eng/interop/interop-manifest.json") | ConvertFrom-Json
 $results = [System.Collections.Generic.List[object]]::new()
@@ -34,7 +35,7 @@ finally {
 }
 
 $missing = @($results | Where-Object { $_.required -and -not $_.found })
-$absoluteOutput = if ([System.IO.Path]::IsPathRooted($OutputPath)) { $OutputPath } else { Join-Path $repositoryRoot $OutputPath }
+$absoluteOutput = if ([System.IO.Path]::IsPathRooted($OutputPath)) { $OutputPath } else { Get-HipSharpOutputPath $repositoryRoot $OutputPath }
 New-Item -ItemType Directory -Force -Path (Split-Path -Parent $absoluteOutput) | Out-Null
 [pscustomobject]@{
     library = $resolvedLibrary

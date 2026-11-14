@@ -28,7 +28,12 @@ jobs:
         with:
           python-version: '3.12'
       - name: Test release candidate trust boundary
-        run: python ./eng/test-release-candidate.py
+        run: |
+          python ./eng/test-release-candidate.py
+          if ($LASTEXITCODE -ne 0) { throw 'Release candidate tests failed.' }
+          python ./eng/test-local-runtime-provenance.py
+          if ($LASTEXITCODE -ne 0) { throw 'Runtime provenance tests failed.' }
+        shell: pwsh
       - name: Test and audit package
         shell: pwsh
         run: ./eng/test.ps1 -Configuration Release -NoBuild
@@ -63,7 +68,9 @@ jobs:
       - name: Restore, build, pack, and test
         run: bash ./eng/build.sh Release
       - name: Test release candidate trust boundary
-        run: python3 ./eng/test-release-candidate.py
+        run: |
+          python3 ./eng/test-release-candidate.py
+          python3 ./eng/test-local-runtime-provenance.py
       - name: Upload Linux test artifacts
         if: always()
         uses: actions/upload-artifact@v4

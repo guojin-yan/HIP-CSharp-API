@@ -1,0 +1,160 @@
+{
+  "schemaVersion": 1,
+  "sdkVersion": "10.1.0",
+  "platforms": {
+    "win-x64": {
+      "archive": "rocm_sdk_core-10.1.0-py3-none-win_amd64.whl",
+      "url": "https://stable.repo.amd.com/rocm/whl-next/rocm-sdk-core/rocm_sdk_core-10.1.0-py3-none-win_amd64.whl",
+      "sha256": "b12f1c4cde14ed1cd8864006d17586c6b1e6a4e4695b9597cfe04ed7715e952f",
+      "bytes": 776978384,
+      "multipartPartBytes": 134217728,
+      "publisherMetadata": {
+        "content-length": "776978384",
+        "last-modified": "Mon, 05 Oct 2026 09:19:12 GMT",
+        "x-amz-meta-therock-promotion-source-etag": "9ec5f98c15ba775db7c85dc2cd1ccddc-93",
+        "etag": "\"79a14571344a684b61719845ef7b3022-6\""
+      },
+      "sdkManifestMember": "_rocm_sdk_core/share/therock/therock_manifest.json",
+      "files": [
+        {
+          "name": "amd_comgr.dll",
+          "member": "_rocm_sdk_core/bin/amd_comgr.dll",
+          "sha256": "da9527847c99efd3df99bd46fe24abae7920b04df0f51e7c677abcccd4924e58"
+        },
+        {
+          "name": "amdhip64_7.dll",
+          "member": "_rocm_sdk_core/bin/amdhip64_7.dll",
+          "sha256": "f20e2065cee5889789bf73df0c2d1f4efb481e74ade30488c352fd65ad80ac83"
+        },
+        {
+          "name": "hiprtc-builtins0716.dll",
+          "member": "_rocm_sdk_core/bin/hiprtc-builtins0716.dll",
+          "sha256": "ad40c1bec5fbeb8b9f1f765207d0301982e674766bf86fb0a82fe4b3d7ea9653"
+        },
+        {
+          "name": "hiprtc0716.dll",
+          "member": "_rocm_sdk_core/bin/hiprtc0716.dll",
+          "sha256": "ee7d306880167ae3c0cec7e27953d14ec14d75576d3ba6fab43497dfa873cde3"
+        },
+        {
+          "name": "rocm_kpack.dll",
+          "member": "_rocm_sdk_core/bin/rocm_kpack.dll",
+          "sha256": "2e9734ffe6f6eefe1ff660a55dc85fffbcd2d66f794fce4878c6d95a55787b48"
+        }
+      ]
+    },
+    "ubuntu.24.04-x64": {
+      "archive": "rocm_sdk_core-10.1.0-py3-none-linux_x86_64.whl",
+      "url": "https://stable.repo.amd.com/rocm/whl-next/rocm-sdk-core/rocm_sdk_core-10.1.0-py3-none-linux_x86_64.whl",
+      "sha256": "a1a2433334ac61a526c6bae2f58f6bbc9b525f5a9e008e76a1a48d07f64f0703",
+      "bytes": 419364838,
+      "multipartPartBytes": 134217728,
+      "publisherMetadata": {
+        "content-length": "419364838",
+        "last-modified": "Mon, 05 Oct 2026 09:19:12 GMT",
+        "x-amz-meta-therock-promotion-source-etag": "bec03a4bee7699dd687128b2c594b680-50",
+        "etag": "\"107f7c57529ac471a9118c9f2aa9adbb-4\""
+      },
+      "sdkManifestMember": "_rocm_sdk_core/share/therock/therock_manifest.json",
+      "files": [
+        {
+          "name": "libamd_comgr.so.3",
+          "member": "_rocm_sdk_core/lib/libamd_comgr.so.3",
+          "sha256": "6bf2f6fe6b243c5ac3621cd5745887933d3a41edd944a447c88c21ec77da5d5b"
+        },
+        {
+          "name": "libamdhip64.so.7",
+          "member": "_rocm_sdk_core/lib/libamdhip64.so.7",
+          "sha256": "6d1dbee8cb3ad924e4c1bca7734e22f2c93026eb3bc871a7f64a916778d55e36"
+        },
+        {
+          "name": "libhiprtc-builtins.so.7",
+          "member": "_rocm_sdk_core/lib/libhiprtc-builtins.so.7",
+          "sha256": "589202fe35801ecd97f5046680b1d361891e250b3fd104b96c3d220993d94d26"
+        },
+        {
+          "name": "libhiprtc.so.7",
+          "member": "_rocm_sdk_core/lib/libhiprtc.so.7",
+          "sha256": "650c66dc333c0d40c019be058325dbfe26ed96078e51f9e436839f35ee42636a"
+        },
+        {
+          "name": "libhsa-runtime64.so.1",
+          "member": "_rocm_sdk_core/lib/libhsa-runtime64.so.1",
+          "sha256": "12d49db16881b9505629192231d5b3971e9030b26a326fc2c003e92da7de0c44"
+        },
+        {
+          "name": "librocdxg.so.1",
+          "member": "_rocm_sdk_core/lib/librocdxg.so.1",
+          "sha256": "401b5545dc5cfe27680b0905f62ac5f3da3c09be7e6e5211aabc94f314e0bece"
+        },
+        {
+          "name": "librocm_kpack.so.0",
+          "member": "_rocm_sdk_core/lib/librocm_kpack.so.0",
+          "sha256": "e2af394dea58ad53d6074c7aa9d56de5dc027ca186f6bbc27d6f32d7b8f12ac3"
+        },
+        {
+          "name": "librocprofiler-register.so.0",
+          "member": "_rocm_sdk_core/lib/librocprofiler-register.so.0",
+          "sha256": "a67764cf46d1d579eb27311576ba9c0b4dbfa5052ddd64a062131f716faa11b6"
+        },
+        {
+          "name": "libLLVM.so.24.0git",
+          "member": "_rocm_sdk_core/lib/llvm/lib/libLLVM.so.24.0git",
+          "sha256": "3e7b50e1f252792eba7380b8503c05c899bf8ae9deeb70faf3f9be5f995c8e0a"
+        },
+        {
+          "name": "libclang-cpp.so.24.0git",
+          "member": "_rocm_sdk_core/lib/llvm/lib/libclang-cpp.so.24.0git",
+          "sha256": "18ef4cb8bd32366a68599fb6d723ed38814707a2ada1ff34b722dafc7856663b"
+        },
+        {
+          "name": "librocm_sysdeps_bz2.so",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so",
+          "sha256": "37a39b12a7e6e9f480d10e5e139b9aedbe5824e63b6b9e12a16837baee608602"
+        },
+        {
+          "name": "librocm_sysdeps_drm.so.2",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2",
+          "sha256": "b715ae24e1d62e407ffceca56b546e8a35abe37ac50878cbb16fa8b93d9c9fd5"
+        },
+        {
+          "name": "librocm_sysdeps_drm_amdgpu.so.1",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1",
+          "sha256": "b25742cda500eaa61e39b2b32492bb482235ad3e3df8a988d8f4130054d94cad"
+        },
+        {
+          "name": "librocm_sysdeps_elf.so.1",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1",
+          "sha256": "692dd9fe3575a45df78b319ad0e2a58ee36814958771dd810d5d91f9616c6d8f"
+        },
+        {
+          "name": "librocm_sysdeps_liblzma.so.5",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5",
+          "sha256": "d17f947bfe3947db5aefee897f6d32dfe98c73bf80b477764ba7f4107594a671"
+        },
+        {
+          "name": "librocm_sysdeps_numa.so.1",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1",
+          "sha256": "26fffd0f85369950b834cfb8f56fa9e1ea4804be8bbc40db98b788c554802bc3"
+        },
+        {
+          "name": "librocm_sysdeps_z.so.1",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1",
+          "sha256": "e1d7568f4a0b77eeab26f30cc9d2794dfe7ffd14e34b4ae55a9f80bc4f94ba7a"
+        },
+        {
+          "name": "librocm_sysdeps_zstd.so.1",
+          "member": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1",
+          "sha256": "fc3edd0b74fa071079b0095abe7b3f41418ca39be138f4ec0c57d0640a0b2d8b"
+        }
+      ]
+    }
+  },
+  "buildSources": {
+    "name": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+    "url": "https://codeload.github.com/ROCm/TheRock/tar.gz/b324869fb3116353ac7eec5e6926aa3d452ac987",
+    "sha256": "f8e68923c54fb2b42dadf0cd7778bd92246a3843ec50c601d6df396c19eb0caa",
+    "commit": "b324869fb3116353ac7eec5e6926aa3d452ac987",
+    "bytes": 3242697
+  }
+}

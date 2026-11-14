@@ -54,6 +54,8 @@
       href: guides/core-release-candidate.md
     - name: Native Redistribution / 原生依赖再分发
       href: guides/runtime-redistribution.md
+    - name: Public Runtime Regression / 公开 Runtime 回归
+      href: guides/published-runtime-regression.md
     - name: 0.10.0 Release / 发布说明
       href: releases/0.10.0.md
     - name: 0.9.3 HIPRTC Program and Linker / HIPRTC Program 与 Linker

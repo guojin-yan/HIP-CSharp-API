@@ -12,11 +12,12 @@ $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
 Import-Module (Join-Path $PSScriptRoot "version.psm1") -Force
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 $coreVersion = Get-HipSharpVersion -Kind Core -RepositoryRoot $repositoryRoot
 $runtimeVersion = Get-HipSharpVersion -Kind Ubuntu2404Runtime -RepositoryRoot $repositoryRoot
 $runtimeId = "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64"
 $resolvedCore = (Resolve-Path -LiteralPath $CorePackagePath).Path
-$artifactsRoot = [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot "artifacts"))
+$artifactsRoot = Get-HipSharpOutputPath $repositoryRoot "artifacts"
 $testRoot = [System.IO.Path]::GetFullPath((Join-Path $artifactsRoot "core-runtime-pairing"))
 $artifactsPrefix = $artifactsRoot.TrimEnd([System.IO.Path]::DirectorySeparatorChar) + [System.IO.Path]::DirectorySeparatorChar
 if ($testRoot -eq $artifactsRoot -or -not $testRoot.StartsWith($artifactsPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -32,10 +33,12 @@ New-Item -ItemType Directory -Force -Path $feed, $packages | Out-Null
 Copy-Item -LiteralPath $resolvedCore -Destination $feed
 
 if ([string]::IsNullOrWhiteSpace($RuntimePackagePath)) {
-    throw "RuntimePackagePath is required until the Ubuntu 24.04 runtime package has completed exact-package validation and publication."
+    throw "RuntimePackagePath is required; supply the exact downloaded public package, not an implicit NuGet cache entry."
 }
 $resolvedRuntime = (Resolve-Path -LiteralPath $RuntimePackagePath).Path
 $runtimeHash = (Get-FileHash -LiteralPath $resolvedRuntime -Algorithm SHA256).Hash
+$publicLock = Get-Content -LiteralPath (Join-Path $PSScriptRoot "published-runtime-7.2.1.lock.json") -Raw | ConvertFrom-Json
+if ($runtimeHash.ToLowerInvariant() -ne $publicLock.sha256) { throw 'Public Runtime package SHA-256 mismatch.' }
 $feedFull = [System.IO.Path]::GetFullPath($feed).TrimEnd([System.IO.Path]::DirectorySeparatorChar)
 $feedPrefix = $feedFull + [System.IO.Path]::DirectorySeparatorChar
 if (-not $resolvedRuntime.StartsWith($feedPrefix, [System.StringComparison]::OrdinalIgnoreCase)) {
@@ -122,7 +125,7 @@ function New-Consumer([string]$Name, [bool]$IncludeRuntime) {
     $directory = Join-Path $testRoot $Name
     New-Item -ItemType Directory -Force -Path $directory | Out-Null
     $runtimeReference = if ($IncludeRuntime) {
-        "    <PackageReference Include=`"$runtimeId`" Version=`"$runtimeVersion`" />"
+        "    <PackageReference Include=`"$runtimeId`" Version=`"[$runtimeVersion]`" />"
     } else { "" }
     [System.IO.File]::WriteAllText((Join-Path $directory "Consumer.csproj"), @"
 <Project Sdk="Microsoft.NET.Sdk">
@@ -133,7 +136,7 @@ function New-Consumer([string]$Name, [bool]$IncludeRuntime) {
     <ImplicitUsings>disable</ImplicitUsings>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="$coreVersion" />
+    <PackageReference Include="JYPPX.ROCm.HIP.CSharp.API" Version="[$coreVersion]" />
 $runtimeReference
   </ItemGroup>
 </Project>
@@ -178,7 +181,7 @@ $report = [ordered]@{
     runtimeVersion = $runtimeVersion
     runtimeSha256 = $runtimeHash
     packageSource = "source-mapped-local-target-packages-plus-nuget-framework-packs"
-    packageOnly = [ordered]@{ restore = "passed"; build = "passed"; nativeAssetCount = $nativeOutputAudit.Count; nativeAssets = $nativeOutputAudit; execution = "not-run-on-windows" }
+    packageOnly = [ordered]@{ restore = "passed"; build = "passed"; nativeAssetCount = $nativeOutputAudit.Count; nativeAssets = $nativeOutputAudit; execution = "not-run-build-audit-only" }
     systemNativeCoreOnly = [ordered]@{ restore = "passed"; build = "passed"; nativeAssetCount = $systemNativeFiles.Count; execution = "requires-compatible-system-rocm" }
     sourceBinFallback = $false
     stagingFallback = $false

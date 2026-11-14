@@ -4,11 +4,14 @@ param(
     [Parameter(Mandatory = $true)][string]$CorePackage,
     [Parameter(Mandatory = $true)][string]$OutputRoot,
     [Parameter(Mandatory = $true)][ValidatePattern('^gfx[0-9a-f]+$')][string]$Architecture,
-    [string]$ReferenceAssembliesFeed
+    [string]$ReferenceAssembliesFeed,
+    [switch]$PublishedRuntime,
+    [switch]$CompilerOnly
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
+if ($CompilerOnly -and -not $PublishedRuntime) { throw 'CompilerOnly is restricted to the published Runtime regression.' }
 $repository = Split-Path -Parent $PSScriptRoot
 $validationCommit = (& git -C $repository rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve validation source commit.' }
@@ -37,15 +40,29 @@ if ($IsWindows) {
 }
 $runtimePath = (Resolve-Path -LiteralPath $RuntimePackage).Path
 $corePath = (Resolve-Path -LiteralPath $CorePackage).Path
+$rid = if ($IsWindows) { 'win-x64' } elseif ($IsLinux) { 'linux-x64' } else { throw 'Unsupported host.' }
 $archive = [IO.Compression.ZipFile]::OpenRead($runtimePath)
 try {
-    $entry = $archive.GetEntry('local-runtime-manifest.json')
-    if ($null -eq $entry) { throw 'Expected a local-development Runtime package.' }
-    $reader = [IO.StreamReader]::new($entry.Open())
-    try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
-    $manifest = $text | ConvertFrom-Json
-    if ($manifest.scope -ne 'local-development' -or $manifest.packageVersion -notmatch '^10\.1\.0-local\.') { throw 'Not a local package.' }
-    $rid = if ($IsWindows) { 'win-x64' } elseif ($IsLinux) { 'linux-x64' } else { throw 'Unsupported host.' }
+    if ($PublishedRuntime) {
+        if (-not $IsLinux) { throw 'The pinned published Runtime is Linux-only.' }
+        $publicLock = Get-Content -LiteralPath (Join-Path $PSScriptRoot 'published-runtime-7.2.1.lock.json') -Raw | ConvertFrom-Json
+        if ((Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $publicLock.sha256) { throw 'Public Runtime package SHA-256 mismatch.' }
+        $publicFiles = @($archive.Entries | Where-Object FullName -Match '^runtimes/linux-x64/native/[^/]+$' | ForEach-Object {
+            $stream = $_.Open()
+            try { $hash = [Convert]::ToHexString([Security.Cryptography.SHA256]::HashData($stream)).ToLowerInvariant() } finally { $stream.Dispose() }
+            [pscustomobject]@{ name = $_.Name; packagePath = $_.FullName; sha256 = $hash }
+        })
+        if ($publicFiles.Count -ne $publicLock.nativeAssetCount) { throw 'Unexpected public native asset count.' }
+        $manifest = [pscustomobject]@{ scope = 'published-runtime-regression'; packageId = $publicLock.packageId; packageVersion = $publicLock.packageVersion; rid = $publicLock.rid; files = $publicFiles }
+        $text = $manifest | ConvertTo-Json -Depth 6
+    } else {
+        $entry = $archive.GetEntry('local-runtime-manifest.json')
+        if ($null -eq $entry) { throw 'Expected a local-development Runtime package.' }
+        $reader = [IO.StreamReader]::new($entry.Open())
+        try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $manifest = $text | ConvertFrom-Json
+        if ($manifest.scope -ne 'local-development' -or $manifest.packageVersion -notmatch '^10\.1\.0-local\.') { throw 'Not a local package.' }
+    }
     if ($manifest.rid -ne $rid) { throw 'Runtime package RID does not match this host.' }
     foreach ($file in $manifest.files) {
         $nativeEntry = $archive.GetEntry($file.packagePath)
@@ -103,13 +120,23 @@ try {
         @{ Name = 'ArrayTextureSurface'; Arguments = @($Architecture) },
         @{ Name = 'HipManagedExpansionValidation'; Arguments = @('--arch', $Architecture, '--graph-launch-repeats', '3', '--expected-commit', $expectedCommit, '--environment', 'package-only') }
     )
+    if ($CompilerOnly) {
+        $workloads = @(
+            @{ Name = 'HipRtcCompileOnly'; Source = (Join-Path $PSScriptRoot 'local-runtime/RtcPackageCompileSmoke.cs'); Arguments = @($Architecture) },
+            @{ Name = 'HipRtcVectorAdd'; Label = 'HipRtcNegativeCompile'; Arguments = @('--arch', $Architecture, '--negative-compile') }
+        )
+    }
     foreach ($workload in $workloads) {
         $label = if ($workload.ContainsKey('Label')) { $workload.Label } else { $workload.Name }
         $work = Join-Path $output $label
         New-Item -ItemType Directory $work | Out-Null
-        $sample = @(Get-ChildItem -LiteralPath (Join-Path $repository 'samples') -Recurse -Filter "$($workload.Name).csproj")
-        if ($sample.Count -ne 1) { throw "Ambiguous sample: $($workload.Name)" }
-        $sampleFiles = [Security.SecurityElement]::Escape((Join-Path $sample[0].DirectoryName '*.cs'))
+        if ($workload.ContainsKey('Source')) {
+            $sampleFiles = [Security.SecurityElement]::Escape($workload.Source)
+        } else {
+            $sample = @(Get-ChildItem -LiteralPath (Join-Path $repository 'samples') -Recurse -Filter "$($workload.Name).csproj")
+            if ($sample.Count -ne 1) { throw "Ambiguous sample: $($workload.Name)" }
+            $sampleFiles = [Security.SecurityElement]::Escape((Join-Path $sample[0].DirectoryName '*.cs'))
+        }
         $runner = [Security.SecurityElement]::Escape((Join-Path $PSScriptRoot 'local-runtime/PackageRunner.cs'))
         $project = Join-Path $work 'consumer.csproj'
 @"
@@ -138,7 +165,7 @@ try {
         $results += [pscustomobject]@{ workload = $label; status = $status; exitCode = $exitCode }
         Write-Host "$label : $status"
     }
-    if (@($results | Where-Object status -eq 'failed').Count -eq 0) {
+    if (-not $CompilerOnly -and @($results | Where-Object status -eq 'failed').Count -eq 0) {
         $publish = Join-Path $output 'published-vector-add'
         $project = Join-Path $output 'HipRtcVectorAdd/consumer.csproj'
         $publishLog = @(& dotnet publish $project -c Release --no-build --no-restore -o $publish --nologo 2>&1)
@@ -212,11 +239,11 @@ try {
 } finally {
     foreach ($name in $saved.Keys) { [Environment]::SetEnvironmentVariable($name, $saved[$name]) }
     [pscustomobject]@{
-        scope = 'local-package-consumers'; platform = $rid; architecture = $Architecture
+        scope = $(if ($CompilerOnly) { 'published-runtime-compiler-only' } elseif ($PublishedRuntime) { 'published-runtime-regression' } else { 'local-package-consumers' }); platform = $rid; architecture = $Architecture
         sourceCommit = $expectedCommit; validationCommit = $validationCommit
         sourceTreeDirty = ($sourceTreeDirty -or @(& git -C $repository status --porcelain).Count -ne 0 -or (& git -C $repository rev-parse HEAD).Trim() -ne $validationCommit)
         host = $(if ($IsWindows) { 'windows' } elseif (Test-Path /dev/dxg) { 'wsl2' } elseif (Test-Path /dev/kfd) { 'linux-kfd' } else { 'linux-other' })
-        completed = ($results.Count -eq $(if ($IsWindows) { 23 } else { 22 }))
+        completed = ($results.Count -eq $(if ($CompilerOnly) { 2 } elseif ($IsWindows) { 23 } else { 22 }))
         runtimePackageSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
         corePackageSha256 = (Get-FileHash -LiteralPath $corePath -Algorithm SHA256).Hash.ToLowerInvariant()
         workloads = $results

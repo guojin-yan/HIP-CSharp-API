@@ -107,6 +107,8 @@ jobs:
         run: |
           python ./eng/test-release-candidate.py
           if ($LASTEXITCODE -ne 0) { throw 'Candidate gate regression failed.' }
+          python ./eng/test-local-runtime-provenance.py
+          if ($LASTEXITCODE -ne 0) { throw 'Runtime provenance regression failed.' }
           ./eng/test.ps1 -Configuration Release
           ./eng/verify-package.ps1 -PackagePath $env:CANDIDATE_PACKAGE -ExpectedVersion $env:RELEASE_INPUT_VERSION -ExpectedRepositoryCommit $env:RELEASE_SHA -OutputDirectory artifacts/candidate-package-audit
           ./eng/test-docs.ps1 -Configuration Release
