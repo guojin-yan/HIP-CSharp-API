@@ -25,6 +25,8 @@ Keep only the manifest and its listed files in the candidate directory; validati
 
 For offline verification, set `HIPSHARP_SUPPORT_FEED` to an existing local directory of Microsoft framework/reference packages (and the pinned DocFX package for documentation). Consumer audits use source mapping so the tested HipSharp package can only resolve from its exact candidate feed. This also avoids a global `RestoreSources` override replacing the candidate source during a clean restore. Documentation tool restore uses a generated configuration containing only the offline source.
 
+External build roots are mapped to a stable generated-source/PDB path, and Core packing normalizes NuGet timestamps, relationships and core-properties names before hashing or validation. Compare independent builds made with the same SDK and host; Windows/Linux XML line endings and compiler inputs are not claimed to produce identical package bytes. Never normalize or rebuild a package after its exact-package GPU evidence has been collected.
+
 ## Authorized publication / 获授权后发布
 
 Zip the candidate contents with `candidate.json` at the archive root. Record the ZIP hash and stage it at an HTTPS download URL. Run **Stage reviewed Core candidate** at the exact reviewed source commit with the URL, ZIP hash and reviewed manifest hash. It verifies all bindings without executing bundle content, then uploads `hipsharp-release-candidate`. Supply that successful same-repository Actions run ID, version and manifest hash to **NuGet release**.

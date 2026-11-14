@@ -53,6 +53,8 @@ try {
         throw "Expected package was not generated: $package"
     }
 
+    & (Join-Path $PSScriptRoot "normalize-nupkg.ps1") -PackagePath $package
+
     Write-Host "Core package generated: $package"
     Write-Output $package
 }
