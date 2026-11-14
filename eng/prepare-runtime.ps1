@@ -13,6 +13,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = "Stop"
 
 $repositoryRoot = Split-Path -Parent $PSScriptRoot
+Import-Module (Join-Path $PSScriptRoot "build-paths.psm1") -Force
 Import-Module (Join-Path $PSScriptRoot "runtime-manifest.psm1") -Force
 $manifestInfo = Get-HipSharpRuntimeManifest $Manifest
 $runtimeManifest = $manifestInfo.Value
@@ -20,9 +21,15 @@ Assert-HipSharpRuntimeManifest $runtimeManifest
 if ($runtimeManifest.rid -ne "linux-x64") { throw "prepare-runtime.ps1 only prepares Linux x64 native assets." }
 if ([string]::IsNullOrWhiteSpace($CacheDirectory)) { $CacheDirectory = "eng/native-assets/cache/rocm-$($runtimeManifest.packageVersion)-$($runtimeManifest.distribution.codename)" }
 
-function Resolve-UnderRepository([string]$value) {
-    $path = if ([System.IO.Path]::IsPathRooted($value)) { [System.IO.Path]::GetFullPath($value) } else { [System.IO.Path]::GetFullPath((Join-Path $repositoryRoot $value)) }
-    if (-not $path.StartsWith($repositoryRoot + [System.IO.Path]::DirectorySeparatorChar, [System.StringComparison]::OrdinalIgnoreCase)) { throw "Runtime paths must remain under the repository root." }
+$runtimeOutputRoot = Get-HipSharpOutputPath $repositoryRoot "."
+$runtimeOutputPrefix = [System.IO.Path]::TrimEndingDirectorySeparator($runtimeOutputRoot) + [System.IO.Path]::DirectorySeparatorChar
+function Resolve-UnderRuntimeOutput([string]$value) {
+    $path = if ([System.IO.Path]::IsPathRooted($value)) { [System.IO.Path]::GetFullPath($value) } else { Get-HipSharpOutputPath $repositoryRoot $value }
+    $comparison = if ($IsWindows) { [System.StringComparison]::OrdinalIgnoreCase } else { [System.StringComparison]::Ordinal }
+    if (-not $path.StartsWith($runtimeOutputPrefix, $comparison) -or
+        [System.IO.Path]::TrimEndingDirectorySeparator($path) -eq [System.IO.Path]::TrimEndingDirectorySeparator($runtimeOutputRoot)) {
+        throw "Runtime paths must remain below the configured output root."
+    }
     return $path
 }
 
@@ -116,8 +123,8 @@ function Extract-DebEntries([string]$debPath, [string]$targetDirectory, [string[
     }
 }
 
-$cacheRoot = Resolve-UnderRepository $CacheDirectory
-$stagingRoot = Resolve-UnderRepository $StagingDirectory
+$cacheRoot = Resolve-UnderRuntimeOutput $CacheDirectory
+$stagingRoot = Resolve-UnderRuntimeOutput $StagingDirectory
 New-Item -ItemType Directory -Force -Path $cacheRoot | Out-Null
 $keyPath = Join-Path $cacheRoot "rocm.gpg.key"
 $inReleasePath = Join-Path $cacheRoot "InRelease"
