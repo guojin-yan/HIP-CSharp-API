@@ -707,10 +707,18 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
         return HipError.Success;
     }
 
+    internal IntPtr ExportedShareableHandle { get; set; } = new IntPtr(0xE000);
+    internal int ImportShareableHandleCallCount { get; private set; }
+    internal IntPtr LastImportedShareableHandle { get; private set; }
+
     public HipError MemExportToShareableHandle(IntPtr shareableHandle, IntPtr handle, int handleType, ulong flags)
     {
         if (!_virtualAllocationHandles.Contains(handle)) return HipError.InvalidValue;
-        if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(shareableHandle, new IntPtr(0xE000));
+        if (ManagedNextResult == HipError.Success)
+        {
+            if (handleType == (int)HipMemoryAllocationHandleType.PosixFileDescriptor) Marshal.WriteInt32(shareableHandle, ExportedShareableHandle.ToInt32());
+            else Marshal.WriteIntPtr(shareableHandle, ExportedShareableHandle);
+        }
         return ManagedNextResult;
     }
 
@@ -723,7 +731,10 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError MemImportFromShareableHandle(IntPtr handle, IntPtr operatingSystemHandle, int handleType)
     {
-        if (operatingSystemHandle == IntPtr.Zero) return HipError.InvalidValue;
+        ImportShareableHandleCallCount++;
+        LastImportedShareableHandle = operatingSystemHandle;
+        if (handleType != (int)HipMemoryAllocationHandleType.PosixFileDescriptor && operatingSystemHandle == IntPtr.Zero) return HipError.InvalidValue;
+        if (ManagedNextResult != HipError.Success) return ManagedNextResult;
         IntPtr allocation = new IntPtr(_nextVirtualAllocationHandle++);
         _virtualAllocationHandles.Add(allocation);
         if (ManagedNextResult == HipError.Success) Marshal.WriteIntPtr(handle, allocation);

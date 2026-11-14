@@ -211,10 +211,69 @@ public class HipManagedQueryTests
         using HipStream stream = runtime.CreateStream();
 
         Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => runtime.ReserveVirtualMemory(0));
-        Assert.ThrowsExactly<ArgumentException>(() => runtime.ImportPhysicalMemory(IntPtr.Zero, HipMemoryAllocationHandleType.PosixFileDescriptor, 4096));
+        Assert.ThrowsExactly<ArgumentException>(() => runtime.ImportPhysicalMemory(IntPtr.Zero, HipMemoryAllocationHandleType.Win32, 4096));
         Assert.ThrowsExactly<ArgumentException>(() => runtime.MapArrayAsync(IntPtr.Zero, 1, stream));
 
         native.ManagedNextResult = HipError.NotSupported;
         Assert.ThrowsExactly<HipException>(() => runtime.ReserveVirtualMemory(4096));
+    }
+
+    [TestMethod]
+    public void PosixImportAcceptsZeroAndRejectsValuesOutsideIntRange()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var allocation = runtime.ImportPhysicalMemory(IntPtr.Zero, HipMemoryAllocationHandleType.PosixFileDescriptor, 4096);
+        Assert.AreEqual(IntPtr.Zero, native.LastImportedShareableHandle);
+        Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => runtime.ImportPhysicalMemory(new IntPtr(-1), HipMemoryAllocationHandleType.PosixFileDescriptor, 4096));
+        if (IntPtr.Size == 8)
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => runtime.ImportPhysicalMemory(new IntPtr((long)int.MaxValue + 1), HipMemoryAllocationHandleType.PosixFileDescriptor, 4096));
+        Assert.AreEqual(1, native.ImportShareableHandleCallCount);
+    }
+
+    [TestMethod]
+    public void PosixImportPreservesNativeRejectionOfZero()
+    {
+        using var native = new FakeHipNativeApi { ManagedNextResult = HipError.InvalidValue };
+        using var runtime = new HipRuntime(native);
+        Assert.ThrowsExactly<HipException>(() => runtime.ImportPhysicalMemory(IntPtr.Zero, HipMemoryAllocationHandleType.PosixFileDescriptor, 4096));
+        Assert.AreEqual(1, native.ImportShareableHandleCallCount);
+    }
+
+    [TestMethod]
+    public void ShareableExportUsesSignedIntForPosixAndPointerForWin32()
+    {
+        using var native = new FakeHipNativeApi { ExportedShareableHandle = IntPtr.Zero };
+        using var runtime = new HipRuntime(native);
+        using var allocation = runtime.CreatePhysicalMemory(4096, new HipVirtualMemoryAllocationOptions(0));
+        Assert.AreEqual(IntPtr.Zero, allocation.ExportShareableHandle(HipMemoryAllocationHandleType.PosixFileDescriptor));
+        native.ExportedShareableHandle = new IntPtr(-1);
+        Assert.ThrowsExactly<InvalidOperationException>(() => allocation.ExportShareableHandle(HipMemoryAllocationHandleType.PosixFileDescriptor));
+        native.ExportedShareableHandle = new IntPtr(int.MaxValue);
+        Assert.AreEqual(new IntPtr(int.MaxValue), allocation.ExportShareableHandle(HipMemoryAllocationHandleType.PosixFileDescriptor));
+        native.ExportedShareableHandle = IntPtr.Size == 8 ? new IntPtr(0x12345678ABCDEF) : new IntPtr(0x12345678);
+        Assert.AreEqual(native.ExportedShareableHandle, allocation.ExportShareableHandle(HipMemoryAllocationHandleType.Win32));
+        native.ExportedShareableHandle = IntPtr.Zero;
+        Assert.ThrowsExactly<InvalidOperationException>(() => allocation.ExportShareableHandle(HipMemoryAllocationHandleType.Win32));
+    }
+
+    [TestMethod]
+    public void ShareableHandlesRejectAmbiguousTypesAndPropagateExportErrors()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var allocation = runtime.CreatePhysicalMemory(4096, new HipVirtualMemoryAllocationOptions(0));
+        foreach (var type in new[] { HipMemoryAllocationHandleType.None, HipMemoryAllocationHandleType.PosixFileDescriptor | HipMemoryAllocationHandleType.Win32, (HipMemoryAllocationHandleType)8 })
+        {
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => allocation.ExportShareableHandle(type));
+            Assert.ThrowsExactly<ArgumentOutOfRangeException>(() => runtime.ImportPhysicalMemory(new IntPtr(5), type, 4096));
+        }
+        native.ManagedNextResult = HipError.NotSupported;
+        try
+        {
+            Assert.ThrowsExactly<HipException>(() => allocation.ExportShareableHandle(HipMemoryAllocationHandleType.PosixFileDescriptor));
+            Assert.ThrowsExactly<HipException>(() => allocation.ExportShareableHandle(HipMemoryAllocationHandleType.Win32));
+        }
+        finally { native.ManagedNextResult = HipError.Success; }
     }
 }

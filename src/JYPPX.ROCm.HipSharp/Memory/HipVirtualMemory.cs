@@ -150,12 +150,20 @@ public sealed class HipPhysicalMemoryAllocation : IDisposable
     public bool IsDisposed => _handle.IsClosed || _handle.IsInvalid;
 
     /// <summary>导出共享句柄 / Exports an operating-system shareable handle when supported by HIP and the current platform.</summary>
+    /// <remarks>调用方负责关闭返回的系统句柄；POSIX 描述符 0 有效 / The caller must close the returned platform handle; POSIX descriptor zero is valid.</remarks>
     public unsafe IntPtr ExportShareableHandle(HipMemoryAllocationHandleType handleType)
     {
-        if (handleType == HipMemoryAllocationHandleType.None) throw new ArgumentOutOfRangeException(nameof(handleType));
+        if (handleType != HipMemoryAllocationHandleType.PosixFileDescriptor && handleType != HipMemoryAllocationHandleType.Win32 && handleType != HipMemoryAllocationHandleType.Win32Kmt) throw new ArgumentOutOfRangeException(nameof(handleType));
         lock (_sync)
         {
             ThrowIfDisposed();
+            if (handleType == HipMemoryAllocationHandleType.PosixFileDescriptor)
+            {
+                int descriptor = -1;
+                HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemExportToShareableHandle((IntPtr)(&descriptor), _handle.DangerousGetHandle(), (int)handleType, 0), "hipMemExportToShareableHandle");
+                if (descriptor < 0) throw new InvalidOperationException("hipMemExportToShareableHandle succeeded but returned an invalid file descriptor.");
+                return new IntPtr(descriptor);
+            }
             IntPtr result = IntPtr.Zero;
             HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemExportToShareableHandle((IntPtr)(&result), _handle.DangerousGetHandle(), (int)handleType, 0), "hipMemExportToShareableHandle");
             if (result == IntPtr.Zero) throw new InvalidOperationException("hipMemExportToShareableHandle succeeded but returned a null handle.");

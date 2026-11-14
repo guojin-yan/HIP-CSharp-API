@@ -62,3 +62,7 @@ HIPRTC 的链接器在未显式指定链接目标时查询当前设备。使用 
 该入口创建独立 NuGet 缓存、仅使用本地源，以 PackageReference 构建 18 个工作负载，并额外检查无 RID 发布、缺失 HIPRTC 反向场景、RID 发布后用 dotnet/apphost 运行；Windows 另测 .NET Framework 4.8，共 Windows 23 项、Linux 22 项。Windows 需事先缓存 Framework reference assemblies 1.0.3，或通过 `-ReferenceAssembliesFeed` 提供只含引用程序集的本地源。入口清除 SDK 搜索环境，校验实际加载模块的路径，并将每个文件名与其对应的清单哈希逐一匹配；拒绝未列出的 HIP 库版本、应用目录外的同名前缀目录、链接文件或链接子目录。Linux 路径按大小写区分，Windows 按大小写不敏感比较；.NET 10 和 .NET Framework 4.8 共用同一校验器。Linux 使用 PowerShell 7 的同一入口。managed memory 或 array/texture 能力不足时明确跳过；部署回归不能跳过。
 
 验证范围是本机 Windows 和 Ubuntu 24.04/WSL2、W7900 `gfx1100`、.NET 10，以及 Windows .NET Framework 4.8 的包消费运行。其余 TFM 仍属于构建/API 验证范围。摘要同时记录包来源提交、验证提交和源码是否脏，只有精确一致的干净提交才可用于候选审查。Windows DLL 没有 Authenticode 签名；本地哈希策略不修改旧 `7.2.0` 发布策略。公开再分发需完成[来源、许可证及源码提供材料](runtime-redistribution.md)。
+
+在带 `/dev/kfd` 的 Linux GPU 主机，可追加 `-ExtendedLinux`，额外执行物理内存 POSIX 导入/导出与跨进程 IPC，共 24 项。该模式拒绝 WSL 和编译器专用模式。物理内存检查验证两份映射共享字节、导入 owner 释放后原 owner 存活、描述符 0 导出与原生导入错误传播；IPC 检查在独立子进程传递 64 字节内存/事件句柄、事件同步、4096 字节双向校验及原 owner 生命周期。每个进程均核对实际加载的包内模块路径和哈希。
+
+POSIX 文件描述符按有符号 32 位整数处理，0 是合法 OS 描述符。已观察到 HIP 7.2.1 可导出 0，但导入 0 返回 `InvalidValue`；托管层保留该原生错误。普通正数描述符的真实共享映射通过。不要把该平台限制或单 GPU IPC 验证解释为所有 external-memory、external-semaphore、graphics 或多 GPU 互操作均已通过。

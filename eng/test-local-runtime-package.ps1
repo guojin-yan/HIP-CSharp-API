@@ -6,12 +6,14 @@ param(
     [Parameter(Mandatory = $true)][ValidatePattern('^gfx[0-9a-f]+$')][string]$Architecture,
     [string]$ReferenceAssembliesFeed,
     [switch]$PublishedRuntime,
-    [switch]$CompilerOnly
+    [switch]$CompilerOnly,
+    [switch]$ExtendedLinux
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($CompilerOnly -and -not $PublishedRuntime) { throw 'CompilerOnly is restricted to the published Runtime regression.' }
+if ($ExtendedLinux -and ($CompilerOnly -or -not $IsLinux -or -not (Test-Path /dev/kfd) -or (Test-Path /dev/dxg))) { throw 'ExtendedLinux requires a Linux KFD host and the full GPU matrix.' }
 $repository = Split-Path -Parent $PSScriptRoot
 $validationCommit = (& git -C $repository rev-parse HEAD).Trim()
 if ($LASTEXITCODE -ne 0) { throw 'Cannot resolve validation source commit.' }
@@ -120,6 +122,12 @@ try {
         @{ Name = 'ArrayTextureSurface'; Arguments = @($Architecture) },
         @{ Name = 'HipManagedExpansionValidation'; Arguments = @('--arch', $Architecture, '--graph-launch-repeats', '3', '--expected-commit', $expectedCommit, '--environment', 'package-only') }
     )
+    if ($ExtendedLinux) {
+        $workloads += @(
+            @{ Name = 'PhysicalMemorySharing'; Source = (Join-Path $PSScriptRoot 'local-runtime/PhysicalMemorySharingSmoke.cs'); Arguments = @() },
+            @{ Name = 'CrossProcessIpc'; Source = (Join-Path $PSScriptRoot 'local-runtime/IpcProcessSmoke.cs'); Arguments = @() }
+        )
+    }
     if ($CompilerOnly) {
         $workloads = @(
             @{ Name = 'HipRtcCompileOnly'; Source = (Join-Path $PSScriptRoot 'local-runtime/RtcPackageCompileSmoke.cs'); Arguments = @($Architecture) },
@@ -244,7 +252,8 @@ try {
         sourceCommit = $expectedCommit; validationCommit = $validationCommit
         sourceTreeDirty = ($sourceTreeDirty -or @(& git -C $repository status --porcelain).Count -ne 0 -or (& git -C $repository rev-parse HEAD).Trim() -ne $validationCommit)
         host = $(if ($IsWindows) { 'windows' } elseif (Test-Path /dev/dxg) { 'wsl2' } elseif (Test-Path /dev/kfd) { 'linux-kfd' } else { 'linux-other' })
-        completed = ($results.Count -eq $(if ($CompilerOnly) { 2 } elseif ($IsWindows) { 23 } else { 22 }))
+        extendedLinux = [bool]$ExtendedLinux
+        completed = ($results.Count -eq $(if ($CompilerOnly) { 2 } elseif ($IsWindows) { 23 } elseif ($ExtendedLinux) { 24 } else { 22 }))
         runtimePackageSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
         corePackageSha256 = (Get-FileHash -LiteralPath $corePath -Algorithm SHA256).Hash.ToLowerInvariant()
         workloads = $results

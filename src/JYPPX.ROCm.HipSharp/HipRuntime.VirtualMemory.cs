@@ -44,11 +44,20 @@ public sealed partial class HipRuntime
     }
 
     /// <summary>导入共享句柄 / Imports an owning physical-memory allocation handle from a platform handle.</summary>
+    /// <remarks>POSIX 描述符使用非负 32 位整数，包括 0；原生运行时仍可能拒绝该描述符 / POSIX descriptors are nonnegative 32-bit integers, including zero; native runtime errors are propagated. The caller retains ownership of the platform handle.</remarks>
     public unsafe HipPhysicalMemoryAllocation ImportPhysicalMemory(IntPtr operatingSystemHandle, HipMemoryAllocationHandleType handleType, ulong byteLength)
     {
         ThrowIfDisposed();
-        if (operatingSystemHandle == IntPtr.Zero) throw new ArgumentException("A non-null operating-system handle is required.", nameof(operatingSystemHandle));
-        if (handleType == HipMemoryAllocationHandleType.None) throw new ArgumentOutOfRangeException(nameof(handleType));
+        if (handleType == HipMemoryAllocationHandleType.PosixFileDescriptor)
+        {
+            long descriptor = operatingSystemHandle.ToInt64();
+            if (descriptor < 0 || descriptor > int.MaxValue) throw new ArgumentOutOfRangeException(nameof(operatingSystemHandle), "A nonnegative 32-bit POSIX file descriptor is required.");
+        }
+        else
+        {
+            if (handleType != HipMemoryAllocationHandleType.Win32 && handleType != HipMemoryAllocationHandleType.Win32Kmt) throw new ArgumentOutOfRangeException(nameof(handleType));
+            if (operatingSystemHandle == IntPtr.Zero) throw new ArgumentException("A non-null operating-system handle is required.", nameof(operatingSystemHandle));
+        }
         if (byteLength == 0) throw new ArgumentOutOfRangeException(nameof(byteLength));
         IntPtr handle = IntPtr.Zero;
         HipCall.ThrowIfFailed(_nativeApi, _nativeApi.MemImportFromShareableHandle((IntPtr)(&handle), operatingSystemHandle, (int)handleType), "hipMemImportFromShareableHandle");
