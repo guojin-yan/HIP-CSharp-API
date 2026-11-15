@@ -1,6 +1,6 @@
 # Interface coverage ledger review
 
-Generated from `eng/interop/complete-api-model.json`, `eng/interop/interop-manifest.json`, `managed-interface-map.json`, and `reviewed-classification.json`.
+Generated from `eng/interop/complete-api-model.json`, `eng/interop/interop-manifest.json`, `managed-interface-map.json`, `reviewed-classification.json`, and `reviewed-function-evidence.json`.
 The ledger records evidence boundaries; a symbol export is not a function-level pass. Historical cloud evidence is bound to exact 0.x bytes and is not evidence for the current SHA.
 
 ## Inventory
@@ -8,7 +8,9 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 - Total entries: 477 (Runtime 459, HIPRTC 18).
 - Complete model: 477; managed interfaces: 239 (109 ABI-manifest + 130 promoted).
 - Disposition: managed 239, managed-next 0, raw-only-reviewed 238, deferred-capability 0.
-- Cloud function evidence: historical pass 100, not-tested 377; export scan is tracked separately.
+- Cloud function evidence: historical pass 100, reviewed exact-package pass 7, not-tested 370; export scan is tracked separately.
+
+Reviewed exact-package results reference `reviewed-function-evidence.json`. Recheck recovered summaries, logs, fixture source and exact packages with `verify-function-evidence.py --workspace <external-workspace>`. The generator only links reviewed receipts; it does not rerun GPU workloads or infer current-HEAD or complete negative coverage.
 
 ## Managed workload mapping
 
@@ -27,9 +29,9 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 | `module-global` (1) | borrowed module-global views | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipModuleGlobalTests.cs` | `m8.6-module-globals` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
 | `errors` (2) | error identity and diagnostic ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipRuntimeTests.cs` | `negative-compile-and-error-diagnostics` in `Radeon_Cloud/records/20260814-1345-2a89c67-m8.9-assembly-identity-forward-fix` |
 | `m8.13-common-query` (28) | typed device, pointer, symbol, and stream queries | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipManagedQueryTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
-| `m8.13-virtual-memory` (12) | virtual-address, physical-allocation, mapping, and access ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipManagedQueryTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
+| `m8.13-virtual-memory` (12) | virtual-address, physical-allocation, mapping, and access ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipManagedQueryTests.cs` | `not-tested` except 2 individually pinned resource receipts; fresh evidence required for remaining entries |
 | `m8.13-array-texture-surface` (42) | array, mipmap, texture, surface, copy, and legacy-reference ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipArrayTextureTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
-| `m8.14-advanced-interop` (48) | external interop, IPC, callback, profiler, user object, and driver compatibility ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipAdvancedInteropTests.cs` | `not-tested`; fresh exact-SHA Radeon Cloud evidence required |
+| `m8.14-advanced-interop` (48) | external interop, IPC, callback, profiler, user object, and driver compatibility ownership | `tests/JYPPX.ROCm.HipSharp.UnitTests/HipAdvancedInteropTests.cs` | `not-tested` except 5 individually pinned resource receipts; fresh evidence required for remaining entries |
 
 ## Review boundaries
 
@@ -37,4 +39,4 @@ The ledger records evidence boundaries; a symbol export is not a function-level 
 - `raw-only-reviewed` retains the generated low-level declaration because no current managed contract is justified.
 - `deferred-capability` requires a capability-specific cloud workload before promotion.
 - All missing unit, function, or negative evidence is represented as `not-tested`; no status is inferred from an entry-point name.
-- Current state: `implemented-local / cloud-validation-open`; `publishable=false`; `releaseAuthorized=false`.
+- Current state: `implemented-local / partial-reviewed-exact-package-evidence`; `publishable=false`; `releaseAuthorized=false`.

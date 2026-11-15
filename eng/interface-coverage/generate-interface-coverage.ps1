@@ -14,6 +14,18 @@ $model = Get-Content -Raw -Encoding UTF8 (Join-Path $RepositoryRoot "eng/interop
 $manifest = Get-Content -Raw -Encoding UTF8 (Join-Path $RepositoryRoot "eng/interop/interop-manifest.json") | ConvertFrom-Json
 $review = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot "reviewed-classification.json") | ConvertFrom-Json
 $managedInterfaceMap = Get-Content -Raw -Encoding UTF8 (Join-Path $PSScriptRoot "managed-interface-map.json") | ConvertFrom-Json
+$functionReceiptsPath = Join-Path $PSScriptRoot 'reviewed-function-evidence.json'
+$functionReceipts = Get-Content -Raw -Encoding UTF8 $functionReceiptsPath | ConvertFrom-Json
+if ($functionReceipts.schemaVersion -ne 1 -or $functionReceipts.scope -ne 'reviewed-exact-package-positive-resource-evidence') { throw 'Unsupported function receipt inventory.' }
+$receiptHash = (Get-FileHash -LiteralPath $functionReceiptsPath -Algorithm SHA256).Hash.ToLowerInvariant()
+$receiptsByEntry = @{}
+foreach ($group in $functionReceipts.groups) {
+    if ($group.sourceCommit -cnotmatch '^[0-9a-f]{40}$' -or $group.corePackage.sha256 -cnotmatch '^[0-9a-f]{64}$' -or $group.coverage -ne 'positive-resource-lifetime-only' -or $group.runs.Count -ne 2) { throw 'Invalid reviewed function group.' }
+    foreach ($entryPoint in $group.entries) {
+        if ($receiptsByEntry.ContainsKey([string]$entryPoint)) { throw "Duplicate function receipt: $entryPoint" }
+        $receiptsByEntry[[string]$entryPoint] = $group
+    }
+}
 
 $workloads = @(
     [ordered]@{ Name = "device-info"; Entries = @("hipInit", "hipRuntimeGetVersion", "hipDriverGetVersion", "hipGetDeviceCount", "hipGetDevice", "hipSetDevice", "hipDeviceGetName", "hipDeviceGetAttribute"); Unit = "tests/JYPPX.ROCm.HipSharp.UnitTests/HipRuntimeTests.cs"; Cloud = "official-host-device-info"; Topic = "device discovery and diagnostics" },
@@ -82,6 +94,9 @@ foreach ($managedEntryPoint in $managedByEntry.Keys) {
 foreach ($promotedEntryPoint in $promotedByEntry.Keys) {
     if (-not $completeEntrySet.Contains([string]$promotedEntryPoint)) { throw "Managed interface map entry is absent from complete model: $promotedEntryPoint" }
 }
+foreach ($entryPoint in $receiptsByEntry.Keys) {
+    if (-not $completeEntrySet.Contains($entryPoint)) { throw "Function receipt is absent from complete model: $entryPoint" }
+}
 $entries = [System.Collections.Generic.List[object]]::new()
 
 foreach ($function in $functions) {
@@ -126,6 +141,20 @@ foreach ($function in $functions) {
         $minimumVersion = "header-model"
     }
 
+    if ($receiptsByEntry.ContainsKey($entryPoint)) {
+        $receipt = $receiptsByEntry[$entryPoint]
+        $receiptReference = 'eng/interface-coverage/reviewed-function-evidence.json'
+        $cloud = [ordered]@{
+            status = 'passed-exact-package'; workload = $receipt.workload
+            exactSha = $receipt.sourceCommit; corePackageSha256 = $receipt.corePackage.sha256
+            scope = 'reviewed positive resource/lifetime execution of pinned package; not current SHA or complete negative coverage'
+            invocation = $receipt.invocation; receiptGroup = $receipt.id; receipt = $receiptReference; receiptSha256 = $receiptHash
+        }
+        $functionalEvidence = [ordered]@{ record = $receiptReference; exactSha = $receipt.sourceCommit; currentSha = 'not-generated'; receiptGroup = $receipt.id; receiptSha256 = $receiptHash }
+        if ($receipt.workload -eq 'CrossProcessIpc') {
+            $negative = [ordered]@{ status = 'covered'; test = 'tests/JYPPX.ROCm.HipSharp.UnitTests/HipAdvancedInteropTests.cs'; workload = 'ipc-error-ownership'; scope = 'managed fake-native error and ownership regressions; not GPU negative-call evidence' }
+        }
+    }
     if ($entryPoint -eq "hipExternalMemoryGetMappedMipmappedArray") {
         $export = [ordered]@{ status = "missing-reviewed"; scope = "historical-linux-symbol-scan"; reason = "single reviewed Linux export exception"; record = "$record/validation-summary.json" }
     } else {
@@ -179,21 +208,27 @@ foreach ($status in @("managed", "managed-next", "raw-only-reviewed", "deferred-
 }
 $cloudCounts = @{}
 foreach ($entry in $entries) { $status = $entry.cloudFunctionCoverage.status; if (-not $cloudCounts.ContainsKey($status)) { $cloudCounts[$status] = 0 }; $cloudCounts[$status]++ }
+foreach ($status in @('passed-historical', 'passed-exact-package', 'not-tested')) { if (-not $cloudCounts.ContainsKey($status)) { $cloudCounts[$status] = 0 } }
 $markdown = [System.Collections.Generic.List[string]]::new()
 $markdown.AddRange([string[]]@(
     "# Interface coverage ledger review", "",
-    "Generated from ``eng/interop/complete-api-model.json``, ``eng/interop/interop-manifest.json``, ``managed-interface-map.json``, and ``reviewed-classification.json``.",
+    "Generated from ``eng/interop/complete-api-model.json``, ``eng/interop/interop-manifest.json``, ``managed-interface-map.json``, ``reviewed-classification.json``, and ``reviewed-function-evidence.json``.",
     "The ledger records evidence boundaries; a symbol export is not a function-level pass. Historical cloud evidence is bound to exact 0.x bytes and is not evidence for the current SHA.", "",
     "## Inventory", "",
     "- Total entries: $($entries.Count) (Runtime $(($entries | Where-Object library -eq 'amdhip64').Count), HIPRTC $(($entries | Where-Object library -eq 'hiprtc').Count)).",
     "- Complete model: $(@($model.runtimeFunctions).Count + @($model.rtcFunctions).Count); managed interfaces: $(@($manifest.functions).Count + $promotedByEntry.Count) ($(@($manifest.functions).Count) ABI-manifest + $($promotedByEntry.Count) promoted).",
     "- Disposition: managed $($counts['managed']), managed-next $($counts['managed-next']), raw-only-reviewed $($counts['raw-only-reviewed']), deferred-capability $($counts['deferred-capability']).",
-    "- Cloud function evidence: historical pass $($cloudCounts['passed-historical']), not-tested $($cloudCounts['not-tested']); export scan is tracked separately.", "",
+    "- Cloud function evidence: historical pass $($cloudCounts['passed-historical']), reviewed exact-package pass $($cloudCounts['passed-exact-package']), not-tested $($cloudCounts['not-tested']); export scan is tracked separately.", "",
+    "Reviewed exact-package results reference ``reviewed-function-evidence.json``. Recheck recovered summaries, logs, fixture source and exact packages with ``verify-function-evidence.py --workspace <external-workspace>``. The generator only links reviewed receipts; it does not rerun GPU workloads or infer current-HEAD or complete negative coverage.", "",
     "## Managed workload mapping", "", "| Workload | Purpose | Unit source | Historical cloud scope |", "| --- | --- | --- | --- |"
 ))
 foreach ($workload in $workloads) {
     $mapped = $workload["Entries"].Count
-    $cloudScope = if ($workload["Cloud"] -eq "not-tested") { "``not-tested``; fresh exact-SHA Radeon Cloud evidence required" } else { "``$($workload["Cloud"])`` in ``$record``" }
+    $reviewedCount = @($workload['Entries'] | Where-Object { $receiptsByEntry.ContainsKey([string]$_) }).Count
+    $cloudScope = if ($workload["Cloud"] -eq "not-tested") {
+        if ($reviewedCount -gt 0) { "``not-tested`` except $reviewedCount individually pinned resource receipts; fresh evidence required for remaining entries" }
+        else { "``not-tested``; fresh exact-SHA Radeon Cloud evidence required" }
+    } else { "``$($workload["Cloud"])`` in ``$record``" }
     $markdown.Add("| ``$($workload["Name"])`` ($mapped) | $($workload["Topic"]) | ``$($workload["Unit"])`` | $cloudScope |")
 }
 $markdown.AddRange([string[]]@(
@@ -202,7 +237,7 @@ $markdown.AddRange([string[]]@(
     "- ``raw-only-reviewed`` retains the generated low-level declaration because no current managed contract is justified.",
     "- ``deferred-capability`` requires a capability-specific cloud workload before promotion.",
     "- All missing unit, function, or negative evidence is represented as ``not-tested``; no status is inferred from an entry-point name.",
-    "- Current state: ``implemented-local / cloud-validation-open``; ``publishable=false``; ``releaseAuthorized=false``.", ""
+    "- Current state: ``implemented-local / partial-reviewed-exact-package-evidence``; ``publishable=false``; ``releaseAuthorized=false``.", ""
 ))
 [System.IO.File]::WriteAllText($markdownOutputPath, ($markdown -join "`n"), [System.Text.UTF8Encoding]::new($false))
 Write-Output "Generated $($entries.Count) interface ledger entries."

@@ -58,6 +58,13 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal List<uint> UserObjectRetainCounts { get; } = new();
 
     internal HipError AdvancedResult { get; set; } = HipError.Success;
+    internal bool ReturnNullIpcImport { get; set; }
+    internal HipIpcMemHandle LastIpcMemoryHandle { get; private set; }
+    internal HipIpcEventHandle LastIpcEventHandle { get; private set; }
+    internal IntPtr LastIpcExportedMemory { get; private set; }
+    internal IntPtr LastIpcExportedEvent { get; private set; }
+    internal uint LastIpcOpenFlags { get; private set; }
+    internal HipError EventDestroyResult { get; set; } = HipError.Success;
 
     internal HipError MallocResult { get; set; } = HipError.Success;
 
@@ -1949,6 +1956,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
 
     public HipError EventDestroy(IntPtr eventHandle)
     {
+        if (EventDestroyResult != HipError.Success) return EventDestroyResult;
         if (!_events.Remove(eventHandle)) return HipError.InvalidValue;
         EventDestroyCount++;
         return HipError.Success;
@@ -2158,10 +2166,33 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError ImportExternalMemory(IntPtr externalMemory, IntPtr descriptor) => WriteAdvancedHandle("hipImportExternalMemory", externalMemory);
     public HipError ImportExternalSemaphore(IntPtr externalSemaphore, IntPtr descriptor) => WriteAdvancedHandle("hipImportExternalSemaphore", externalSemaphore);
     public HipError IpcCloseMemHandle(IntPtr devicePointer) => RecordAdvanced("hipIpcCloseMemHandle");
-    public HipError IpcGetEventHandle(IntPtr handle, IntPtr eventHandle) => WriteAdvancedStruct("hipIpcGetEventHandle", eventHandle, new HipIpcEventHandle { Data0 = 0x11 });
-    public HipError IpcGetMemHandle(IntPtr handle, IntPtr devicePointer) => WriteAdvancedStruct("hipIpcGetMemHandle", devicePointer, new HipIpcMemHandle { Data0 = 0x22 });
-    public HipError IpcOpenEventHandle(IntPtr eventHandle, HipIpcEventHandle handle) => WriteAdvancedHandle("hipIpcOpenEventHandle", eventHandle);
-    public HipError IpcOpenMemHandle(IntPtr devicePointer, HipIpcMemHandle handle, uint flags) => WriteAdvancedHandle("hipIpcOpenMemHandle", devicePointer);
+    public HipError IpcGetEventHandle(IntPtr handle, IntPtr eventHandle)
+    {
+        LastIpcExportedEvent = eventHandle;
+        return WriteAdvancedStruct("hipIpcGetEventHandle", handle, new HipIpcEventHandle { Data0 = 0x11, Data7 = 0x1122334455667788 });
+    }
+    public HipError IpcGetMemHandle(IntPtr handle, IntPtr devicePointer)
+    {
+        LastIpcExportedMemory = devicePointer;
+        return WriteAdvancedStruct("hipIpcGetMemHandle", handle, new HipIpcMemHandle { Data0 = 0x22, Data7 = 0x8877665544332211 });
+    }
+    public HipError IpcOpenEventHandle(IntPtr eventHandle, HipIpcEventHandle handle)
+    {
+        LastIpcEventHandle = handle;
+        AdvancedCalls.Add("hipIpcOpenEventHandle");
+        if (AdvancedResult != HipError.Success || ReturnNullIpcImport) return AdvancedResult;
+        IntPtr imported = new IntPtr(_nextAdvancedHandle++);
+        _events.Add(imported);
+        Marshal.WriteIntPtr(eventHandle, imported);
+        return HipError.Success;
+    }
+    public HipError IpcOpenMemHandle(IntPtr devicePointer, HipIpcMemHandle handle, uint flags)
+    {
+        LastIpcMemoryHandle = handle;
+        LastIpcOpenFlags = flags;
+        if (!ReturnNullIpcImport) return WriteAdvancedHandle("hipIpcOpenMemHandle", devicePointer);
+        return RecordAdvanced("hipIpcOpenMemHandle");
+    }
     public HipError SignalExternalSemaphoresAsync(IntPtr semaphores, IntPtr parameters, uint semaphoreCount, IntPtr stream) => RecordAdvanced("hipSignalExternalSemaphoresAsync");
     public HipError WaitExternalSemaphoresAsync(IntPtr semaphores, IntPtr parameters, uint semaphoreCount, IntPtr stream) => RecordAdvanced("hipWaitExternalSemaphoresAsync");
     public HipError GraphReleaseUserObject(IntPtr graph, IntPtr userObject, uint count) => RecordAdvanced("hipGraphReleaseUserObject");

@@ -15,6 +15,136 @@ namespace JYPPX.ROCm.HipSharp.UnitTests;
 public sealed class HipAdvancedInteropTests
 {
     [TestMethod]
+    public void IpcExportsUseOutputStorageAndPreserveTheOriginalOwners()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var memory = runtime.Allocate(128);
+        using var sourceEvent = runtime.CreateEvent();
+        byte[] data = Enumerable.Range(0, 128).Select(i => (byte)i).ToArray();
+        memory.CopyFrom(data);
+        HipIpcMemHandle memoryHandle = runtime.AdvancedInterop.GetIpcMemoryHandle(memory);
+        HipIpcEventHandle eventHandle = runtime.AdvancedInterop.GetIpcEventHandle(sourceEvent);
+        Assert.AreEqual(memory.DangerousGetHandle(), native.LastIpcExportedMemory);
+        Assert.AreEqual(sourceEvent.DangerousGetHandle(), native.LastIpcExportedEvent);
+        Assert.AreEqual(0x22UL, memoryHandle.Data0);
+        Assert.AreEqual(0x8877665544332211UL, memoryHandle.Data7);
+        Assert.AreEqual(0x11UL, eventHandle.Data0);
+        Assert.AreEqual(0x1122334455667788UL, eventHandle.Data7);
+        byte[] actual = new byte[128];
+        memory.CopyTo(actual);
+        CollectionAssert.AreEqual(data, actual);
+        Assert.IsTrue(sourceEvent.Query());
+    }
+
+    [TestMethod]
+    public void IpcExportRejectsForeignAndDisposedOwnersBeforeCallingNative()
+    {
+        using var native = new FakeHipNativeApi();
+        using var foreignNative = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var foreign = new HipRuntime(foreignNative);
+        using var otherMemory = foreign.Allocate(64);
+        using var otherEvent = foreign.CreateEvent();
+        var advanced = runtime.AdvancedInterop;
+        Assert.ThrowsExactly<ArgumentNullException>(() => advanced.GetIpcMemoryHandle(null!));
+        Assert.ThrowsExactly<ArgumentNullException>(() => advanced.GetIpcEventHandle(null!));
+        Assert.ThrowsExactly<ArgumentException>(() => advanced.GetIpcMemoryHandle(otherMemory));
+        Assert.ThrowsExactly<ArgumentException>(() => advanced.GetIpcEventHandle(otherEvent));
+        using var memory = runtime.Allocate(64);
+        using var sourceEvent = runtime.CreateEvent();
+        memory.Dispose();
+        sourceEvent.Dispose();
+        Assert.ThrowsExactly<ObjectDisposedException>(() => advanced.GetIpcMemoryHandle(memory));
+        Assert.ThrowsExactly<ObjectDisposedException>(() => advanced.GetIpcEventHandle(sourceEvent));
+        Assert.HasCount(0, native.AdvancedCalls);
+    }
+
+    [TestMethod]
+    public void IpcImportForwardsAllOpaqueBytesAndFlagsAndReleasesOnlyImportedResources()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var memory = runtime.Allocate(64);
+        using var sourceEvent = runtime.CreateEvent();
+        var memoryHandle = new HipIpcMemHandle { Data0 = 1, Data1 = 2, Data2 = 3, Data3 = 4, Data4 = 5, Data5 = 6, Data6 = 7, Data7 = ulong.MaxValue };
+        var eventHandle = new HipIpcEventHandle { Data0 = 9, Data1 = 10, Data2 = 11, Data3 = 12, Data4 = 13, Data5 = 14, Data6 = 15, Data7 = 0xF000000000000001 };
+        using var imported = runtime.AdvancedInterop.OpenIpcMemory(memoryHandle, 1);
+        using var importedEvent = runtime.AdvancedInterop.OpenIpcEvent(eventHandle);
+        Assert.AreEqual(memoryHandle, native.LastIpcMemoryHandle);
+        Assert.AreEqual(eventHandle, native.LastIpcEventHandle);
+        Assert.AreEqual(1U, native.LastIpcOpenFlags);
+        importedEvent.Synchronize();
+        imported.Dispose();
+        imported.Dispose();
+        importedEvent.Dispose();
+        importedEvent.Dispose();
+        Assert.AreEqual(1, native.AdvancedCalls.Count(call => call == "hipIpcCloseMemHandle"));
+        Assert.AreEqual(1, native.EventDestroyCount);
+        Assert.AreEqual(0, native.FreeCount);
+        Assert.IsFalse(memory.IsDisposed);
+        Assert.IsTrue(sourceEvent.Query());
+        Assert.ThrowsExactly<ObjectDisposedException>(() => imported.DangerousGetHandle());
+        Assert.ThrowsExactly<ObjectDisposedException>(importedEvent.Synchronize);
+    }
+
+    [TestMethod]
+    public void IpcImportRejectsNativeErrorsAndNullSuccessWithoutCreatingOwners()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        native.AdvancedResult = HipError.InvalidValue;
+        Assert.AreEqual("hipIpcOpenMemHandle", Assert.ThrowsExactly<HipException>(() => runtime.AdvancedInterop.OpenIpcMemory(default)).Operation);
+        Assert.AreEqual("hipIpcOpenEventHandle", Assert.ThrowsExactly<HipException>(() => runtime.AdvancedInterop.OpenIpcEvent(default)).Operation);
+        native.AdvancedResult = HipError.Success;
+        native.ReturnNullIpcImport = true;
+        Assert.ThrowsExactly<InvalidOperationException>(() => runtime.AdvancedInterop.OpenIpcMemory(default));
+        Assert.ThrowsExactly<InvalidOperationException>(() => runtime.AdvancedInterop.OpenIpcEvent(default));
+        Assert.AreEqual(0, native.EventDestroyCount);
+        Assert.IsFalse(native.AdvancedCalls.Contains("hipIpcCloseMemHandle"));
+    }
+
+    [TestMethod]
+    public void IpcExportPreservesNativeErrorIdentityForBothHandleTypes()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var memory = runtime.Allocate(64);
+        using var sourceEvent = runtime.CreateEvent();
+        native.AdvancedResult = HipError.NotSupported;
+        HipException memoryFailure = Assert.ThrowsExactly<HipException>(() => runtime.AdvancedInterop.GetIpcMemoryHandle(memory));
+        HipException eventFailure = Assert.ThrowsExactly<HipException>(() => runtime.AdvancedInterop.GetIpcEventHandle(sourceEvent));
+        Assert.AreEqual(HipError.NotSupported, memoryFailure.Error);
+        Assert.AreEqual("hipIpcGetMemHandle", memoryFailure.Operation);
+        Assert.AreEqual(HipError.NotSupported, eventFailure.Error);
+        Assert.AreEqual("hipIpcGetEventHandle", eventFailure.Operation);
+    }
+
+    [TestMethod]
+    public void ImportedIpcEventCanRetrySynchronizationAndDestructionFailures()
+    {
+        using var native = new FakeHipNativeApi();
+        using var runtime = new HipRuntime(native);
+        using var imported = runtime.AdvancedInterop.OpenIpcEvent(default);
+        native.EventSynchronizeResult = HipError.InvalidValue;
+        Assert.AreEqual("hipEventSynchronize", Assert.ThrowsExactly<HipException>(imported.Dispose).Operation);
+        Assert.IsFalse(imported.IsDisposed);
+        Assert.AreEqual(0, native.EventDestroyCount);
+        native.EventSynchronizeResult = HipError.Success;
+        native.EventDestroyResult = HipError.InvalidValue;
+        try
+        {
+            Assert.AreEqual("hipEventDestroy", Assert.ThrowsExactly<HipException>(imported.Dispose).Operation);
+            Assert.IsFalse(imported.IsDisposed);
+        }
+        finally { native.EventDestroyResult = HipError.Success; }
+        imported.Dispose();
+        imported.Dispose();
+        Assert.IsTrue(imported.IsDisposed);
+        Assert.AreEqual(1, native.EventDestroyCount);
+    }
+
+    [TestMethod]
     public void RetainedAdvancedFacadeRejectsDisposedRuntimeBeforeNativeCalls()
     {
         using var native = new FakeHipNativeApi();

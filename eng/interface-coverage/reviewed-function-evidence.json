@@ -1,0 +1,115 @@
+{
+  "schemaVersion": 1,
+  "scope": "reviewed-exact-package-positive-resource-evidence",
+  "groups": [
+    {
+      "id": "linux-kfd-ipc",
+      "workload": "CrossProcessIpc",
+      "sourceCommit": "3d626ddf643e1bfef3a358ea3e26c3e5fedcdf38",
+      "corePackage": {
+        "path": "build/fd-sharing/delivery/packages/JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg",
+        "sha256": "0283698aec534b2d8442f3280468d3f65998ad8dca7938e940f54e82844aaae4"
+      },
+      "fixture": {
+        "path": "eng/local-runtime/IpcProcessSmoke.cs",
+        "sha256": "fddea1641f445a615733f3a1078560804dc6428490c963e7c3eb3a2a28e8a85b"
+      },
+      "entries": [
+        "hipIpcCloseMemHandle",
+        "hipIpcGetEventHandle",
+        "hipIpcGetMemHandle",
+        "hipIpcOpenEventHandle",
+        "hipIpcOpenMemHandle"
+      ],
+      "invocation": "raw-bindings",
+      "coverage": "positive-resource-lifetime-only",
+      "runs": [
+        {
+          "id": "public-7.2.1",
+          "summary": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/public/summary.json",
+            "sha256": "49db5e9ae74b9fc34d6f5e3f31f68cca5af8d8534e2dd94ead6dc8a9eed59f26"
+          },
+          "log": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/public/CrossProcessIpc/run.log",
+            "sha256": "0c2755aca39928b784ab994d5eca5d4d1f7450066b109e20b16912084fd7c6f4"
+          },
+          "runtimePackage": {
+            "path": "build/gap-completion/downloads/jyppx.rocm.hip.csharp.api.runtime.ubuntu.24.04-x64.7.2.1.nupkg",
+            "sha256": "1b8463fccbc364b9e0b7a1bc58cfc76c7ecfc8f73f1e3eaac1bdfadb197dc23d"
+          },
+          "expectedScope": "published-runtime-regression"
+        },
+        {
+          "id": "local-10.1.0",
+          "summary": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/local-runtime/summary.json",
+            "sha256": "8021f6915b397914f4592b2efd383becd3208c8b1848ce4e5c352c9670802d59"
+          },
+          "log": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/local-runtime/CrossProcessIpc/run.log",
+            "sha256": "39dd6e36332163e66c09e0a755c743344dde5190eaa74881380b1f2e36116375"
+          },
+          "runtimePackage": {
+            "path": "build/local-nuget/feed/JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.10.1.0-local.20261113.3.nupkg",
+            "sha256": "15e74d676049a7a43042758df3caf1d2e36e41a3e6910fee2faa8308854d1de5"
+          },
+          "expectedScope": "local-package-consumers"
+        }
+      ]
+    },
+    {
+      "id": "linux-kfd-physical-sharing",
+      "workload": "PhysicalMemorySharing",
+      "sourceCommit": "3d626ddf643e1bfef3a358ea3e26c3e5fedcdf38",
+      "corePackage": {
+        "path": "build/fd-sharing/delivery/packages/JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg",
+        "sha256": "0283698aec534b2d8442f3280468d3f65998ad8dca7938e940f54e82844aaae4"
+      },
+      "fixture": {
+        "path": "eng/local-runtime/PhysicalMemorySharingSmoke.cs",
+        "sha256": "ca7bc016ff5776949ed64d439d53751da9955f93482b5bf02b03c1d81596ed9f"
+      },
+      "entries": [
+        "hipMemExportToShareableHandle",
+        "hipMemImportFromShareableHandle"
+      ],
+      "invocation": "managed-owners",
+      "coverage": "positive-resource-lifetime-only",
+      "runs": [
+        {
+          "id": "public-7.2.1",
+          "summary": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/public/summary.json",
+            "sha256": "49db5e9ae74b9fc34d6f5e3f31f68cca5af8d8534e2dd94ead6dc8a9eed59f26"
+          },
+          "log": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/public/PhysicalMemorySharing/run.log",
+            "sha256": "bef1519493da07833255e86e2bce4ff91f2b7277a0460fc4bbe232144f9837e0"
+          },
+          "runtimePackage": {
+            "path": "build/gap-completion/downloads/jyppx.rocm.hip.csharp.api.runtime.ubuntu.24.04-x64.7.2.1.nupkg",
+            "sha256": "1b8463fccbc364b9e0b7a1bc58cfc76c7ecfc8f73f1e3eaac1bdfadb197dc23d"
+          },
+          "expectedScope": "published-runtime-regression"
+        },
+        {
+          "id": "local-10.1.0",
+          "summary": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/local-runtime/summary.json",
+            "sha256": "8021f6915b397914f4592b2efd383becd3208c8b1848ce4e5c352c9670802d59"
+          },
+          "log": {
+            "path": "Radeon_Cloud/records/20261115-3d626dd-release-candidate/build/local-runtime/PhysicalMemorySharing/run.log",
+            "sha256": "041ce526b266a88033848f567ea78ac30718ad7acf1c51583222419b4c7cf03e"
+          },
+          "runtimePackage": {
+            "path": "build/local-nuget/feed/JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64.10.1.0-local.20261113.3.nupkg",
+            "sha256": "15e74d676049a7a43042758df3caf1d2e36e41a3e6910fee2faa8308854d1de5"
+          },
+          "expectedScope": "local-package-consumers"
+        }
+      ]
+    }
+  ]
+}

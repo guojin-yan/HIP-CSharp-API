@@ -292,6 +292,7 @@ public sealed class RepositoryQualityTests
         ProcessResult generated = RunProcess("pwsh", "-NoProfile", "-File", generatorPath, "-OutputJsonl", generatedLedger, "-OutputMarkdown", generatedSummary);
         Assert.AreEqual(0, generated.ExitCode, generated.Output);
         Assert.AreEqual(before.Replace("\r\n", "\n", StringComparison.Ordinal), File.ReadAllText(generatedLedger).Replace("\r\n", "\n", StringComparison.Ordinal), "Ledger generation must be deterministic across checkout line endings.");
+        Assert.AreEqual(File.ReadAllText(summaryPath).Replace("\r\n", "\n", StringComparison.Ordinal), File.ReadAllText(generatedSummary).Replace("\r\n", "\n", StringComparison.Ordinal), "The reviewed Markdown summary must match the generated ledger.");
 
         using JsonDocument complete = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "complete-api-model.json")));
         using JsonDocument manifest = JsonDocument.Parse(File.ReadAllText(Path.Combine(RepositoryRoot, "eng", "interop", "interop-manifest.json")));
@@ -320,6 +321,13 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual(239, managedLibraries.Count);
         Assert.IsTrue(managedLibraries.Keys.All(completeEntries.Contains), "Every managed manifest entry must exist in the complete model.");
         var unvalidatedManagedEntries = new HashSet<string>(NewRtcEntries.Concat(promotedEntries), StringComparer.Ordinal);
+        string receiptPath = Path.Combine(RepositoryRoot, "eng", "interface-coverage", "reviewed-function-evidence.json");
+        using JsonDocument receipts = JsonDocument.Parse(File.ReadAllText(receiptPath));
+        string receiptHash = Convert.ToHexString(System.Security.Cryptography.SHA256.HashData(File.ReadAllBytes(receiptPath))).ToLowerInvariant();
+        Dictionary<string, JsonElement> receiptByEntry = receipts.RootElement.GetProperty("groups").EnumerateArray()
+            .SelectMany(group => group.GetProperty("entries").EnumerateArray().Select(entry => (Entry: entry.GetString()!, Group: group)))
+            .ToDictionary(item => item.Entry, item => item.Group, StringComparer.Ordinal);
+        Assert.AreEqual(7, receiptByEntry.Count);
 
         string[] lines = File.ReadAllLines(ledgerPath);
         Assert.AreEqual(477, lines.Length);
@@ -357,7 +365,18 @@ public sealed class RepositoryQualityTests
                 Assert.AreEqual(managedLibraries[entryPoint], library);
                 Assert.AreEqual("covered", item.GetProperty("unitCoverage").GetProperty("status").GetString());
                 JsonElement cloudCoverage = item.GetProperty("cloudFunctionCoverage");
-                if (unvalidatedManagedEntries.Contains(entryPoint))
+                if (receiptByEntry.TryGetValue(entryPoint, out JsonElement receipt))
+                {
+                    Assert.AreEqual("passed-exact-package", cloudCoverage.GetProperty("status").GetString());
+                    Assert.AreEqual(receipt.GetProperty("sourceCommit").GetString(), cloudCoverage.GetProperty("exactSha").GetString());
+                    Assert.AreEqual(receipt.GetProperty("corePackage").GetProperty("sha256").GetString(), cloudCoverage.GetProperty("corePackageSha256").GetString());
+                    Assert.AreEqual(receipt.GetProperty("id").GetString(), cloudCoverage.GetProperty("receiptGroup").GetString());
+                    Assert.AreEqual(receipt.GetProperty("invocation").GetString(), cloudCoverage.GetProperty("invocation").GetString());
+                    Assert.AreEqual(receiptHash, cloudCoverage.GetProperty("receiptSha256").GetString());
+                    StringAssert.Contains(cloudCoverage.GetProperty("scope").GetString()!, "not current SHA");
+                    Assert.AreEqual("not-generated", item.GetProperty("evidenceRecord").GetProperty("currentSha").GetString());
+                }
+                else if (unvalidatedManagedEntries.Contains(entryPoint))
                 {
                     Assert.AreEqual("not-tested", cloudCoverage.GetProperty("status").GetString());
                     StringAssert.Contains(cloudCoverage.GetProperty("reason").GetString()!, "exact-SHA");
@@ -393,6 +412,7 @@ public sealed class RepositoryQualityTests
         Assert.AreEqual(1, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("cloudExport").GetProperty("status").GetString() == "missing-reviewed"));
         Assert.AreEqual(239, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() == "managed"));
         Assert.AreEqual(238, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("managedDisposition").GetProperty("status").GetString() != "managed"));
+        Assert.AreEqual(7, lines.Count(line => JsonDocument.Parse(line).RootElement.GetProperty("cloudFunctionCoverage").GetProperty("status").GetString() == "passed-exact-package"));
     }
 
     [TestMethod]
