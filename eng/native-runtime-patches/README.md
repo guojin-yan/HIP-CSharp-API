@@ -48,8 +48,9 @@ external-semaphore graph.
 ## Runtime integration still required
 
 For a complete official source checkout at the pinned revision, first verify the
-source hashes and apply both patches with `git apply --check` followed by
-`git apply`. Build the full Runtime using that revision's TheRock dependency and
+source hashes and apply both zero-context patches with `git apply --unidiff-zero
+--check` followed by `git apply --unidiff-zero`. The validator performs these steps
+and verifies the resulting file hashes. Build the full Runtime using that revision's TheRock dependency and
 toolchain closure in a new external build directory. Preserve source/build/license
 records and give the patched Runtime a new package version and hash lock. Then run
 the complete exact-package Windows/Linux GPU matrices, including the actual D3D12

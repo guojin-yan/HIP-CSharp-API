@@ -1,57 +1,36 @@
 --- a/projects/clr/hipamd/src/hip_memory.cpp
 +++ b/projects/clr/hipamd/src/hip_memory.cpp
-@@ -3705,29 +3705,41 @@
- hipError_t hipMemsetD2D16(hipDeviceptr_t dst, size_t dstPitch, unsigned short value, size_t width,
-                           size_t height) {
-   HIP_INIT_API(hipMemsetD2D16, dst, dstPitch, value, width, height);
+@@ -3707,0 +3708,3 @@
 +  if (width > std::numeric_limits<size_t>::max() / sizeof(unsigned short)) {
 +    HIP_RETURN(hipErrorInvalidValue);
 +  }
-   HIP_RETURN(
+@@ -3709 +3712 @@
 -      hipMemset2D_common(dst, dstPitch, value, width, height, nullptr, sizeof(unsigned short)));
 +      hipMemset2D_common(dst, dstPitch, value, width * sizeof(unsigned short), height, nullptr, sizeof(unsigned short)));
- }
- 
- hipError_t hipMemsetD2D16Async(hipDeviceptr_t dst, size_t dstPitch, unsigned short value,
-                                size_t width, size_t height, hipStream_t stream) {
-   HIP_INIT_API(hipMemsetD2D16Async, dst, dstPitch, value, width, height, stream);
+@@ -3714,0 +3718,3 @@
 +  if (width > std::numeric_limits<size_t>::max() / sizeof(unsigned short)) {
 +    HIP_RETURN(hipErrorInvalidValue);
 +  }
-   HIP_RETURN(
+@@ -3716 +3722 @@
 -      hipMemset2DAsync_common(dst, dstPitch, value, width, height, stream, sizeof(unsigned short)));
 +      hipMemset2DAsync_common(dst, dstPitch, value, width * sizeof(unsigned short), height, stream, sizeof(unsigned short)));
- }
- 
- hipError_t hipMemsetD2D32(hipDeviceptr_t dst, size_t dstPitch, unsigned int value, size_t width,
-                           size_t height) {
-   HIP_INIT_API(hipMemsetD2D32, dst, dstPitch, value, width, height);
+@@ -3721,0 +3728,3 @@
 +  if (width > std::numeric_limits<size_t>::max() / sizeof(unsigned int)) {
 +    HIP_RETURN(hipErrorInvalidValue);
 +  }
-   HIP_RETURN(
+@@ -3723 +3732 @@
 -      hipMemset2D_common(dst, dstPitch, value, width, height, nullptr, sizeof(unsigned int)));
 +      hipMemset2D_common(dst, dstPitch, value, width * sizeof(unsigned int), height, nullptr, sizeof(unsigned int)));
- }
- 
- hipError_t hipMemsetD2D32Async(hipDeviceptr_t dst, size_t dstPitch, unsigned int value,
-                                size_t width, size_t height, hipStream_t stream) {
-   HIP_INIT_API(hipMemsetD2D32Async, dst, dstPitch, value, width, height, stream);
+@@ -3728,0 +3738,3 @@
 +  if (width > std::numeric_limits<size_t>::max() / sizeof(unsigned int)) {
 +    HIP_RETURN(hipErrorInvalidValue);
 +  }
-   HIP_RETURN(
+@@ -3730 +3742 @@
 -      hipMemset2DAsync_common(dst, dstPitch, value, width, height, stream, sizeof(unsigned int)));
 +      hipMemset2DAsync_common(dst, dstPitch, value, width * sizeof(unsigned int), height, stream, sizeof(unsigned int)));
- }
- 
- // ================================================================================================
 --- a/projects/clr/hipamd/src/hip_module.cpp
 +++ b/projects/clr/hipamd/src/hip_module.cpp
-@@ -1125,11 +1125,8 @@
-     HIP_RETURN(hipErrorInvalidImage);
-   }
- 
+@@ -1128,5 +1128,2 @@
 -  if (input_type == hipJitInputCubin || input_type == hipJitInputPtx ||
 -      input_type == hipJitInputFatBinary || input_type == hipJitInputObject ||
 -      input_type == hipJitInputLibrary || input_type == hipJitInputNvvm ||
@@ -59,13 +38,7 @@
 -      input_type == hipJitInputLLVMArchivesOfBundledBitcode) {
 +  if (input_type != hipJitInputLLVMBitcode && input_type != hipJitInputLLVMBundledBitcode &&
 +      input_type != hipJitInputLLVMArchivesOfBundledBitcode) {
-     HIP_RETURN(hipErrorInvalidValue);
-   }
- 
-@@ -1160,12 +1157,12 @@
-   if (hip_link_state == nullptr) {
-     HIP_RETURN(hipErrorInvalidHandle);
-   }
+@@ -1163,6 +1160,6 @@
 -
 -  if (input_type == hipJitInputCubin || input_type == hipJitInputPtx ||
 -      input_type == hipJitInputFatBinary || input_type == hipJitInputObject ||
@@ -78,6 +51,3 @@
 +
 +  if (input_type != hipJitInputLLVMBitcode && input_type != hipJitInputLLVMBundledBitcode &&
 +      input_type != hipJitInputLLVMArchivesOfBundledBitcode) {
-     HIP_RETURN(hipErrorInvalidValue);
-   }
- 

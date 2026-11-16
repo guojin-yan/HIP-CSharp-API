@@ -49,7 +49,7 @@ def main():
         target = output / item["path"]
         target.parent.mkdir(parents=True, exist_ok=True)
         target.write_bytes((args.sources / target.name).read_bytes())
-    git = ["git", "-c", "core.autocrlf=false", "-c", "core.eol=lf", "apply"]
+    git = ["git", "-c", "core.autocrlf=false", "-c", "core.eol=lf", "apply", "--unidiff-zero"]
     for patch in sorted(here.glob("*.patch")):
         for command in (git + ["--check", str(patch)], git + [str(patch)]):
             subprocess.run(command, cwd=output, check=True, capture_output=True)
