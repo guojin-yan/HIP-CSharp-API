@@ -6,11 +6,12 @@ from pathlib import Path
 import sys
 
 sys.dont_write_bytecode = True
-from evidence import parse, inventory, unique_object, validate_helper, HOST_SYMBOLS
+from evidence import parse, inventory, unique_object, validate_helper, HOST_SYMBOLS, FATBIN_FIXTURES, validate_fatbinary
 from run import FIXTURES, metadata, sha
 
 
 def verify(summary_path, core_override=None, runtime_override=None, repository=None):
+    summary_path = summary_path.resolve(strict=True)
     repository = repository or Path(__file__).resolve().parents[2]
     summary = json.loads(summary_path.read_text(encoding="utf-8"), object_pairs_hook=unique_object)
     if summary["scope"] != "local-native-function-fixtures" or summary["completed"] is not True or summary["evidenceStable"] is not True:
@@ -32,7 +33,7 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
     mapping = {"Raw." + f["managedName"]: f["entryPoint"] for f in model["runtimeFunctions"]}
     mapping.update({"Rtc." + f["managedName"]: f["entryPoint"] for f in model["rtcFunctions"]})
     helper = summary.get("nativeHelper")
-    uses_helper = any(r["fixture"] in HOST_SYMBOLS for r in summary["results"])
+    uses_helper = any(r["fixture"] in tuple(HOST_SYMBOLS) + FATBIN_FIXTURES for r in summary["results"])
     if uses_helper:
         if not isinstance(helper, dict) or helper.get("file") not in ("host-kernel.dll", "host-kernel.so"):
             raise ValueError("Missing or invalid native helper build identity")
@@ -50,6 +51,18 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
                 raise ValueError("Native helper build artifact mismatch: " + str(path))
     elif helper is not None:
         raise ValueError("Unexpected native helper without host fixtures")
+    uses_fatbinary = any(r["fixture"] in FATBIN_FIXTURES for r in summary["results"])
+    payload = helper.get("fatbinary") if helper else None
+    if uses_fatbinary:
+        if not isinstance(payload, dict) or payload.get("file") != "host-kernel.fatbin" or payload.get("objectFile") not in ("host-kernel.obj", "host-kernel.o"):
+            raise ValueError("Missing or invalid compiled fatbinary identity")
+        deployed_payload = summary_path.parent / "bin/Release/net10.0" / payload["file"]
+        for path, digest in ((summary_path.parent / payload["file"], payload["sha256"]), (deployed_payload, payload["sha256"]),
+                             (summary_path.parent / payload["objectFile"], payload["objectSha256"]), (Path(payload["extractor"]), payload["extractorSha256"])):
+            if sha(path) != digest:
+                raise ValueError("Native fatbinary build artifact mismatch: " + str(path))
+    elif payload is not None:
+        raise ValueError("Unexpected fatbinary without module fixtures")
     seen = set()
     for result in summary["results"]:
         name = result["fixture"]
@@ -61,7 +74,9 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
             raise ValueError("Execution log mismatch: " + name)
         parsed = parse(path.read_text(encoding="utf-8"), result["exitCode"], name, mapping)
         if parsed["passed"] and name in HOST_SYMBOLS:
-            validate_helper(path.read_text(encoding="utf-8"), name, deployed_helper, helper["sha256"])
+            validate_helper(path.read_text(encoding="utf-8"), name, deployed_helper, helper["sha256"], bool(parsed["nativeRestrictions"]))
+        if parsed["passed"] and name in FATBIN_FIXTURES:
+            validate_fatbinary(path.read_text(encoding="utf-8"), deployed_payload, payload["sha256"])
         for key in ("passed", "functions", "nativeRestrictions"):
             if parsed[key] != result[key]:
                 raise ValueError("Derived fixture evidence mismatch: " + name)

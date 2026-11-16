@@ -16,7 +16,11 @@ static_assert(sizeof(hipMemcpy3DBatchOp) == 112);
 #endif
 extern "C" __global__ void HostIncrement(int* data) { *data += 5; }
 __device__ int ValidationGlobal = 91;
+texture<unsigned char, hipTextureType2D, hipReadModeElementType> ValidationTexture;
+extern "C" __global__ void SampleRegisteredTexture(int* output) { *output = tex2D(ValidationTexture, 0.5f, 0.5f); }
 #if !defined(__HIP_DEVICE_COMPILE__)
 extern "C" EXPORTED const void* ValidationKernel() { return reinterpret_cast<const void*>(HostIncrement); }
 extern "C" EXPORTED const void* ValidationSymbol() { return &ValidationGlobal; }
+extern "C" EXPORTED const textureReference* RegisteredTexture() { return &ValidationTexture; }
+extern "C" EXPORTED const void* RegisteredTextureKernel() { return reinterpret_cast<const void*>(SampleRegisteredTexture); }
 #endif

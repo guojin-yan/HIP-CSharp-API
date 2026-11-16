@@ -124,6 +124,20 @@ internal static unsafe partial class Program
             case "device-reset": DeviceReset(); break;
             case "batch-copy": BatchCopies(false); break;
             case "batch-copy-3d": BatchCopies(true); break;
+            case "registered-texture-parameters": RegisteredTextureParameters(); break;
+            case "registered-texture-array": RegisteredTextureArray(); break;
+            case "registered-texture-linear": RegisteredTextureLinear(false); break;
+            case "registered-texture-pitched": RegisteredTextureLinear(true); break;
+            case "negative-memory": NegativeMemory(); break;
+            case "negative-streams": NegativeStreams(); break;
+            case "negative-events": NegativeEvents(); break;
+            case "negative-graphs": NegativeGraphs(); break;
+            case "selection-diagnostics": SelectionAndDiagnostics(); break;
+            case "profiler": Profiler(); break;
+            case "module-global": ModuleGlobal(); break;
+            case "module-texture-array": ModuleTexture(0); break;
+            case "module-texture-linear": ModuleTexture(1); break;
+            case "module-texture-pitched": ModuleTexture(2); break;
             default: throw new ArgumentException("Unknown fixture: " + fixture);
         }
         Console.WriteLine("FUNCTION_FIXTURE=" + JsonSerializer.Serialize(new {

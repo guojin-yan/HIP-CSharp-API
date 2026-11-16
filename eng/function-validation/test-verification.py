@@ -2,6 +2,7 @@
 import copy
 import importlib.util
 import json
+import os
 from pathlib import Path
 import sys
 import tempfile
@@ -200,6 +201,70 @@ class ArtifactIntegrityTests(unittest.TestCase):
 
     def test_host_source_path_escape(self):
         self.host_fixture(); self.summary["nativeHelper"]["source"] = "../host-kernel.hip"
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_relative_summary_resolves_loaded_helper(self):
+        self.host_fixture(); self.verify()
+        previous = Path.cwd()
+        try:
+            os.chdir(self.root)
+            self.assertTrue(module.verify(Path("output/summary.json"), repository=self.repository)["integrityVerified"])
+        finally: os.chdir(previous)
+
+    def fatbinary_fixture(self):
+        self.host_fixture()
+        payload = self.output / "host-kernel.fatbin"
+        payload.write_bytes(b"test fatbinary")
+        deployed = self.output / "bin/Release/net10.0/host-kernel.fatbin"
+        deployed.write_bytes(payload.read_bytes())
+        object_file = self.output / "host-kernel.o"
+        object_file.write_bytes(b"test compiled object")
+        extractor = self.root / "llvm-objcopy"
+        extractor.write_bytes(b"test extractor")
+        self.summary["nativeHelper"]["fatbinary"] = dict(file=payload.name, sha256=sha(payload), objectFile=object_file.name,
+                                                           objectSha256=sha(object_file), extractor=str(extractor), extractorSha256=sha(extractor))
+        result = self.summary["results"][0]
+        result.update(fixture="module-texture-array", log="module-texture-array.log")
+        log = self.log.read_text().split("\nNATIVE_HELPER=")[0].replace("host-runtime", result["fixture"])
+        self.log = self.output / result["log"]
+        self.log.write_text(log + "\nNATIVE_FATBIN=" + json.dumps(dict(path=str(deployed), sha256=sha(payload))), encoding="utf-8")
+        self.rehash_host()
+
+    def test_fatbinary_binding(self):
+        self.fatbinary_fixture(); self.assertTrue(self.verify()["integrityVerified"])
+
+    def test_fatbinary_missing_identity(self):
+        self.fatbinary_fixture(); del self.summary["nativeHelper"]["fatbinary"]
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_deployed_tampering(self):
+        self.fatbinary_fixture(); (self.output / "bin/Release/net10.0/host-kernel.fatbin").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_built_tampering(self):
+        self.fatbinary_fixture(); (self.output / "host-kernel.fatbin").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_object_tampering(self):
+        self.fatbinary_fixture(); (self.output / "host-kernel.o").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_extractor_tampering(self):
+        self.fatbinary_fixture(); (self.root / "llvm-objcopy").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_missing_marker(self):
+        self.fatbinary_fixture()
+        self.log.write_text(self.log.read_text().split("\nNATIVE_FATBIN=")[0], encoding="utf-8"); self.rehash_host()
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_duplicate_marker(self):
+        self.fatbinary_fixture(); log = self.log.read_text()
+        self.log.write_text(log + "\n" + log.splitlines()[-1], encoding="utf-8"); self.rehash_host()
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_fatbinary_path_escape(self):
+        self.fatbinary_fixture(); self.summary["nativeHelper"]["fatbinary"]["objectFile"] = "../host-kernel.o"
         with self.assertRaises(ValueError): self.verify()
 
 

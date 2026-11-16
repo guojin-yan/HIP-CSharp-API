@@ -7,7 +7,7 @@ import unittest
 
 sys.dont_write_bytecode = True
 sys.path.insert(0, str(Path(__file__).parent))
-from evidence import parse
+from evidence import parse, validate_helper
 
 
 class EvidenceBoundaryTests(unittest.TestCase):
@@ -98,6 +98,23 @@ class EvidenceBoundaryTests(unittest.TestCase):
 
     def test_scalar_mismatch(self):
         with self.assertRaises(ValueError): self.parse(self.mutate_call(result=3, expected=2, returnKind="validated-scalar"))
+
+    def helper_markers(self, symbols):
+        return "\n".join("NATIVE_HELPER=" + json.dumps(dict(path="/consumer/host-kernel.so", sha256="a" * 64, symbol=s)) for s in symbols)
+
+    def test_texture_requires_registered_sampling_export(self):
+        with self.assertRaises(ValueError):
+            validate_helper(self.helper_markers(["RegisteredTexture"]), "registered-texture-array", "/consumer/host-kernel.so", "a" * 64)
+
+    def test_texture_registered_export_order(self):
+        with self.assertRaises(ValueError):
+            validate_helper(self.helper_markers(["RegisteredTextureKernel", "RegisteredTexture"]), "registered-texture-array", "/consumer/host-kernel.so", "a" * 64)
+
+    def test_texture_sampling_export_pair(self):
+        validate_helper(self.helper_markers(["RegisteredTexture", "RegisteredTextureKernel"]), "registered-texture-array", "/consumer/host-kernel.so", "a" * 64)
+
+    def test_unsupported_array_does_not_require_sampling(self):
+        validate_helper(self.helper_markers(["RegisteredTexture"]), "registered-texture-array", "/consumer/host-kernel.so", "a" * 64, True)
 
 
 if __name__ == "__main__":

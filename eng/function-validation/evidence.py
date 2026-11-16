@@ -2,14 +2,26 @@
 import json
 import re
 
-HOST_SYMBOLS = {"host-runtime": "ValidationKernel", "host-attributes": "ValidationKernel", "host-symbol": "ValidationSymbol"}
+HOST_SYMBOLS = {"host-runtime": ("ValidationKernel",), "host-attributes": ("ValidationKernel",), "host-symbol": ("ValidationSymbol",),
+                "registered-texture-parameters": ("RegisteredTexture",), "registered-texture-array": ("RegisteredTexture", "RegisteredTextureKernel"),
+                "registered-texture-linear": ("RegisteredTexture",), "registered-texture-pitched": ("RegisteredTexture", "RegisteredTextureKernel")}
+FATBIN_FIXTURES = ("module-texture-array", "module-texture-linear", "module-texture-pitched")
 
 
-def validate_helper(log, fixture, helper_path, helper_hash):
+def validate_fatbinary(log, path, digest):
+    records = [json.loads(line[len("NATIVE_FATBIN="):], object_pairs_hook=unique_object)
+               for line in log.splitlines() if line.startswith("NATIVE_FATBIN=")]
+    if records != [dict(path=str(path), sha256=digest)]:
+        raise ValueError("Missing, duplicate, or mismatched native fatbinary marker")
+
+
+def validate_helper(log, fixture, helper_path, helper_hash, restricted=False):
     records = [json.loads(line[len("NATIVE_HELPER="):], object_pairs_hook=unique_object)
                for line in log.splitlines() if line.startswith("NATIVE_HELPER=")]
-    expected = dict(path=str(helper_path), sha256=helper_hash, symbol=HOST_SYMBOLS[fixture])
-    if records != [expected]:
+    expected = [dict(path=str(helper_path), sha256=helper_hash, symbol=symbol) for symbol in HOST_SYMBOLS[fixture]]
+    if restricted and fixture in ("registered-texture-array", "registered-texture-pitched"):
+        expected = expected[:1]
+    if records != expected:
         raise ValueError("Missing, duplicate, or mismatched registered native helper marker")
 
 

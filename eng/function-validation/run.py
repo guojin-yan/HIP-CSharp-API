@@ -14,7 +14,7 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 sys.dont_write_bytecode = True
-from evidence import parse, inventory, validate_helper
+from evidence import parse, inventory, validate_helper, HOST_SYMBOLS, FATBIN_FIXTURES, validate_fatbinary
 
 FIXTURES = ("device", "device-config", "context", "context-flags", "primary-context", "primary-context-flags", "copy-aliases",
             "memset-1d", "memset-2d8", "memset-2d16", "memset-2d32", "memset-2d16-async", "memset-2d32-async", "host", "pointer", "stream-event", "capture",
@@ -23,8 +23,11 @@ FIXTURES = ("device", "device-config", "context", "context-flags", "primary-cont
             "driver-copy", "callbacks", "user-object", "graph-update", "array-2d", "mipmapped-array", "texture-queries", "device-identity",
             "library", "driver-link", "graph-kernel", "pitched-runtime", "extension-stream", "graph-allocation", "generic-graph", "proc-address",
             "driver-texture", "driver-mipmapped", "host-runtime", "host-attributes", "host-symbol",
-            "runtime-graph-copy", "driver-graph-memset", "stream-values", "stream-batch", "graph-batch", "capture-to-graph", "primary-lifetime", "device-reset", "batch-copy", "batch-copy-3d")
-HOST_FIXTURES = ("host-runtime", "host-attributes", "host-symbol")
+            "runtime-graph-copy", "driver-graph-memset", "stream-values", "stream-batch", "graph-batch", "capture-to-graph", "primary-lifetime", "device-reset", "batch-copy", "batch-copy-3d",
+            "registered-texture-parameters", "registered-texture-array", "registered-texture-linear", "registered-texture-pitched",
+            "negative-memory", "negative-streams", "negative-events", "negative-graphs", "selection-diagnostics", "profiler", "module-global",
+            "module-texture-array", "module-texture-linear", "module-texture-pitched")
+HOST_FIXTURES = tuple(HOST_SYMBOLS) + FATBIN_FIXTURES
 
 
 def sha(path):
@@ -112,6 +115,22 @@ def main():
         helper_build = dict(file=helper.name, sha256=sha(helper), compiler=str(compiler), compilerSha256=sha(compiler),
                             source="eng/function-validation/host-kernel.hip", sourceSha256=sha(Path(__file__).parent / "host-kernel.hip"),
                             log="helper-build.log", logSha256=sha(output / "helper-build.log"))
+        if set(requested).intersection(FATBIN_FIXTURES):
+            object_file = output / ("host-kernel.obj" if os.name == "nt" else "host-kernel.o")
+            payload = output / "host-kernel.fatbin"
+            extractor = sdk / "lib/llvm/bin" / ("llvm-objcopy.exe" if os.name == "nt" else "llvm-objcopy")
+            commands = [[str(compiler), "-c", "--offload-arch=" + args.architecture, "-O2", "-std=c++17",
+                         str(Path(__file__).parent / "host-kernel.hip"), "-o", str(object_file)],
+                        [str(extractor), "--dump-section", ".hip_fatbin=" + str(payload), str(object_file)]]
+            for command in commands:
+                compiled = subprocess.run(command, cwd=output, env=helper_env, capture_output=True, text=True, encoding="utf-8", timeout=180)
+                with (output / "helper-build.log").open("a", encoding="utf-8") as log:
+                    log.write(compiled.stdout + compiled.stderr)
+                if compiled.returncode:
+                    raise RuntimeError("Native fatbinary build failed: " + str(output / "helper-build.log"))
+            helper_build["logSha256"] = sha(output / "helper-build.log")
+            helper_build["fatbinary"] = dict(file=payload.name, sha256=sha(payload), objectFile=object_file.name,
+                                              objectSha256=sha(object_file), extractor=str(extractor), extractorSha256=sha(extractor))
     feed = output / "feed"
     feed.mkdir()
     for path in (args.core, args.runtime):
@@ -158,6 +177,11 @@ def main():
         shutil.copy2(helper, target)
         env["HIPSHARP_TEST_HELPER"] = str(target)
         env["HIPSHARP_TEST_HELPER_SHA256"] = helper_build["sha256"]
+        if helper_build.get("fatbinary"):
+            deployed_payload = target.parent / payload.name
+            shutil.copy2(payload, deployed_payload)
+            env["HIPSHARP_TEST_FATBIN"] = str(deployed_payload)
+            env["HIPSHARP_TEST_FATBIN_SHA256"] = helper_build["fatbinary"]["sha256"]
     model = json.loads((repository / "eng/interop/complete-api-model.json").read_text(encoding="utf-8-sig"))
     mapping = {"Raw." + f["managedName"]: f["entryPoint"] for f in model["runtimeFunctions"]}
     mapping.update({"Rtc." + f["managedName"]: f["entryPoint"] for f in model["rtcFunctions"]})
@@ -175,8 +199,10 @@ def main():
         log_path.write_text(log, encoding="utf-8")
         try:
             evidence = parse(log, code, fixture, mapping)
-            if evidence["passed"] and fixture in HOST_FIXTURES:
-                validate_helper(log, fixture, target, helper_build["sha256"])
+            if evidence["passed"] and fixture in HOST_SYMBOLS:
+                validate_helper(log, fixture, target, helper_build["sha256"], bool(evidence["nativeRestrictions"]))
+            if evidence["passed"] and fixture in FATBIN_FIXTURES:
+                validate_fatbinary(log, deployed_payload, helper_build["fatbinary"]["sha256"])
         except ValueError as error:
             evidence = dict(passed=False, functions={}, nativeRestrictions=[], evidenceError=str(error))
         item = dict(fixture=fixture, exitCode=code, log=log_path.name, logSha256=sha(log_path), **evidence)
