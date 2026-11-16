@@ -4,8 +4,9 @@ import re
 
 HOST_SYMBOLS = {"host-runtime": ("ValidationKernel",), "host-attributes": ("ValidationKernel",), "host-symbol": ("ValidationSymbol",),
                 "registered-texture-parameters": ("RegisteredTexture",), "registered-texture-array": ("RegisteredTexture", "RegisteredTextureKernel"),
-                "registered-texture-linear": ("RegisteredTexture",), "registered-texture-pitched": ("RegisteredTexture", "RegisteredTextureKernel")}
-FATBIN_FIXTURES = ("module-texture-array", "module-texture-linear", "module-texture-pitched")
+                "registered-texture-linear": ("RegisteredTexture",), "registered-texture-pitched": ("RegisteredTexture", "RegisteredTextureKernel"),
+                "registered-texture-mipmapped": ("RegisteredTexture", "RegisteredTextureKernel"), "legacy-device-properties": ("ValidationKernel",)}
+FATBIN_FIXTURES = ("module-texture-array", "module-texture-linear", "module-texture-pitched", "module-texture-mipmapped")
 
 
 def validate_fatbinary(log, path, digest):
@@ -19,7 +20,7 @@ def validate_helper(log, fixture, helper_path, helper_hash, restricted=False):
     records = [json.loads(line[len("NATIVE_HELPER="):], object_pairs_hook=unique_object)
                for line in log.splitlines() if line.startswith("NATIVE_HELPER=")]
     expected = [dict(path=str(helper_path), sha256=helper_hash, symbol=symbol) for symbol in HOST_SYMBOLS[fixture]]
-    if restricted and fixture in ("registered-texture-array", "registered-texture-pitched"):
+    if restricted and fixture in ("registered-texture-array", "registered-texture-pitched", "registered-texture-mipmapped"):
         expected = expected[:1]
     if records != expected:
         raise ValueError("Missing, duplicate, or mismatched registered native helper marker")

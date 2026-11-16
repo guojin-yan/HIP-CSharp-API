@@ -26,7 +26,8 @@ FIXTURES = ("device", "device-config", "context", "context-flags", "primary-cont
             "runtime-graph-copy", "driver-graph-memset", "stream-values", "stream-batch", "graph-batch", "capture-to-graph", "primary-lifetime", "device-reset", "batch-copy", "batch-copy-3d",
             "registered-texture-parameters", "registered-texture-array", "registered-texture-linear", "registered-texture-pitched",
             "negative-memory", "negative-streams", "negative-events", "negative-graphs", "selection-diagnostics", "profiler", "module-global",
-            "module-texture-array", "module-texture-linear", "module-texture-pitched")
+            "module-texture-array", "module-texture-linear", "module-texture-pitched", "module-texture-mipmapped",
+            "registered-texture-mipmapped", "legacy-device-properties", "peer-single-device", "stream-attach", "profiler-stop", "managed-basic", "driver-graph-allocation", "texture-resource-view")
 HOST_FIXTURES = tuple(HOST_SYMBOLS) + FATBIN_FIXTURES
 
 

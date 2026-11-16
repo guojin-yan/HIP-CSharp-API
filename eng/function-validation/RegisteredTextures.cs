@@ -64,4 +64,24 @@ internal static unsafe partial class Program
         }
         finally { if (bound) Check(Raw.UnbindTexture(texture)); Check(Raw.Free(pointer)); }
     }
+
+    private static void RegisteredTextureMipmapped()
+    {
+        IntPtr texture = LoadHelperPointer("RegisteredTexture"), mipmapped = 0, array = 0;
+        var channel = new HipChannelFormatDescriptor(8, 0, 0, 0, HipChannelFormatKind.UnsignedInteger);
+        if (!Capability(Raw.MallocMipmappedArray((IntPtr)(&mipmapped), (IntPtr)(&channel), new HipExtent(64, 4, 0), 2, 0))) return;
+        bool bound = false;
+        try
+        {
+            Check(Raw.GetMipmappedArrayLevel((IntPtr)(&array), mipmapped, 0));
+            byte* data = stackalloc byte[256]; new Span<byte>(data, 256).Fill(41);
+            Check(Raw.Memcpy2DToArray(array, 0, 0, (IntPtr)data, 64, 64, 4, 1));
+            Check(Raw.TexRefSetFlags(texture, 3)); // Integer reads and normalized coordinates are required.
+            if (!Capability(Raw.BindTextureToMipmappedArray(texture, mipmapped, (IntPtr)(&channel)))) return;
+            bound = true; IntPtr query = 0;
+            Check(Raw.TexRefGetMipMappedArray((IntPtr)(&query), texture)); Require(query == mipmapped, "Registered mipmapped array.");
+            SampleTexture();
+        }
+        finally { if (bound) Check(Raw.UnbindTexture(texture)); Check(Raw.FreeMipmappedArray(mipmapped)); }
+    }
 }

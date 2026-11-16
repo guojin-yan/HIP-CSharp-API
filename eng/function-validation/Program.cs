@@ -138,6 +138,15 @@ internal static unsafe partial class Program
             case "module-texture-array": ModuleTexture(0); break;
             case "module-texture-linear": ModuleTexture(1); break;
             case "module-texture-pitched": ModuleTexture(2); break;
+            case "module-texture-mipmapped": ModuleTexture(3); break;
+            case "registered-texture-mipmapped": RegisteredTextureMipmapped(); break;
+            case "legacy-device-properties": LegacyDeviceProperties(); break;
+            case "peer-single-device": PeerSingleDevice(); break;
+            case "stream-attach": StreamAttach(); break;
+            case "profiler-stop": ProfilerStopOnly(); break;
+            case "managed-basic": ManagedBasic(); break;
+            case "driver-graph-allocation": DriverGraphAllocation(); break;
+            case "texture-resource-view": TextureResourceView(); break;
             default: throw new ArgumentException("Unknown fixture: " + fixture);
         }
         Console.WriteLine("FUNCTION_FIXTURE=" + JsonSerializer.Serialize(new {

@@ -21,18 +21,32 @@ internal static unsafe partial class Program
 
     private static void ModuleTexture(int mode)
     {
-        byte[] bytes = LoadFatbinary(); IntPtr module = 0, texture = 0, array = 0, pointer = 0; UIntPtr pitch = 0;
+        byte[] bytes = LoadFatbinary(); IntPtr module = 0, texture = 0, array = 0, mipmapped = 0, pointer = 0; UIntPtr pitch = 0;
         fixed (byte* image = bytes) Check(Raw.ModuleLoadFatBinary((IntPtr)(&module), (IntPtr)image));
         bool bound = false;
         try
         {
             using var name = new Utf8("ValidationTexture");
-            Check(Raw.ModuleGetTexRef((IntPtr)(&texture), module, name.Pointer)); Require(texture != 0, "Module texture reference.");
+            if (!Capability(Raw.ModuleGetTexRef((IntPtr)(&texture), module, name.Pointer))) return;
+            Require(texture != 0, "Module texture reference.");
             if (!Capability(Raw.TexRefSetFormat(texture, 1, 1))) return;
             Check(Raw.TexRefSetFlags(texture, 1)); // HIP_TRSF_READ_AS_INTEGER for unsigned-byte sampling.
             Check(Raw.TexRefSetAddressMode(texture, 0, 1)); Check(Raw.TexRefSetAddressMode(texture, 1, 1));
             Check(Raw.TexRefSetFilterMode(texture, 0));
-            if (mode == 0)
+            if (mode == 3)
+            {
+                var channel = new HipChannelFormatDescriptor(8, 0, 0, 0, HipChannelFormatKind.UnsignedInteger);
+                if (!Capability(Raw.MallocMipmappedArray((IntPtr)(&mipmapped), (IntPtr)(&channel), new HipExtent(64, 4, 0), 2, 0))) return;
+                Check(Raw.GetMipmappedArrayLevel((IntPtr)(&array), mipmapped, 0));
+                byte* host = stackalloc byte[256]; new Span<byte>(host, 256).Fill(41);
+                Check(Raw.Memcpy2DToArray(array, 0, 0, (IntPtr)host, 64, 64, 4, 1));
+                Check(Raw.TexRefSetFlags(texture, 3));
+                if (!Capability(Raw.TexRefSetMipmappedArray(texture, mipmapped, 1))) return;
+                bound = true; IntPtr query = 0;
+                Check(Raw.TexRefGetMipMappedArray((IntPtr)(&query), texture)); Require(query == mipmapped, "Driver module mipmapped reference.");
+                SampleModuleTexture(module);
+            }
+            else if (mode == 0)
             {
                 var channel = new HipChannelFormatDescriptor(8, 0, 0, 0, HipChannelFormatKind.UnsignedInteger);
                 if (!Capability(Raw.MallocArray((IntPtr)(&array), (IntPtr)(&channel), 64, 4, 0))) return;
@@ -63,7 +77,9 @@ internal static unsafe partial class Program
         }
         finally
         {
-            if (bound) Check(Raw.UnbindTexture(texture)); if (array != 0) Check(Raw.FreeArray(array)); if (pointer != 0) Check(Raw.Free(pointer));
+            if (bound) Check(Raw.UnbindTexture(texture));
+            if (mipmapped != 0) Check(Raw.FreeMipmappedArray(mipmapped)); else if (array != 0) Check(Raw.FreeArray(array));
+            if (pointer != 0) Check(Raw.Free(pointer));
             Check(Raw.ModuleUnload(module));
         }
     }

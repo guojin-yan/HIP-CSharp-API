@@ -116,6 +116,17 @@ class EvidenceBoundaryTests(unittest.TestCase):
     def test_unsupported_array_does_not_require_sampling(self):
         validate_helper(self.helper_markers(["RegisteredTexture"]), "registered-texture-array", "/consumer/host-kernel.so", "a" * 64, True)
 
+    def test_mipmapped_sampling_export_is_required(self):
+        with self.assertRaises(ValueError):
+            validate_helper(self.helper_markers(["RegisteredTexture"]), "registered-texture-mipmapped", "/consumer/host-kernel.so", "a" * 64)
+
+    def test_mipmapped_restriction_keeps_registered_reference(self):
+        validate_helper(self.helper_markers(["RegisteredTexture"]), "registered-texture-mipmapped", "/consumer/host-kernel.so", "a" * 64, True)
+
+    def test_property_layout_requires_compiled_helper_identity(self):
+        with self.assertRaises(ValueError):
+            validate_helper(self.helper_markers(["RegisteredTexture"]), "legacy-device-properties", "/consumer/host-kernel.so", "a" * 64)
+
 
 if __name__ == "__main__":
     unittest.main()

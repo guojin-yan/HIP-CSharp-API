@@ -1,4 +1,5 @@
 #include <hip/hip_runtime.h>
+#include <hip/hip_deprecated.h>
 #include <cstddef>
 // These test-only C# descriptors are intentionally checked against the installed compiler headers.
 static_assert(sizeof(hipStreamBatchMemOpParams) == 48);
@@ -9,6 +10,11 @@ static_assert(sizeof(hipBatchMemOpNodeParams) == 32);
 static_assert(offsetof(hipBatchMemOpNodeParams, paramArray) == 16);
 static_assert(sizeof(hipMemcpy3DOperand) == 40);
 static_assert(sizeof(hipMemcpy3DBatchOp) == 112);
+static_assert(sizeof(hipDeviceProp_tR0000) == 792);
+static_assert(offsetof(hipDeviceProp_tR0000, totalGlobalMem) == 256);
+static_assert(offsetof(hipDeviceProp_tR0000, major) == 328);
+static_assert(offsetof(hipDeviceProp_tR0000, minor) == 332);
+static_assert(offsetof(hipDeviceProp_tR0000, multiProcessorCount) == 336);
 #if defined(_WIN32)
 #define EXPORTED __declspec(dllexport)
 #else
