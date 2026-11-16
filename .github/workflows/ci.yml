@@ -37,6 +37,10 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Function receipt inventory failed.' }
           python -B ./eng/interface-coverage/test-function-evidence.py
           if ($LASTEXITCODE -ne 0) { throw 'Function evidence boundary tests failed.' }
+          python -B ./eng/function-validation/test-evidence.py
+          if ($LASTEXITCODE -ne 0) { throw 'Native fixture log boundary tests failed.' }
+          python -B ./eng/function-validation/test-verification.py
+          if ($LASTEXITCODE -ne 0) { throw 'Native fixture artifact verification tests failed.' }
         shell: pwsh
       - name: Test and audit package
         shell: pwsh
@@ -77,6 +81,8 @@ jobs:
           python3 ./eng/test-local-runtime-provenance.py
           python3 -B ./eng/interface-coverage/verify-function-evidence.py
           python3 -B ./eng/interface-coverage/test-function-evidence.py
+          python3 -B ./eng/function-validation/test-evidence.py
+          python3 -B ./eng/function-validation/test-verification.py
       - name: Upload Linux test artifacts
         if: always()
         uses: actions/upload-artifact@v4

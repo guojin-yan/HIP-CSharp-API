@@ -65,3 +65,5 @@ Use `eng/test-local-runtime-package.ps1 -InteropBoundaries` for an additional ex
 Failed submission rollback attempts to return every resource borrow, even if one native cleanup fails. It reports the first cleanup failure after attempting the remaining borrows. The owner and a retained completion lease can both retry a failed final cleanup without decrementing the borrower count twice. Graphics map rollback also returns stream ownership when resource unregistration fails. Keep failed owners/streams alive and retry disposal after resolving the native error.
 
 提交失败后的回滚会尝试归还全部资源租约，单个原生清理失败不会阻止其余租约归还；全部尝试后报告首个清理错误。owner 和保留的完成租约均可重试最终清理，不会重复递减借用计数。graphics map 回滚即使注销资源失败，也会归还 stream 所有权。出现清理失败时，应保留 owner/stream，在解决原生错误后重试释放。
+
+For isolated raw API data/query/lifecycle fixtures and observed local Runtime defects, see [native function validation](native-function-validation.md). These package-specific local receipts are separate from reviewed KFD/cloud evidence and preserve native failures.
