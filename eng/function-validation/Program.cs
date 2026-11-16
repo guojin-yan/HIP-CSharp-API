@@ -17,7 +17,7 @@ internal static unsafe partial class Program
         if (!value) throw new InvalidOperationException(reason);
     }
 
-    // Only used for documented deprecated context hints and unsupported array capability.
+    // Native NotSupported is a recorded platform restriction, never successful function evidence.
     // A restriction is reported separately and never becomes positive function evidence.
     private static bool Capability(HipError result, [CallerArgumentExpression(nameof(result))] string expression = "")
     {
@@ -34,6 +34,13 @@ internal static unsafe partial class Program
         string? text = Marshal.PtrToStringUTF8(result);
         Require(!string.IsNullOrWhiteSpace(text), "Missing native text: " + expression);
         var call = new { expression, result = text, expected = text, phase = "positive", returnKind = "validated-text" };
+        Calls.Add(call); Console.WriteLine("NATIVE_CALL=" + JsonSerializer.Serialize(call));
+    }
+
+    private static void CheckScalar(int result, int expected, [CallerArgumentExpression(nameof(result))] string expression = "")
+    {
+        Require(result == expected, expression + ": scalar result mismatch.");
+        var call = new { expression, result, expected, phase = "positive", returnKind = "validated-scalar" };
         Calls.Add(call); Console.WriteLine("NATIVE_CALL=" + JsonSerializer.Serialize(call));
     }
 
@@ -94,6 +101,29 @@ internal static unsafe partial class Program
             case "mipmapped-array": MipmappedArray(); break;
             case "texture-queries": TextureQueries(); break;
             case "device-identity": DeviceIdentity(); break;
+            case "library": Library(); break;
+            case "driver-link": DriverLink(); break;
+            case "graph-kernel": GraphKernel(); break;
+            case "pitched-runtime": PitchedRuntime(); break;
+            case "extension-stream": ExtensionStream(); break;
+            case "graph-allocation": GraphAllocation(); break;
+            case "generic-graph": GenericGraph(); break;
+            case "proc-address": ProcAddress(); break;
+            case "driver-texture": DriverTextureObject(); break;
+            case "driver-mipmapped": DriverMipmapped(); break;
+            case "host-runtime": HostRuntime(); break;
+            case "host-attributes": HostAttributes(); break;
+            case "host-symbol": HostSymbol(); break;
+            case "runtime-graph-copy": RuntimeGraphCopy(); break;
+            case "driver-graph-memset": DriverGraphMemset(); break;
+            case "stream-values": StreamValues(); break;
+            case "stream-batch": BatchMemory(false); break;
+            case "graph-batch": BatchMemory(true); break;
+            case "capture-to-graph": CaptureToGraph(); break;
+            case "primary-lifetime": PrimaryLifetime(); break;
+            case "device-reset": DeviceReset(); break;
+            case "batch-copy": BatchCopies(false); break;
+            case "batch-copy-3d": BatchCopies(true); break;
             default: throw new ArgumentException("Unknown fixture: " + fixture);
         }
         Console.WriteLine("FUNCTION_FIXTURE=" + JsonSerializer.Serialize(new {

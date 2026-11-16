@@ -13,6 +13,7 @@ def main():
     parser.add_argument("--native-directory", type=Path, required=True)
     parser.add_argument("--manifest", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
+    parser.add_argument("--bitcode", type=Path)
     args = parser.parse_args()
     repository = Path(__file__).resolve().parents[2]
     output = args.output.resolve()
@@ -60,6 +61,65 @@ def main():
     finally:
         success("hipDevicePrimaryCtxRelease", [integer], 0)
         success("hipDevicePrimaryCtxReset", [integer], 0)
+    class BatchOperation(c.Structure):
+        _fields_ = [("operation", integer), ("address", ptr), ("value", c.c_uint64),
+                    ("flags", c.c_uint), ("alias", ptr), ("padding", c.c_uint64)]
+    class BatchNode(c.Structure):
+        _fields_ = [("context", ptr), ("count", c.c_uint), ("parameters", ptr), ("flags", c.c_uint)]
+    assert c.sizeof(BatchOperation) == 48 and BatchOperation.address.offset == 8 and BatchOperation.value.offset == 16
+    assert c.sizeof(BatchNode) == 32 and BatchNode.parameters.offset == 16
+    batch_observations = []
+    signal, stream = ptr(), ptr()
+    success("hipExtMallocWithFlags", [c.POINTER(ptr), size, c.c_uint], c.byref(signal), 8, 2)
+    try:
+        success("hipStreamCreate", [c.POINTER(ptr)], c.byref(stream))
+        for graph_mode in (False, True):
+            graph, executable, node, context = ptr(), ptr(), ptr(), ptr()
+            success("hipStreamWriteValue64", [ptr, ptr, c.c_uint64, c.c_uint], stream, signal, 0, 0)
+            success("hipStreamSynchronize", [ptr], stream)
+            operations = (BatchOperation * 2)()
+            operations[0].operation, operations[0].address, operations[0].value = 5, signal.value, 0x123456789ABCDEF0
+            operations[1].operation, operations[1].address, operations[1].value, operations[1].flags = 4, signal.value, operations[0].value, 1
+            try:
+                if graph_mode:
+                    success("hipCtxGetCurrent", [c.POINTER(ptr)], c.byref(context))
+                    success("hipGraphCreate", [c.POINTER(ptr), c.c_uint], c.byref(graph), 0)
+                    parameters = BatchNode(context, 2, c.cast(operations, ptr), 0)
+                    success("hipGraphAddBatchMemOpNode", [c.POINTER(ptr), ptr, ptr, size, c.POINTER(BatchNode)], c.byref(node), graph, None, 0, c.byref(parameters))
+                    success("hipGraphInstantiateWithFlags", [c.POINTER(ptr), ptr, c.c_uint64], c.byref(executable), graph, 0)
+                    success("hipGraphLaunch", [ptr, ptr], executable, stream)
+                else:
+                    success("hipStreamBatchMemOp", [ptr, c.c_uint, ptr, c.c_uint], stream, 2, operations, 0)
+                success("hipStreamSynchronize", [ptr], stream)
+                actual = c.c_uint64()
+                success("hipMemcpyDtoH", [ptr, ptr, size], c.byref(actual), signal, 8)
+                batch_observations.append(dict(graph=graph_mode, expected=operations[0].value, actual=actual.value, matched=actual.value == operations[0].value))
+            finally:
+                if executable: success("hipGraphExecDestroy", [ptr], executable)
+                if graph: success("hipGraphDestroy", [ptr], graph)
+    finally:
+        if stream: success("hipStreamDestroy", [ptr], stream)
+        success("hipFree", [ptr], signal)
+    class Channel(c.Structure):
+        _fields_ = [(name, integer) for name in ("x", "y", "z", "w", "kind")]
+    channel = Channel(32, 0, 0, 0, 2)
+    texture_width = size()
+    success("hipDeviceGetTexture1DLinearMaxWidth", [c.POINTER(size), c.POINTER(Channel), integer], c.byref(texture_width), c.byref(channel), 0)
+    driver_link = []
+    if args.bitcode:
+        image = args.bitcode.read_bytes()
+        for mode in ("data", "file"):
+            state = ptr()
+            success("hipLinkCreate", [c.c_uint, ptr, ptr, c.POINTER(ptr)], 0, None, None, c.byref(state))
+            try:
+                if mode == "data":
+                    storage = c.create_string_buffer(image)
+                    result = call("hipLinkAddData", [ptr, integer, ptr, size, c.c_char_p, c.c_uint, ptr, ptr], state, 100, storage, len(image), b"input.bc", 0, None, None)
+                else:
+                    result = call("hipLinkAddFile", [ptr, integer, c.c_char_p, c.c_uint, ptr, ptr], state, 100, os.fsencode(args.bitcode.resolve()), 0, None, None)
+                driver_link.append(dict(mode=mode, inputSha256=hashlib.sha256(image).hexdigest(), inputType=100, result=result))
+            finally:
+                success("hipLinkDestroy", [ptr], state)
     device = ptr()
     success("hipMalloc", [c.POINTER(ptr), size], c.byref(device), 1024)
     observations = []
@@ -94,7 +154,8 @@ def main():
     finally:
         success("hipCtxDestroy", [ptr], context)
     result = dict(scope="direct-native-control-no-managed-assembly", library=str(library), librarySha256=hashes[library.name],
-                  calls=calls, memset=observations, primaryContext=dict(before=before, afterRetain=after, setFlagsResult=flag_result))
+                  calls=calls, memset=observations, primaryContext=dict(before=before, afterRetain=after, setFlagsResult=flag_result),
+                  textureLinearMaximumWidth=texture_width.value, driverLink=driver_link, batchMemory=batch_observations)
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(result, indent=2) + "\n", encoding="utf-8")
     print(json.dumps(dict(memsetMatched=[v["matched"] for v in observations], primaryContext=result["primaryContext"])))

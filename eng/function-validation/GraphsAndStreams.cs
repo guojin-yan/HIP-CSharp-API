@@ -15,7 +15,7 @@ internal static unsafe partial class Program
             Check(Raw.StreamGetFlags(first, (IntPtr)(&flags))); Require(flags == 1, "Stream flags.");
             Check(Raw.StreamGetPriority(first, (IntPtr)(&priority))); Require(priority == 0, "Stream priority.");
             Check(Raw.StreamGetDevice(first, (IntPtr)(&device))); Require(device == 0, "Stream device.");
-            Require(Raw.GetStreamDeviceId(first) == device, "Stream device ID differs.");
+            CheckScalar(Raw.GetStreamDeviceId(first), device);
             ulong firstId = ulong.MaxValue, secondId = ulong.MaxValue;
             Check(Raw.StreamGetId(first, (IntPtr)(&firstId))); Check(Raw.StreamGetId(second, (IntPtr)(&secondId)));
             Require(firstId != secondId, "Stream IDs not unique.");

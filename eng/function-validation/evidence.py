@@ -2,6 +2,16 @@
 import json
 import re
 
+HOST_SYMBOLS = {"host-runtime": "ValidationKernel", "host-attributes": "ValidationKernel", "host-symbol": "ValidationSymbol"}
+
+
+def validate_helper(log, fixture, helper_path, helper_hash):
+    records = [json.loads(line[len("NATIVE_HELPER="):], object_pairs_hook=unique_object)
+               for line in log.splitlines() if line.startswith("NATIVE_HELPER=")]
+    expected = dict(path=str(helper_path), sha256=helper_hash, symbol=HOST_SYMBOLS[fixture])
+    if records != [expected]:
+        raise ValueError("Missing, duplicate, or mismatched registered native helper marker")
+
 
 def unique_object(pairs):
     result = {}
@@ -47,6 +57,9 @@ def parse(log, exit_code, fixture, mapping):
         if call.get("returnKind") == "validated-text":
             if phase != "positive" or not isinstance(call.get("result"), str) or not call["result"].strip():
                 raise ValueError("Missing validated native text")
+        elif call.get("returnKind") == "validated-scalar":
+            if phase != "positive" or type(call.get("result")) is not int or type(call.get("expected")) is not int:
+                raise ValueError("Missing validated native scalar")
         else:
             if type(call.get("result")) is not int or type(call.get("expected")) is not int:
                 raise ValueError("Native status must be an integer")

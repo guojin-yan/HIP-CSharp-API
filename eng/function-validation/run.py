@@ -14,18 +14,30 @@ import xml.etree.ElementTree as ET
 import zipfile
 
 sys.dont_write_bytecode = True
-from evidence import parse, inventory
+from evidence import parse, inventory, validate_helper
 
 FIXTURES = ("device", "device-config", "context", "context-flags", "primary-context", "primary-context-flags", "copy-aliases",
             "memset-1d", "memset-2d8", "memset-2d16", "memset-2d32", "memset-2d16-async", "memset-2d32-async", "host", "pointer", "stream-event", "capture",
             "graph-topology", "graph-events", "graph-host", "graph-memory", "graph-child",
             "rtc-code", "rtc-link", "rtc-negative", "module", "virtual-memory", "memory-pool", "array-copy", "array-driver", "negative-parameters",
-            "driver-copy", "callbacks", "user-object", "graph-update", "array-2d", "mipmapped-array", "texture-queries", "device-identity")
+            "driver-copy", "callbacks", "user-object", "graph-update", "array-2d", "mipmapped-array", "texture-queries", "device-identity",
+            "library", "driver-link", "graph-kernel", "pitched-runtime", "extension-stream", "graph-allocation", "generic-graph", "proc-address",
+            "driver-texture", "driver-mipmapped", "host-runtime", "host-attributes", "host-symbol",
+            "runtime-graph-copy", "driver-graph-memset", "stream-values", "stream-batch", "graph-batch", "capture-to-graph", "primary-lifetime", "device-reset", "batch-copy", "batch-copy-3d")
+HOST_FIXTURES = ("host-runtime", "host-attributes", "host-symbol")
 
 
 def sha(path):
     with open(path, "rb") as stream:
         return hashlib.file_digest(stream, "sha256").hexdigest()
+
+
+def tool_snapshot(repository):
+    directory = repository / "eng/function-validation"
+    files = sorted(p for pattern in ("*.py", "*.cs", "*.hip") for p in directory.glob(pattern))
+    files += [repository / "eng/local-runtime" / name for name in ("PackageRunner.cs", "PackageModuleAudit.cs")]
+    files.append(repository / "eng/interop/complete-api-model.json")
+    return {str(p.relative_to(repository)).replace("\\", "/"): sha(p) for p in files}
 
 
 def metadata(path):
@@ -45,17 +57,18 @@ def main():
     parser.add_argument("--runtime", type=Path, required=True)
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--architecture", default="gfx1100")
+    parser.add_argument("--hip-root", type=Path, help="Installed HIP SDK used only to compile registered host test symbols")
     parser.add_argument("--fixture", action="append", choices=FIXTURES)
     args = parser.parse_args()
     if not re.fullmatch(r"gfx[0-9a-f]+", args.architecture):
         raise ValueError("Invalid architecture")
+    requested = args.fixture or FIXTURES
+    if set(requested).intersection(HOST_FIXTURES) and not args.hip_root:
+        raise ValueError("Host symbol fixtures require --hip-root for the offline native helper build")
     repository = Path(__file__).resolve().parents[2]
     commit = subprocess.check_output(["git", "-C", str(repository), "rev-parse", "HEAD"], text=True).strip()
     dirty = bool(subprocess.check_output(["git", "-C", str(repository), "status", "--porcelain"], text=True).strip())
-    tool_files = sorted(Path(__file__).parent.glob("*.py")) + sorted(Path(__file__).parent.glob("*.cs"))
-    tool_files += [repository / "eng/local-runtime" / name for name in ("PackageRunner.cs", "PackageModuleAudit.cs")]
-    tool_files.append(repository / "eng/interop/complete-api-model.json")
-    snapshot = {str(p.relative_to(repository)).replace("\\", "/"): sha(p) for p in tool_files}
+    snapshot = tool_snapshot(repository)
     output = args.output.resolve()
     if output == repository or repository in output.parents:
         raise ValueError("Output must be outside source repository")
@@ -79,6 +92,26 @@ def main():
             if hashlib.sha256(package.read(item["packagePath"])).hexdigest() != item["sha256"]:
                 raise ValueError("Runtime manifest hash mismatch: " + item["name"])
     output.mkdir(parents=True)
+    helper = None
+    helper_build = None
+    if set(requested).intersection(HOST_FIXTURES):
+        sdk = args.hip_root.resolve(strict=True)
+        compiler = sdk / "bin" / ("hipcc.exe" if os.name == "nt" else "hipcc")
+        helper = output / ("host-kernel.dll" if os.name == "nt" else "host-kernel.so")
+        helper_env = os.environ.copy()
+        helper_env["HIP_PATH"] = str(sdk)
+        helper_env["PATH"] = str(sdk / "bin") + os.pathsep + helper_env["PATH"]
+        command = [str(compiler), "-shared", "--offload-arch=" + args.architecture, "-O2", "-std=c++17"]
+        if os.name != "nt":
+            command += ["-fPIC", "-Wl,-rpath,$ORIGIN/runtimes/linux-x64/native"]
+        command += [str(Path(__file__).parent / "host-kernel.hip"), "-o", str(helper)]
+        compiled = subprocess.run(command, cwd=output, env=helper_env, capture_output=True, text=True, encoding="utf-8", timeout=180)
+        (output / "helper-build.log").write_text(compiled.stdout + compiled.stderr, encoding="utf-8")
+        if compiled.returncode or not helper.exists():
+            raise RuntimeError("Native helper build failed: " + str(output / "helper-build.log"))
+        helper_build = dict(file=helper.name, sha256=sha(helper), compiler=str(compiler), compilerSha256=sha(compiler),
+                            source="eng/function-validation/host-kernel.hip", sourceSha256=sha(Path(__file__).parent / "host-kernel.hip"),
+                            log="helper-build.log", logSha256=sha(output / "helper-build.log"))
     feed = output / "feed"
     feed.mkdir()
     for path in (args.core, args.runtime):
@@ -120,11 +153,16 @@ def main():
     (output / "build.log").write_text(build.stdout + build.stderr, encoding="utf-8")
     if build.returncode:
         raise RuntimeError("Consumer build failed: " + str(output / "build.log"))
+    if helper:
+        target = output / "bin/Release/net10.0" / helper.name
+        shutil.copy2(helper, target)
+        env["HIPSHARP_TEST_HELPER"] = str(target)
+        env["HIPSHARP_TEST_HELPER_SHA256"] = helper_build["sha256"]
     model = json.loads((repository / "eng/interop/complete-api-model.json").read_text(encoding="utf-8-sig"))
     mapping = {"Raw." + f["managedName"]: f["entryPoint"] for f in model["runtimeFunctions"]}
     mapping.update({"Rtc." + f["managedName"]: f["entryPoint"] for f in model["rtcFunctions"]})
     results = []
-    for fixture in args.fixture or FIXTURES:
+    for fixture in requested:
         try:
             run = subprocess.run(["dotnet", str(output / "bin/Release/net10.0/consumer.dll"), fixture],
                                  env=env, capture_output=True, text=True, encoding="utf-8", timeout=90)
@@ -137,13 +175,15 @@ def main():
         log_path.write_text(log, encoding="utf-8")
         try:
             evidence = parse(log, code, fixture, mapping)
+            if evidence["passed"] and fixture in HOST_FIXTURES:
+                validate_helper(log, fixture, target, helper_build["sha256"])
         except ValueError as error:
             evidence = dict(passed=False, functions={}, nativeRestrictions=[], evidenceError=str(error))
         item = dict(fixture=fixture, exitCode=code, log=log_path.name, logSha256=sha(log_path), **evidence)
         results.append(item)
         status = "FAILED" if not item["passed"] else "completed-with-native-restrictions" if item["nativeRestrictions"] else "passed"
         print(f"{fixture}: {status} ({len(item['functions'])} functions)", flush=True)
-    stable = snapshot == {str(p.relative_to(repository)).replace("\\", "/"): sha(p) for p in tool_files}
+    stable = snapshot == tool_snapshot(repository)
     stable = stable and commit == subprocess.check_output(["git", "-C", str(repository), "rev-parse", "HEAD"], text=True).strip()
     full_matrix = set(args.fixture or FIXTURES) == set(FIXTURES)
     all_supported = not any(r["nativeRestrictions"] for r in results)
@@ -152,7 +192,7 @@ def main():
                    rid=rid, wsl=Path("/dev/dxg").exists(), host=platform.platform(), architecture=args.architecture, sourceCommit=source_commit,
                    validationCommit=commit, sourceTreeDirty=dirty or bool(subprocess.check_output(["git", "-C", str(repository), "status", "--porcelain"], text=True).strip()),
                    core=dict(path=str(args.core), sha256=sha(args.core)), runtime=dict(path=str(args.runtime), sha256=sha(args.runtime)),
-                   toolSources=snapshot, results=results, functions=inventory(results, mapping))
+                   toolSources=snapshot, nativeHelper=helper_build, results=results, functions=inventory(results, mapping))
     (output / "summary.json").write_text(json.dumps(summary, indent=2) + "\n", encoding="utf-8")
     return 0 if summary["allPassed"] and stable and summary["allFunctionsSupported"] else 1
 

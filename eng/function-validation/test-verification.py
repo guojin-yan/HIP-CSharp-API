@@ -114,6 +114,94 @@ class ArtifactIntegrityTests(unittest.TestCase):
         self.summary["results"][0]["functions"] = {}
         with self.assertRaises(ValueError): self.verify()
 
+    def host_fixture(self):
+        source = self.repository / "eng/function-validation/host-kernel.hip"
+        source.parent.mkdir(parents=True)
+        source.write_text("registered test kernel", encoding="utf-8")
+        self.summary["toolSources"]["eng/function-validation/host-kernel.hip"] = sha(source)
+        compiler = self.root / "hipcc"
+        compiler.write_bytes(b"test compiler")
+        helper = self.output / "host-kernel.so"
+        helper.write_bytes(b"test registered helper")
+        deployed = self.output / "bin/Release/net10.0/host-kernel.so"
+        deployed.parent.mkdir(parents=True)
+        deployed.write_bytes(helper.read_bytes())
+        build_log = self.output / "helper-build.log"
+        build_log.write_text("compiled", encoding="utf-8")
+        self.summary["nativeHelper"] = dict(file=helper.name, sha256=sha(helper), compiler=str(compiler), compilerSha256=sha(compiler),
+                                           source="eng/function-validation/host-kernel.hip", sourceSha256=sha(source),
+                                           log=build_log.name, logSha256=sha(build_log))
+        result = self.summary["results"][0]
+        result.update(fixture="host-runtime", log="host-runtime.log")
+        log = self.log.read_text(encoding="utf-8").replace("device", "host-runtime")
+        marker = "NATIVE_HELPER=" + json.dumps(dict(path=str(deployed), sha256=sha(helper), symbol="ValidationKernel"))
+        self.log = self.output / result["log"]
+        self.log.write_text(log + "\n" + marker, encoding="utf-8")
+        self.rehash_host()
+
+    def rehash_host(self):
+        self.summary["results"][0]["logSha256"] = sha(self.log)
+        self.summary["functions"] = inventory(self.summary["results"], {"Raw.Init": "hipInit", **{
+            "Raw.Function" + str(i): "hipFunction" + str(i) for i in range(476)}})
+
+    def test_host_helper_binding(self):
+        self.host_fixture()
+        self.assertTrue(self.verify()["integrityVerified"])
+
+    def test_host_missing_build_identity(self):
+        self.host_fixture(); del self.summary["nativeHelper"]
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_missing_marker(self):
+        self.host_fixture()
+        self.log.write_text(self.log.read_text().split("\nNATIVE_HELPER=")[0], encoding="utf-8")
+        self.rehash_host()
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_duplicate_marker(self):
+        self.host_fixture()
+        log = self.log.read_text()
+        self.log.write_text(log + "\n" + log.splitlines()[-1], encoding="utf-8")
+        self.rehash_host()
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_wrong_symbol(self):
+        self.host_fixture()
+        self.log.write_text(self.log.read_text().replace("ValidationKernel", "ValidationSymbol"), encoding="utf-8")
+        self.rehash_host()
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_wrong_loaded_path(self):
+        self.host_fixture()
+        self.log.write_text(self.log.read_text().replace("host-kernel.so", "another-helper.so"), encoding="utf-8")
+        self.rehash_host()
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_changed_deployed_binary(self):
+        self.host_fixture()
+        (self.output / "bin/Release/net10.0/host-kernel.so").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_changed_build_binary(self):
+        self.host_fixture(); (self.output / "host-kernel.so").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_changed_build_log(self):
+        self.host_fixture(); (self.output / "helper-build.log").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_changed_compiler(self):
+        self.host_fixture(); (self.root / "hipcc").write_bytes(b"changed")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_unbound_source(self):
+        self.host_fixture(); self.summary["nativeHelper"]["sourceSha256"] = "0" * 64
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_host_source_path_escape(self):
+        self.host_fixture(); self.summary["nativeHelper"]["source"] = "../host-kernel.hip"
+        with self.assertRaises(ValueError): self.verify()
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -6,7 +6,7 @@ from pathlib import Path
 import sys
 
 sys.dont_write_bytecode = True
-from evidence import parse, inventory, unique_object
+from evidence import parse, inventory, unique_object, validate_helper, HOST_SYMBOLS
 from run import FIXTURES, metadata, sha
 
 
@@ -31,6 +31,25 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
     model = json.loads((repository / "eng/interop/complete-api-model.json").read_text(encoding="utf-8-sig"))
     mapping = {"Raw." + f["managedName"]: f["entryPoint"] for f in model["runtimeFunctions"]}
     mapping.update({"Rtc." + f["managedName"]: f["entryPoint"] for f in model["rtcFunctions"]})
+    helper = summary.get("nativeHelper")
+    uses_helper = any(r["fixture"] in HOST_SYMBOLS for r in summary["results"])
+    if uses_helper:
+        if not isinstance(helper, dict) or helper.get("file") not in ("host-kernel.dll", "host-kernel.so"):
+            raise ValueError("Missing or invalid native helper build identity")
+        if helper.get("source") != "eng/function-validation/host-kernel.hip" or helper.get("log") != "helper-build.log":
+            raise ValueError("Invalid helper source/log identity")
+        source_digest = summary["toolSources"].get(helper["source"])
+        if not source_digest or source_digest != helper.get("sourceSha256"):
+            raise ValueError("Unbound helper source")
+        deployed_helper = summary_path.parent / "bin/Release/net10.0" / helper["file"]
+        for path, digest in ((summary_path.parent / helper["file"], helper["sha256"]),
+                             (deployed_helper, helper["sha256"]),
+                             (summary_path.parent / helper["log"], helper["logSha256"]),
+                             (Path(helper["compiler"]), helper["compilerSha256"])):
+            if sha(path) != digest:
+                raise ValueError("Native helper build artifact mismatch: " + str(path))
+    elif helper is not None:
+        raise ValueError("Unexpected native helper without host fixtures")
     seen = set()
     for result in summary["results"]:
         name = result["fixture"]
@@ -41,6 +60,8 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
         if sha(path) != result["logSha256"]:
             raise ValueError("Execution log mismatch: " + name)
         parsed = parse(path.read_text(encoding="utf-8"), result["exitCode"], name, mapping)
+        if parsed["passed"] and name in HOST_SYMBOLS:
+            validate_helper(path.read_text(encoding="utf-8"), name, deployed_helper, helper["sha256"])
         for key in ("passed", "functions", "nativeRestrictions"):
             if parsed[key] != result[key]:
                 raise ValueError("Derived fixture evidence mismatch: " + name)

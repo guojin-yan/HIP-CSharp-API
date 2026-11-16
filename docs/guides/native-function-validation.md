@@ -5,13 +5,17 @@
 `eng/function-validation/run.py` 使用两个精确本地 nupkg 构建 .NET 10 PackageReference-only 消费者，采用独立本地 feed/cache，移除 SDK 搜索路径，并以独立进程运行每组夹具（90 秒超时）。项目、中间文件、诊断和证据全部写入仓库外的新目录；入口不下载依赖、不替换 Core 包。
 
 ```text
-python -B eng/function-validation/run.py --core <exact-core.nupkg> --runtime <exact-host-runtime.nupkg> --output <new-external-directory> --architecture gfx1100
+python -B eng/function-validation/run.py --core <exact-core.nupkg> --runtime <exact-host-runtime.nupkg> --hip-root <installed-HIP-SDK> --output <new-external-directory> --architecture gfx1100
 python -B eng/function-validation/verify.py <external-directory>/summary.json
 ```
 
 Use the pinned .NET 10.0.300 environment. The Runtime must be the local-development package for the current host RID. Each native file is checked against its package manifest before building. Every process runs the shared filename/path/SHA-256 module audit. Package identity, Core source commit, validation commit, tool hashes, host/WSL identity, ordered native-call traces and per-fixture log hashes are recorded. Source changes during execution invalidate stable evidence. `--fixture <name>` selects a subset and cannot claim a full fixture matrix.
 
 使用固定的 .NET 10.0.300 环境和匹配当前 RID 的 local-development Runtime 包。构建前逐项核对包内原生文件清单；每个进程核对实际模块文件名、路径及 SHA-256。摘要绑定 Core/Runtime 包、Core 源提交、工具提交/哈希、主机与 WSL 身份及原始日志。运行中修改源码会使证据不稳定；`--fixture` 子集不会标记完整矩阵。
+
+The host-kernel/global-symbol fixtures compile a test-only helper with the installed HIP compiler, then load it after the exact packaged Runtime. This helper stays outside the Core package. Its source, compiler executable, build log, built/deployed bytes and the actual loaded-helper marker are bound by hashes. Header `static_assert` checks verify the batch-operation descriptor layouts. `--hip-root` is required for these fixtures and the full matrix; subsets without host fixtures do not need a compiler. Module auditing still rejects SDK Runtime loading. The helper does not establish binary provenance or redistribution permission for the installed SDK.
+
+host kernel/global symbol 组通过本机 HIP 编译器生成测试辅助库，加载精确包 Runtime 后才加载该库；辅助库不进入 Core 包。核验绑定源码、编译器文件、编译日志、构建和部署后的二进制及实际加载标记，并通过头文件静态断言检查 batch descriptor 布局。完整矩阵和 host 组必须传入 `--hip-root`；其他子集无需编译器。模块审计仍拒绝从 SDK 加载 Runtime。这些记录不代替 SDK 的原始来源及再分发材料。
 
 The fixtures assert data copies, row padding, device and allocation queries, pinned-host mapping, stream/event ordering, capture frontiers, graph topology/clone/update/enable state, host callbacks, user-object destruction, HIPRTC diagnostics/code/bitcode/name lowering/linking, loaded-kernel execution, pool policies and retained virtual-memory ownership. Windows array fixtures exercise driver descriptors, mip levels, array copies and texture/surface descriptor round trips. They do not establish texture sampling correctness. Raw retained-allocation tests reject HIP older than 7.12 before invoking its unsafe native retain implementation.
 
@@ -28,6 +32,9 @@ The Windows and WSL local Runtime libraries were also called directly through `n
 - `hipMemsetD2D16`, `hipMemsetD2D32` and their Async variants return success while filling only `width` bytes per row. Their header contract describes `width` 16/32-bit elements. A 128-byte expected write with a 256-byte pitch stops after 64/32 bytes. Padding and untouched data are checked independently.
 - Immediately after `hipInit` and primary-context reset, `hipDevicePrimaryCtxGetState` reports inactive; `hipDevicePrimaryCtxSetFlags` returns 216, and state remains inactive after a successful retain. Context resource cleanup is still attempted.
 - Several deprecated context APIs return `NotSupported`, including flags, API version and cache/synchronization controls. Supported context operations are validated separately.
+- The driver `hipLinkAddData` and `hipLinkAddFile` reject LLVM bitcode input type 100 with `InvalidValue`, while the separate HIPRTC linker accepts the corresponding compiler output. Both data/file modes are also exercised by the direct-native control; they are not silently rerouted to HIPRTC.
+- Windows `hipStreamBatchMemOp` and graph batch-memory operations return success while leaving the requested 64-bit write at zero; the separate scalar stream-write/wait APIs pass. Direct-native controls reproduce the batch failure with header-checked layouts. The same batch operations pass on local WSL/Linux.
+- WSL `hipDeviceGetTexture1DLinearMaxWidth` returns success with a zero width for a valid channel descriptor, also observed without the managed assembly. Array-related `NotSupported` remains a separate WSL limitation.
 
 上述结果也通过不加载 C# 程序集的直接原生对照复现。它们是本地 Runtime 的开放边界，不通过修改 raw ABI、乘改调用参数、吞错或伪造成功来掩盖。尤其不能把此 Runtime 视为全部 477 接口均满足原生语义的正式发布依赖。
 

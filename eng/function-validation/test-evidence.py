@@ -92,6 +92,13 @@ class EvidenceBoundaryTests(unittest.TestCase):
         result = self.parse(self.mutate_call(result=1, expected=1, phase="negative"))
         self.assertEqual(result["functions"], {"hipInit": ["negative"]})
 
+    def test_scalar_return_not_error_code(self):
+        result = self.parse(self.mutate_call(result=3, expected=3, returnKind="validated-scalar"))
+        self.assertEqual(result["functions"], {"hipInit": ["positive"]})
+
+    def test_scalar_mismatch(self):
+        with self.assertRaises(ValueError): self.parse(self.mutate_call(result=3, expected=2, returnKind="validated-scalar"))
+
 
 if __name__ == "__main__":
     unittest.main()
