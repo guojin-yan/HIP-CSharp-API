@@ -134,6 +134,13 @@ class EvidenceBoundaryTests(unittest.TestCase):
     def test_d3d_resource_producer_export_bound(self):
         validate_helper(self.helper_markers(["D3D12Functions"]), "d3d12-external-semaphore", "/consumer/host-kernel.so", "a" * 64)
 
+    def test_gl_resource_producer_cannot_be_d3d_export(self):
+        with self.assertRaises(ValueError):
+            validate_helper(self.helper_markers(["D3D12Functions"]), "opengl-buffer", "/consumer/host-kernel.so", "a" * 64)
+
+    def test_gl_resource_producer_export_bound(self):
+        validate_helper(self.helper_markers(["OpenGLFunctions"]), "opengl-managed-buffer", "/consumer/host-kernel.so", "a" * 64)
+
 
 if __name__ == "__main__":
     unittest.main()

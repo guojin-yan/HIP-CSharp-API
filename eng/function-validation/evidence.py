@@ -10,7 +10,8 @@ HOST_SYMBOLS = {"host-runtime": ("ValidationKernel",), "host-attributes": ("Vali
                 "registered-texture-border": ("RegisteredTexture",), "registered-texture-mip-filter": ("RegisteredTexture",),
                 "registered-texture-mip-bias": ("RegisteredTexture",), "registered-texture-mip-clamp": ("RegisteredTexture",),
                 "d3d12-external-memory": ("D3D12Functions",), "d3d12-external-semaphore": ("D3D12Functions",), "d3d12-external-graph": ("D3D12Functions",),
-                "d3d12-managed-memory": ("D3D12Functions",), "d3d12-managed-semaphore": ("D3D12Functions",)}
+                "d3d12-managed-memory": ("D3D12Functions",), "d3d12-managed-semaphore": ("D3D12Functions",),
+                "opengl-buffer": ("OpenGLFunctions",), "opengl-image": ("OpenGLFunctions",), "opengl-managed-buffer": ("OpenGLFunctions",)}
 FATBIN_FIXTURES = ("module-texture-array", "module-texture-linear", "module-texture-pitched", "module-texture-mipmapped",
                   "module-texture-border", "module-texture-mip-filter", "module-texture-mip-bias", "module-texture-mip-clamp")
 

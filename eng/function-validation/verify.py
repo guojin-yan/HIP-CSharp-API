@@ -43,9 +43,9 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
         if not source_digest or source_digest != helper.get("sourceSha256"):
             raise ValueError("Unbound helper source")
         additional = helper.get("additionalSources", {})
-        required = {"eng/function-validation/d3d12-helper.cpp"} if summary.get("rid") == "win-x64" else set()
+        required = {"eng/function-validation/" + name for name in ("d3d12-helper.cpp", "opengl-helper.cpp")} if summary.get("rid") == "win-x64" else set()
         if set(additional) != required or any(summary["toolSources"].get(name) != digest for name, digest in additional.items()):
-            raise ValueError("Unbound D3D12 helper source")
+            raise ValueError("Unbound graphics helper source")
         deployed_helper = summary_path.parent / "bin/Release/net10.0" / helper["file"]
         for path, digest in ((summary_path.parent / helper["file"], helper["sha256"]),
                              (deployed_helper, helper["sha256"]),

@@ -77,6 +77,9 @@ internal static unsafe partial class Program
             case "d3d12-external-graph": D3D12ExternalSemaphore(true); break;
             case "d3d12-managed-memory": D3D12ManagedMemory(); break;
             case "d3d12-managed-semaphore": D3D12ManagedSemaphore(); break;
+            case "opengl-buffer": OpenGLGraphics(false); break;
+            case "opengl-image": OpenGLGraphics(true); break;
+            case "opengl-managed-buffer": OpenGLManagedBuffer(); break;
             case "device": Device(); break;
             case "device-config": DeviceConfig(); break;
             case "context": Context(); break;

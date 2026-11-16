@@ -156,6 +156,10 @@ class ArtifactIntegrityTests(unittest.TestCase):
         self.summary["rid"] = "win-x64"
         self.summary["toolSources"]["eng/function-validation/d3d12-helper.cpp"] = sha(source)
         self.summary["nativeHelper"]["additionalSources"] = {"eng/function-validation/d3d12-helper.cpp": sha(source)}
+        source = self.repository / "eng/function-validation/opengl-helper.cpp"
+        source.write_text("test WGL resource producer", encoding="utf-8")
+        self.summary["toolSources"]["eng/function-validation/opengl-helper.cpp"] = sha(source)
+        self.summary["nativeHelper"]["additionalSources"]["eng/function-validation/opengl-helper.cpp"] = sha(source)
         result = self.summary["results"][0]
         result.update(fixture="d3d12-external-memory", log="d3d12-external-memory.log")
         log = self.log.read_text(encoding="utf-8").replace("host-runtime", "d3d12-external-memory").replace("ValidationKernel", "D3D12Functions")
@@ -179,6 +183,11 @@ class ArtifactIntegrityTests(unittest.TestCase):
     def test_d3d_resource_producer_source_tampered(self):
         self.d3d_fixture()
         (self.repository / "eng/function-validation/d3d12-helper.cpp").write_text("changed", encoding="utf-8")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_gl_resource_producer_digest_mismatch(self):
+        self.d3d_fixture()
+        self.summary["nativeHelper"]["additionalSources"]["eng/function-validation/opengl-helper.cpp"] = "0" * 64
         with self.assertRaises(ValueError): self.verify()
 
     def test_d3d_fixture_cannot_be_linux_evidence(self):

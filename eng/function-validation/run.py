@@ -31,8 +31,9 @@ FIXTURES = ("device", "device-config", "context", "context-flags", "primary-cont
             "same-device-peer-copies", "driver-link-lifetime", "registered-texture-border", "registered-texture-mip-filter",
             "registered-texture-mip-bias", "registered-texture-mip-clamp", "module-texture-border", "module-texture-mip-filter",
             "module-texture-mip-bias", "module-texture-mip-clamp", "d3d12-external-memory", "d3d12-external-semaphore", "d3d12-external-graph",
-            "d3d12-managed-memory", "d3d12-managed-semaphore")
-WINDOWS_FIXTURES = ("d3d12-external-memory", "d3d12-external-semaphore", "d3d12-external-graph", "d3d12-managed-memory", "d3d12-managed-semaphore")
+            "d3d12-managed-memory", "d3d12-managed-semaphore", "opengl-buffer", "opengl-image", "opengl-managed-buffer")
+WINDOWS_FIXTURES = ("d3d12-external-memory", "d3d12-external-semaphore", "d3d12-external-graph", "d3d12-managed-memory", "d3d12-managed-semaphore",
+                    "opengl-buffer", "opengl-image", "opengl-managed-buffer")
 def host_fixtures():
     return tuple(f for f in FIXTURES if os.name == "nt" or f not in WINDOWS_FIXTURES)
 HOST_FIXTURES = tuple(HOST_SYMBOLS) + FATBIN_FIXTURES
@@ -75,7 +76,7 @@ def main():
         raise ValueError("Invalid architecture")
     requested = args.fixture or host_fixtures()
     if os.name != "nt" and set(requested).intersection(WINDOWS_FIXTURES):
-        raise ValueError("D3D12 fixtures require Windows; no resource or API success is inferred on Linux")
+        raise ValueError("D3D12/WGL fixtures require Windows; no resource or API success is inferred on Linux")
     if set(requested).intersection(HOST_FIXTURES) and not args.hip_root:
         raise ValueError("Host symbol fixtures require --hip-root for the offline native helper build")
     repository = Path(__file__).resolve().parents[2]
@@ -118,7 +119,8 @@ def main():
         if os.name != "nt":
             command += ["-fPIC", "-Wl,-rpath,$ORIGIN/runtimes/linux-x64/native"]
         if os.name == "nt":
-            command += [str(Path(__file__).parent / "d3d12-helper.cpp"), "-ld3d12", "-ldxgi"]
+            command += [str(Path(__file__).parent / name) for name in ("d3d12-helper.cpp", "opengl-helper.cpp")]
+            command += ["-ld3d12", "-ldxgi", "-lopengl32", "-lgdi32", "-luser32"]
         command += [str(Path(__file__).parent / "host-kernel.hip"), "-o", str(helper)]
         compiled = subprocess.run(command, cwd=output, env=helper_env, capture_output=True, text=True, encoding="utf-8", timeout=180)
         (output / "helper-build.log").write_text(compiled.stdout + compiled.stderr, encoding="utf-8")
@@ -128,7 +130,8 @@ def main():
                             source="eng/function-validation/host-kernel.hip", sourceSha256=sha(Path(__file__).parent / "host-kernel.hip"),
                             log="helper-build.log", logSha256=sha(output / "helper-build.log"))
         if os.name == "nt":
-            helper_build["additionalSources"] = {"eng/function-validation/d3d12-helper.cpp": sha(Path(__file__).parent / "d3d12-helper.cpp")}
+            helper_build["additionalSources"] = {"eng/function-validation/" + name: sha(Path(__file__).parent / name)
+                                                  for name in ("d3d12-helper.cpp", "opengl-helper.cpp")}
         if set(requested).intersection(FATBIN_FIXTURES):
             object_file = output / ("host-kernel.obj" if os.name == "nt" else "host-kernel.o")
             payload = output / "host-kernel.fatbin"
