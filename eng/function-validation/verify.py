@@ -7,7 +7,7 @@ import sys
 
 sys.dont_write_bytecode = True
 from evidence import parse, inventory, unique_object, validate_helper, HOST_SYMBOLS, FATBIN_FIXTURES, validate_fatbinary
-from run import FIXTURES, metadata, sha
+from run import FIXTURES, WINDOWS_FIXTURES, metadata, sha
 
 
 def verify(summary_path, core_override=None, runtime_override=None, repository=None):
@@ -42,6 +42,10 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
         source_digest = summary["toolSources"].get(helper["source"])
         if not source_digest or source_digest != helper.get("sourceSha256"):
             raise ValueError("Unbound helper source")
+        additional = helper.get("additionalSources", {})
+        required = {"eng/function-validation/d3d12-helper.cpp"} if summary.get("rid") == "win-x64" else set()
+        if set(additional) != required or any(summary["toolSources"].get(name) != digest for name, digest in additional.items()):
+            raise ValueError("Unbound D3D12 helper source")
         deployed_helper = summary_path.parent / "bin/Release/net10.0" / helper["file"]
         for path, digest in ((summary_path.parent / helper["file"], helper["sha256"]),
                              (deployed_helper, helper["sha256"]),
@@ -80,7 +84,10 @@ def verify(summary_path, core_override=None, runtime_override=None, repository=N
         for key in ("passed", "functions", "nativeRestrictions"):
             if parsed[key] != result[key]:
                 raise ValueError("Derived fixture evidence mismatch: " + name)
-    if summary["fullMatrix"] != (seen == set(FIXTURES)):
+    applicable = set(FIXTURES) - (set(WINDOWS_FIXTURES) if summary.get("rid") == "linux-x64" else set())
+    if not seen <= applicable:
+        raise ValueError("Fixture unavailable for receipt platform")
+    if summary["fullMatrix"] != (seen == applicable):
         raise ValueError("Full matrix claim mismatch")
     supported = not any(r["nativeRestrictions"] for r in summary["results"])
     if summary["allFunctionsSupported"] != supported or summary["allPassed"] != (supported and all(r["passed"] for r in summary["results"])):

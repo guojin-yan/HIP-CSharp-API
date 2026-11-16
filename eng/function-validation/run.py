@@ -27,7 +27,14 @@ FIXTURES = ("device", "device-config", "context", "context-flags", "primary-cont
             "registered-texture-parameters", "registered-texture-array", "registered-texture-linear", "registered-texture-pitched",
             "negative-memory", "negative-streams", "negative-events", "negative-graphs", "selection-diagnostics", "profiler", "module-global",
             "module-texture-array", "module-texture-linear", "module-texture-pitched", "module-texture-mipmapped",
-            "registered-texture-mipmapped", "legacy-device-properties", "peer-single-device", "stream-attach", "profiler-stop", "managed-basic", "driver-graph-allocation", "texture-resource-view")
+            "registered-texture-mipmapped", "legacy-device-properties", "peer-single-device", "stream-attach", "profiler-stop", "managed-basic", "driver-graph-allocation", "texture-resource-view",
+            "same-device-peer-copies", "driver-link-lifetime", "registered-texture-border", "registered-texture-mip-filter",
+            "registered-texture-mip-bias", "registered-texture-mip-clamp", "module-texture-border", "module-texture-mip-filter",
+            "module-texture-mip-bias", "module-texture-mip-clamp", "d3d12-external-memory", "d3d12-external-semaphore", "d3d12-external-graph",
+            "d3d12-managed-memory", "d3d12-managed-semaphore")
+WINDOWS_FIXTURES = ("d3d12-external-memory", "d3d12-external-semaphore", "d3d12-external-graph", "d3d12-managed-memory", "d3d12-managed-semaphore")
+def host_fixtures():
+    return tuple(f for f in FIXTURES if os.name == "nt" or f not in WINDOWS_FIXTURES)
 HOST_FIXTURES = tuple(HOST_SYMBOLS) + FATBIN_FIXTURES
 
 
@@ -38,7 +45,7 @@ def sha(path):
 
 def tool_snapshot(repository):
     directory = repository / "eng/function-validation"
-    files = sorted(p for pattern in ("*.py", "*.cs", "*.hip") for p in directory.glob(pattern))
+    files = sorted(p for pattern in ("*.py", "*.cs", "*.hip", "*.cpp") for p in directory.glob(pattern))
     files += [repository / "eng/local-runtime" / name for name in ("PackageRunner.cs", "PackageModuleAudit.cs")]
     files.append(repository / "eng/interop/complete-api-model.json")
     return {str(p.relative_to(repository)).replace("\\", "/"): sha(p) for p in files}
@@ -66,7 +73,9 @@ def main():
     args = parser.parse_args()
     if not re.fullmatch(r"gfx[0-9a-f]+", args.architecture):
         raise ValueError("Invalid architecture")
-    requested = args.fixture or FIXTURES
+    requested = args.fixture or host_fixtures()
+    if os.name != "nt" and set(requested).intersection(WINDOWS_FIXTURES):
+        raise ValueError("D3D12 fixtures require Windows; no resource or API success is inferred on Linux")
     if set(requested).intersection(HOST_FIXTURES) and not args.hip_root:
         raise ValueError("Host symbol fixtures require --hip-root for the offline native helper build")
     repository = Path(__file__).resolve().parents[2]
@@ -108,6 +117,8 @@ def main():
         command = [str(compiler), "-shared", "--offload-arch=" + args.architecture, "-O2", "-std=c++17"]
         if os.name != "nt":
             command += ["-fPIC", "-Wl,-rpath,$ORIGIN/runtimes/linux-x64/native"]
+        if os.name == "nt":
+            command += [str(Path(__file__).parent / "d3d12-helper.cpp"), "-ld3d12", "-ldxgi"]
         command += [str(Path(__file__).parent / "host-kernel.hip"), "-o", str(helper)]
         compiled = subprocess.run(command, cwd=output, env=helper_env, capture_output=True, text=True, encoding="utf-8", timeout=180)
         (output / "helper-build.log").write_text(compiled.stdout + compiled.stderr, encoding="utf-8")
@@ -116,6 +127,8 @@ def main():
         helper_build = dict(file=helper.name, sha256=sha(helper), compiler=str(compiler), compilerSha256=sha(compiler),
                             source="eng/function-validation/host-kernel.hip", sourceSha256=sha(Path(__file__).parent / "host-kernel.hip"),
                             log="helper-build.log", logSha256=sha(output / "helper-build.log"))
+        if os.name == "nt":
+            helper_build["additionalSources"] = {"eng/function-validation/d3d12-helper.cpp": sha(Path(__file__).parent / "d3d12-helper.cpp")}
         if set(requested).intersection(FATBIN_FIXTURES):
             object_file = output / ("host-kernel.obj" if os.name == "nt" else "host-kernel.o")
             payload = output / "host-kernel.fatbin"
@@ -212,7 +225,7 @@ def main():
         print(f"{fixture}: {status} ({len(item['functions'])} functions)", flush=True)
     stable = snapshot == tool_snapshot(repository)
     stable = stable and commit == subprocess.check_output(["git", "-C", str(repository), "rev-parse", "HEAD"], text=True).strip()
-    full_matrix = set(args.fixture or FIXTURES) == set(FIXTURES)
+    full_matrix = set(requested) == set(host_fixtures())
     all_supported = not any(r["nativeRestrictions"] for r in results)
     summary = dict(scope="local-native-function-fixtures", completed=True, allPassed=all(r["passed"] for r in results) and all_supported,
                    fullMatrix=full_matrix, evidenceStable=stable, allFunctionsSupported=not any(r["nativeRestrictions"] for r in results),

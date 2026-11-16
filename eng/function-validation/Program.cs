@@ -62,6 +62,21 @@ internal static unsafe partial class Program
         Check(Raw.Init(0));
         switch (fixture)
         {
+            case "same-device-peer-copies": SameDevicePeerCopies(); break;
+            case "driver-link-lifetime": DriverLinkLifetime(); break;
+            case "registered-texture-border": LegacyTextureParameters(false, 0); break;
+            case "registered-texture-mip-filter": LegacyTextureParameters(false, 1); break;
+            case "registered-texture-mip-bias": LegacyTextureParameters(false, 2); break;
+            case "registered-texture-mip-clamp": LegacyTextureParameters(false, 3); break;
+            case "module-texture-border": LegacyTextureParameters(true, 0); break;
+            case "module-texture-mip-filter": LegacyTextureParameters(true, 1); break;
+            case "module-texture-mip-bias": LegacyTextureParameters(true, 2); break;
+            case "module-texture-mip-clamp": LegacyTextureParameters(true, 3); break;
+            case "d3d12-external-memory": D3D12ExternalMemory(); break;
+            case "d3d12-external-semaphore": D3D12ExternalSemaphore(false); break;
+            case "d3d12-external-graph": D3D12ExternalSemaphore(true); break;
+            case "d3d12-managed-memory": D3D12ManagedMemory(); break;
+            case "d3d12-managed-semaphore": D3D12ManagedSemaphore(); break;
             case "device": Device(); break;
             case "device-config": DeviceConfig(); break;
             case "context": Context(); break;

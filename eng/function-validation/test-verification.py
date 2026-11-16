@@ -149,6 +149,43 @@ class ArtifactIntegrityTests(unittest.TestCase):
         self.host_fixture()
         self.assertTrue(self.verify()["integrityVerified"])
 
+    def d3d_fixture(self):
+        self.host_fixture()
+        source = self.repository / "eng/function-validation/d3d12-helper.cpp"
+        source.write_text("test D3D12 resource producer", encoding="utf-8")
+        self.summary["rid"] = "win-x64"
+        self.summary["toolSources"]["eng/function-validation/d3d12-helper.cpp"] = sha(source)
+        self.summary["nativeHelper"]["additionalSources"] = {"eng/function-validation/d3d12-helper.cpp": sha(source)}
+        result = self.summary["results"][0]
+        result.update(fixture="d3d12-external-memory", log="d3d12-external-memory.log")
+        log = self.log.read_text(encoding="utf-8").replace("host-runtime", "d3d12-external-memory").replace("ValidationKernel", "D3D12Functions")
+        self.log = self.output / result["log"]
+        self.log.write_text(log, encoding="utf-8")
+        self.rehash_host()
+
+    def test_d3d_resource_producer_bound(self):
+        self.d3d_fixture()
+        self.assertTrue(self.verify()["integrityVerified"])
+
+    def test_d3d_missing_resource_producer(self):
+        self.d3d_fixture(); del self.summary["nativeHelper"]["additionalSources"]
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_d3d_resource_producer_digest_mismatch(self):
+        self.d3d_fixture()
+        self.summary["nativeHelper"]["additionalSources"]["eng/function-validation/d3d12-helper.cpp"] = "0" * 64
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_d3d_resource_producer_source_tampered(self):
+        self.d3d_fixture()
+        (self.repository / "eng/function-validation/d3d12-helper.cpp").write_text("changed", encoding="utf-8")
+        with self.assertRaises(ValueError): self.verify()
+
+    def test_d3d_fixture_cannot_be_linux_evidence(self):
+        self.d3d_fixture(); self.summary["rid"] = "linux-x64"
+        self.summary["nativeHelper"].pop("additionalSources")
+        with self.assertRaises(ValueError): self.verify()
+
     def test_host_missing_build_identity(self):
         self.host_fixture(); del self.summary["nativeHelper"]
         with self.assertRaises(ValueError): self.verify()

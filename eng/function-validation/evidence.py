@@ -5,8 +5,14 @@ import re
 HOST_SYMBOLS = {"host-runtime": ("ValidationKernel",), "host-attributes": ("ValidationKernel",), "host-symbol": ("ValidationSymbol",),
                 "registered-texture-parameters": ("RegisteredTexture",), "registered-texture-array": ("RegisteredTexture", "RegisteredTextureKernel"),
                 "registered-texture-linear": ("RegisteredTexture",), "registered-texture-pitched": ("RegisteredTexture", "RegisteredTextureKernel"),
-                "registered-texture-mipmapped": ("RegisteredTexture", "RegisteredTextureKernel"), "legacy-device-properties": ("ValidationKernel",)}
-FATBIN_FIXTURES = ("module-texture-array", "module-texture-linear", "module-texture-pitched", "module-texture-mipmapped")
+                "registered-texture-mipmapped": ("RegisteredTexture", "RegisteredTextureKernel"), "legacy-device-properties": ("ValidationKernel",),
+                "same-device-peer-copies": ("ValidationKernel",),
+                "registered-texture-border": ("RegisteredTexture",), "registered-texture-mip-filter": ("RegisteredTexture",),
+                "registered-texture-mip-bias": ("RegisteredTexture",), "registered-texture-mip-clamp": ("RegisteredTexture",),
+                "d3d12-external-memory": ("D3D12Functions",), "d3d12-external-semaphore": ("D3D12Functions",), "d3d12-external-graph": ("D3D12Functions",),
+                "d3d12-managed-memory": ("D3D12Functions",), "d3d12-managed-semaphore": ("D3D12Functions",)}
+FATBIN_FIXTURES = ("module-texture-array", "module-texture-linear", "module-texture-pitched", "module-texture-mipmapped",
+                  "module-texture-border", "module-texture-mip-filter", "module-texture-mip-bias", "module-texture-mip-clamp")
 
 
 def validate_fatbinary(log, path, digest):

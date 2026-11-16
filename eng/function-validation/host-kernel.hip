@@ -15,6 +15,21 @@ static_assert(offsetof(hipDeviceProp_tR0000, totalGlobalMem) == 256);
 static_assert(offsetof(hipDeviceProp_tR0000, major) == 328);
 static_assert(offsetof(hipDeviceProp_tR0000, minor) == 332);
 static_assert(offsetof(hipDeviceProp_tR0000, multiProcessorCount) == 336);
+static_assert(sizeof(hipMemcpy3DPeerParms) == 168);
+static_assert(offsetof(hipMemcpy3DPeerParms, srcDevice) == 64);
+static_assert(offsetof(hipMemcpy3DPeerParms, dstArray) == 72);
+static_assert(offsetof(hipMemcpy3DPeerParms, dstDevice) == 136);
+static_assert(offsetof(hipMemcpy3DPeerParms, extent) == 144);
+static_assert(sizeof(hipExternalMemoryHandleDesc) == 104);
+static_assert(offsetof(hipExternalMemoryHandleDesc, handle) == 8);
+static_assert(offsetof(hipExternalMemoryHandleDesc, size) == 24);
+static_assert(offsetof(hipExternalMemoryHandleDesc, flags) == 32);
+static_assert(sizeof(hipExternalMemoryBufferDesc) == 88);
+static_assert(sizeof(hipExternalSemaphoreHandleDesc) == 96);
+static_assert(sizeof(hipExternalSemaphoreSignalParams) == 144);
+static_assert(sizeof(hipExternalSemaphoreWaitParams) == 144);
+static_assert(sizeof(hipExternalSemaphoreSignalNodeParams) == 24);
+static_assert(sizeof(hipExternalSemaphoreWaitNodeParams) == 24);
 #if defined(_WIN32)
 #define EXPORTED __declspec(dllexport)
 #else
