@@ -58,6 +58,8 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal List<uint> UserObjectRetainCounts { get; } = new();
 
     internal HipError AdvancedResult { get; set; } = HipError.Success;
+    internal bool ReturnNullAdvancedHandle { get; set; }
+    internal HipError CallbackStatus { get; set; } = HipError.Success;
     internal bool ReturnNullIpcImport { get; set; }
     internal HipIpcMemHandle LastIpcMemoryHandle { get; private set; }
     internal HipIpcEventHandle LastIpcEventHandle { get; private set; }
@@ -2132,16 +2134,15 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError ExternalMemoryGetMappedBuffer(IntPtr devicePointer, IntPtr externalMemory, IntPtr bufferDescriptor)
     {
         RecordAdvanced("hipExternalMemoryGetMappedBuffer");
-        if (AdvancedResult != HipError.Success) return AdvancedResult;
+        if (AdvancedResult != HipError.Success || ReturnNullAdvancedHandle) return AdvancedResult;
         Marshal.WriteIntPtr(devicePointer, AllocateRaw(new UIntPtr(16)));
         return HipError.Success;
     }
     public HipError ExternalMemoryGetMappedMipmappedArray(IntPtr mipmappedArray, IntPtr externalMemory, IntPtr mipmappedArrayDescriptor)
     {
         RecordAdvanced("hipExternalMemoryGetMappedMipmappedArray");
-        if (AdvancedResult != HipError.Success) return AdvancedResult;
-        Marshal.WriteIntPtr(mipmappedArray, new IntPtr(_nextAdvancedHandle++));
-        return HipError.Success;
+        if (AdvancedResult != HipError.Success || ReturnNullAdvancedHandle) return AdvancedResult;
+        return CreateMipmappedArray(mipmappedArray, new FakeMipmappedArrayState(new HipChannelFormatDescriptor(8, 0, 0, 0, HipChannelFormatKind.UnsignedInteger), 16, 1, 0, 1, HipArrayFlags.Default), false);
     }
     public HipError GraphAddExternalSemaphoresSignalNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters) => AddAdvancedNode("hipGraphAddExternalSemaphoresSignalNode", node, graph, dependencies, dependencyCount);
     public HipError GraphAddExternalSemaphoresWaitNode(IntPtr node, IntPtr graph, IntPtr dependencies, UIntPtr dependencyCount, IntPtr parameters) => AddAdvancedNode("hipGraphAddExternalSemaphoresWaitNode", node, graph, dependencies, dependencyCount);
@@ -2155,12 +2156,12 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError GraphicsResourceGetMappedPointer(IntPtr devicePointer, IntPtr size, IntPtr resource)
     {
         RecordAdvanced("hipGraphicsResourceGetMappedPointer");
-        if (AdvancedResult != HipError.Success) return AdvancedResult;
+        if (AdvancedResult != HipError.Success || ReturnNullAdvancedHandle) return AdvancedResult;
         Marshal.WriteIntPtr(devicePointer, new IntPtr(_nextAdvancedHandle++));
         if (UIntPtr.Size == 4) Marshal.WriteInt32(size, 16); else Marshal.WriteInt64(size, 16);
         return HipError.Success;
     }
-    public HipError GraphicsSubResourceGetMappedArray(IntPtr array, IntPtr resource, uint arrayIndex, uint mipLevel) { RecordAdvanced("hipGraphicsSubResourceGetMappedArray"); Marshal.WriteIntPtr(array, new IntPtr(_nextAdvancedHandle++)); return AdvancedResult; }
+    public HipError GraphicsSubResourceGetMappedArray(IntPtr array, IntPtr resource, uint arrayIndex, uint mipLevel) => WriteAdvancedHandle("hipGraphicsSubResourceGetMappedArray", array);
     public HipError GraphicsUnmapResources(int count, IntPtr resources, IntPtr stream) => RecordAdvanced("hipGraphicsUnmapResources");
     public HipError GraphicsUnregisterResource(IntPtr resource) => RecordAdvanced("hipGraphicsUnregisterResource");
     public HipError ImportExternalMemory(IntPtr externalMemory, IntPtr descriptor) => WriteAdvancedHandle("hipImportExternalMemory", externalMemory);
@@ -2202,6 +2203,11 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError StreamAddCallback(IntPtr stream, IntPtr callback, IntPtr userData, uint flags)
     {
         RecordAdvanced("hipStreamAddCallback");
+        if (AdvancedResult == HipError.Success)
+        {
+            HipStreamNativeCallback invoke = Marshal.GetDelegateForFunctionPointer<HipStreamNativeCallback>(callback);
+            QueueStreamAction(stream, () => invoke(stream, CallbackStatus, userData));
+        }
         return AdvancedResult;
     }
     public HipError UserObjectCreate(IntPtr userObject, IntPtr value, IntPtr destroy, uint initialRefCount, uint flags) => WriteAdvancedHandle("hipUserObjectCreate", userObject);
@@ -2231,7 +2237,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError DrvPointerGetAttributes(uint count, IntPtr attributes, IntPtr values, IntPtr devicePointer) => RecordAdvanced("hipDrvPointerGetAttributes");
 
     private HipError RecordAdvanced(string name) { AdvancedCalls.Add(name); return AdvancedResult; }
-    private HipError WriteAdvancedHandle(string name, IntPtr output) { AdvancedCalls.Add(name); if (AdvancedResult == HipError.Success) Marshal.WriteIntPtr(output, new IntPtr(_nextAdvancedHandle++)); return AdvancedResult; }
+    private HipError WriteAdvancedHandle(string name, IntPtr output) { AdvancedCalls.Add(name); if (AdvancedResult == HipError.Success && !ReturnNullAdvancedHandle) Marshal.WriteIntPtr(output, new IntPtr(_nextAdvancedHandle++)); return AdvancedResult; }
     private HipError WriteAdvancedStruct<T>(string name, IntPtr output, T value) where T : struct { AdvancedCalls.Add(name); if (AdvancedResult == HipError.Success) Marshal.StructureToPtr(value, output, false); return AdvancedResult; }
     private HipError WriteAdvancedText(string name, IntPtr output, string value)
     {

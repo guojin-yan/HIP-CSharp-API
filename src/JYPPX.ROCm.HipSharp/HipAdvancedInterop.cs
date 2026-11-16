@@ -30,6 +30,12 @@ public readonly struct HipNativeDescriptor
 
     /// <summary>获取借用的原生 descriptor 指针 / Gets the borrowed native descriptor pointer.</summary>
     public IntPtr Pointer { get; }
+
+    internal IntPtr GetRequiredPointer(string parameterName)
+    {
+        if (Pointer == IntPtr.Zero) throw new ArgumentException("A non-default native descriptor is required.", parameterName);
+        return Pointer;
+    }
 }
 
 /// <summary>管理 HIP 外部内存导入的所有权 / Owns a HIP external-memory import.</summary>
@@ -55,7 +61,7 @@ public sealed class HipExternalMemory : IDisposable
         {
             parent = _resource.Acquire();
             Marshal.WriteIntPtr(output, IntPtr.Zero);
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ExternalMemoryGetMappedBuffer(output, parent.Handle, descriptor.Pointer), "hipExternalMemoryGetMappedBuffer");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ExternalMemoryGetMappedBuffer(output, parent.Handle, descriptor.GetRequiredPointer(nameof(descriptor))), "hipExternalMemoryGetMappedBuffer");
             IntPtr pointer = Marshal.ReadIntPtr(output);
             if (pointer == IntPtr.Zero) throw new InvalidOperationException("hipExternalMemoryGetMappedBuffer succeeded but returned a null pointer.");
             var result = new HipExternalMemoryBuffer(_nativeApi, pointer, parent);
@@ -73,7 +79,7 @@ public sealed class HipExternalMemory : IDisposable
         {
             parent = _resource.Acquire();
             Marshal.WriteIntPtr(output, IntPtr.Zero);
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ExternalMemoryGetMappedMipmappedArray(output, parent.Handle, descriptor.Pointer), "hipExternalMemoryGetMappedMipmappedArray");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ExternalMemoryGetMappedMipmappedArray(output, parent.Handle, descriptor.GetRequiredPointer(nameof(descriptor))), "hipExternalMemoryGetMappedMipmappedArray");
             IntPtr handle = Marshal.ReadIntPtr(output);
             if (handle == IntPtr.Zero) throw new InvalidOperationException("hipExternalMemoryGetMappedMipmappedArray succeeded but returned a null handle.");
             var result = new HipExternalMipmappedArray(_nativeApi, handle, parent);
@@ -178,7 +184,9 @@ public sealed class HipGraphicsMapping : IDisposable
                 Marshal.WriteIntPtr(pointer, IntPtr.Zero);
                 if (UIntPtr.Size == 4) Marshal.WriteInt32(size, 0); else Marshal.WriteInt64(size, 0);
                 HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphicsResourceGetMappedPointer(pointer, size, handle), "hipGraphicsResourceGetMappedPointer");
-                return new HipMappedGraphicsPointer(Marshal.ReadIntPtr(pointer), UIntPtr.Size == 4 ? unchecked((uint)Marshal.ReadInt32(size)) : unchecked((ulong)Marshal.ReadInt64(size)));
+                IntPtr mapped = Marshal.ReadIntPtr(pointer);
+                if (mapped == IntPtr.Zero) throw new InvalidOperationException("hipGraphicsResourceGetMappedPointer succeeded but returned a null pointer.");
+                return new HipMappedGraphicsPointer(mapped, UIntPtr.Size == 4 ? unchecked((uint)Marshal.ReadInt32(size)) : unchecked((ulong)Marshal.ReadInt64(size)));
             }
             finally { Marshal.FreeHGlobal(size); Marshal.FreeHGlobal(pointer); }
         }
@@ -194,7 +202,9 @@ public sealed class HipGraphicsMapping : IDisposable
             {
                 Marshal.WriteIntPtr(output, IntPtr.Zero);
                 HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphicsSubResourceGetMappedArray(output, handle, arrayIndex, mipLevel), "hipGraphicsSubResourceGetMappedArray");
-                return Marshal.ReadIntPtr(output);
+                IntPtr array = Marshal.ReadIntPtr(output);
+                if (array == IntPtr.Zero) throw new InvalidOperationException("hipGraphicsSubResourceGetMappedArray succeeded but returned a null handle.");
+                return array;
             }
             finally { Marshal.FreeHGlobal(output); }
         }
@@ -342,7 +352,7 @@ public sealed class HipAdvancedInterop
         IntPtr output = AllocateOutputHandle();
         try
         {
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ImportExternalMemory(output, descriptor.Pointer), "hipImportExternalMemory");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ImportExternalMemory(output, descriptor.GetRequiredPointer(nameof(descriptor))), "hipImportExternalMemory");
             return new HipExternalMemory(_nativeApi, ReadOutputHandle(output, "hipImportExternalMemory"));
         }
         finally { Marshal.FreeHGlobal(output); }
@@ -355,7 +365,7 @@ public sealed class HipAdvancedInterop
         IntPtr output = AllocateOutputHandle();
         try
         {
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ImportExternalSemaphore(output, descriptor.Pointer), "hipImportExternalSemaphore");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.ImportExternalSemaphore(output, descriptor.GetRequiredPointer(nameof(descriptor))), "hipImportExternalSemaphore");
             return new HipExternalSemaphore(_nativeApi, ReadOutputHandle(output, "hipImportExternalSemaphore"));
         }
         finally { Marshal.FreeHGlobal(output); }
@@ -471,13 +481,14 @@ public sealed class HipAdvancedInterop
     /// <summary>向 stream 注册托管 callback / Registers a managed callback on a stream.</summary>
     public void AddStreamCallback(HipStream stream, Action<HipError> callback, uint flags = 0)
     {
+        _runtime.ThrowIfDisposedInternal();
         if (stream is null) throw new ArgumentNullException(nameof(stream));
         if (callback is null) throw new ArgumentNullException(nameof(callback));
         if (!ReferenceEquals(stream.NativeApi, _nativeApi)) throw new ArgumentException("Stream belongs to another HIP Runtime client.", nameof(stream));
         GCHandle state = GCHandle.Alloc(callback);
         try
         {
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamAddCallback(stream.DangerousGetHandle(), s_streamCallbackPointer, GCHandle.ToIntPtr(state), flags), "hipStreamAddCallback");
+            stream.ExecuteInterop(handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.StreamAddCallback(handle, s_streamCallbackPointer, GCHandle.ToIntPtr(state), flags), "hipStreamAddCallback"));
             state = default;
         }
         finally { if (state.IsAllocated) state.Free(); }
@@ -499,7 +510,7 @@ public sealed class HipAdvancedInterop
         IntPtr output = AllocateOutputHandle();
         try
         {
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.UserObjectCreate(output, value, destroyCallback.Pointer, initialReferenceCount, flags), "hipUserObjectCreate");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.UserObjectCreate(output, value, destroyCallback.GetRequiredPointer(nameof(destroyCallback)), initialReferenceCount, flags), "hipUserObjectCreate");
             return new HipUserObject(_nativeApi, ReadOutputHandle(output, "hipUserObjectCreate"), initialReferenceCount);
         }
         finally { Marshal.FreeHGlobal(output); }
@@ -530,30 +541,30 @@ public sealed class HipAdvancedInterop
 
     /// <summary>设置 external semaphore signal node 参数 / Sets external-semaphore signal node parameters.</summary>
     public void SetExternalSemaphoreSignalNodeParameters(HipAdvancedGraphNode node, HipNativeDescriptor parameters) =>
-        AccessNode(node, HipGraphNodeType.ExternalSemaphoreSignal, true, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresSignalNodeSetParams(handle, parameters.Pointer), "hipGraphExternalSemaphoresSignalNodeSetParams"));
+        AccessNode(node, HipGraphNodeType.ExternalSemaphoreSignal, true, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresSignalNodeSetParams(handle, parameters.GetRequiredPointer(nameof(parameters))), "hipGraphExternalSemaphoresSignalNodeSetParams"));
 
     /// <summary>读取 external semaphore signal node 参数 / Gets external-semaphore signal node parameters.</summary>
     public void GetExternalSemaphoreSignalNodeParameters(HipAdvancedGraphNode node, HipNativeDescriptor destination) =>
-        AccessNode(node, HipGraphNodeType.ExternalSemaphoreSignal, false, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresSignalNodeGetParams(handle, destination.Pointer), "hipGraphExternalSemaphoresSignalNodeGetParams"));
+        AccessNode(node, HipGraphNodeType.ExternalSemaphoreSignal, false, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresSignalNodeGetParams(handle, destination.GetRequiredPointer(nameof(destination))), "hipGraphExternalSemaphoresSignalNodeGetParams"));
 
     /// <summary>设置 external semaphore wait node 参数 / Sets external-semaphore wait node parameters.</summary>
     public void SetExternalSemaphoreWaitNodeParameters(HipAdvancedGraphNode node, HipNativeDescriptor parameters) =>
-        AccessNode(node, HipGraphNodeType.ExternalSemaphoreWait, true, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresWaitNodeSetParams(handle, parameters.Pointer), "hipGraphExternalSemaphoresWaitNodeSetParams"));
+        AccessNode(node, HipGraphNodeType.ExternalSemaphoreWait, true, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresWaitNodeSetParams(handle, parameters.GetRequiredPointer(nameof(parameters))), "hipGraphExternalSemaphoresWaitNodeSetParams"));
 
     /// <summary>读取 external semaphore wait node 参数 / Gets external-semaphore wait node parameters.</summary>
     public void GetExternalSemaphoreWaitNodeParameters(HipAdvancedGraphNode node, HipNativeDescriptor destination) =>
-        AccessNode(node, HipGraphNodeType.ExternalSemaphoreWait, false, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresWaitNodeGetParams(handle, destination.Pointer), "hipGraphExternalSemaphoresWaitNodeGetParams"));
+        AccessNode(node, HipGraphNodeType.ExternalSemaphoreWait, false, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExternalSemaphoresWaitNodeGetParams(handle, destination.GetRequiredPointer(nameof(destination))), "hipGraphExternalSemaphoresWaitNodeGetParams"));
 
     /// <summary>更新 executable 中的 external semaphore signal node / Updates an external-semaphore signal node in an executable graph.</summary>
     public void UpdateExternalSemaphoreSignalNode(HipGraphExec graphExec, HipAdvancedGraphNode node, HipNativeDescriptor parameters)
     {
-        UpdateNode(graphExec, node, HipGraphNodeType.ExternalSemaphoreSignal, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExecExternalSemaphoresSignalNodeSetParams(handle, node.Handle, parameters.Pointer), "hipGraphExecExternalSemaphoresSignalNodeSetParams"));
+        UpdateNode(graphExec, node, HipGraphNodeType.ExternalSemaphoreSignal, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExecExternalSemaphoresSignalNodeSetParams(handle, node.Handle, parameters.GetRequiredPointer(nameof(parameters))), "hipGraphExecExternalSemaphoresSignalNodeSetParams"));
     }
 
     /// <summary>更新 executable 中的 external semaphore wait node / Updates an external-semaphore wait node in an executable graph.</summary>
     public void UpdateExternalSemaphoreWaitNode(HipGraphExec graphExec, HipAdvancedGraphNode node, HipNativeDescriptor parameters)
     {
-        UpdateNode(graphExec, node, HipGraphNodeType.ExternalSemaphoreWait, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExecExternalSemaphoresWaitNodeSetParams(handle, node.Handle, parameters.Pointer), "hipGraphExecExternalSemaphoresWaitNodeSetParams"));
+        UpdateNode(graphExec, node, HipGraphNodeType.ExternalSemaphoreWait, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.GraphExecExternalSemaphoresWaitNodeSetParams(handle, node.Handle, parameters.GetRequiredPointer(nameof(parameters))), "hipGraphExecExternalSemaphoresWaitNodeSetParams"));
     }
 
     /// <summary>获取 driver error 名称 / Gets the driver error name.</summary>
@@ -579,43 +590,43 @@ public sealed class HipAdvancedInterop
     /// <summary>更新 executable 中的 driver memcpy node / Updates a driver memcpy node in an executable graph.</summary>
     public void UpdateDriverMemcpyNode(HipGraphExec graphExec, HipAdvancedGraphNode node, HipNativeDescriptor copyParameters, IntPtr context = default)
     {
-        UpdateNode(graphExec, node, HipGraphNodeType.MemoryCopy, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphExecMemcpyNodeSetParams(handle, node.Handle, copyParameters.Pointer, context), "hipDrvGraphExecMemcpyNodeSetParams"));
+        UpdateNode(graphExec, node, HipGraphNodeType.MemoryCopy, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphExecMemcpyNodeSetParams(handle, node.Handle, copyParameters.GetRequiredPointer(nameof(copyParameters)), context), "hipDrvGraphExecMemcpyNodeSetParams"));
     }
 
     /// <summary>更新 executable 中的 driver memset node / Updates a driver memset node in an executable graph.</summary>
     public void UpdateDriverMemsetNode(HipGraphExec graphExec, HipAdvancedGraphNode node, HipNativeDescriptor memsetParameters, IntPtr context = default)
     {
-        UpdateNode(graphExec, node, HipGraphNodeType.MemorySet, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphExecMemsetNodeSetParams(handle, node.Handle, memsetParameters.Pointer, context), "hipDrvGraphExecMemsetNodeSetParams"));
+        UpdateNode(graphExec, node, HipGraphNodeType.MemorySet, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphExecMemsetNodeSetParams(handle, node.Handle, memsetParameters.GetRequiredPointer(nameof(memsetParameters)), context), "hipDrvGraphExecMemsetNodeSetParams"));
     }
 
     /// <summary>读取 driver memcpy node 参数 / Gets driver memcpy node parameters.</summary>
     public void GetDriverMemcpyNodeParameters(HipAdvancedGraphNode node, HipNativeDescriptor destination) =>
-        AccessNode(node, HipGraphNodeType.MemoryCopy, false, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphMemcpyNodeGetParams(handle, destination.Pointer), "hipDrvGraphMemcpyNodeGetParams"));
+        AccessNode(node, HipGraphNodeType.MemoryCopy, false, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphMemcpyNodeGetParams(handle, destination.GetRequiredPointer(nameof(destination))), "hipDrvGraphMemcpyNodeGetParams"));
 
     /// <summary>设置 driver memcpy node 参数 / Sets driver memcpy node parameters.</summary>
     public void SetDriverMemcpyNodeParameters(HipAdvancedGraphNode node, HipNativeDescriptor parameters) =>
-        AccessNode(node, HipGraphNodeType.MemoryCopy, true, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphMemcpyNodeSetParams(handle, parameters.Pointer), "hipDrvGraphMemcpyNodeSetParams"));
+        AccessNode(node, HipGraphNodeType.MemoryCopy, true, handle => HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvGraphMemcpyNodeSetParams(handle, parameters.GetRequiredPointer(nameof(parameters))), "hipDrvGraphMemcpyNodeSetParams"));
 
     /// <summary>通过 driver API 启动 kernel / Launches a kernel through the driver API.</summary>
     public void LaunchDriverKernel(HipNativeDescriptor configuration, IntPtr function, IntPtr parameters = default, IntPtr extra = default)
     {
         _runtime.ThrowIfDisposedInternal();
         if (function == IntPtr.Zero) throw new ArgumentOutOfRangeException(nameof(function));
-        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvLaunchKernelEx(configuration.Pointer, function, parameters, extra), "hipDrvLaunchKernelEx");
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvLaunchKernelEx(configuration.GetRequiredPointer(nameof(configuration)), function, parameters, extra), "hipDrvLaunchKernelEx");
     }
 
     /// <summary>执行 driver 2D 非对齐复制 / Performs an unaligned driver 2D copy.</summary>
     public void CopyDriver2DUnaligned(HipNativeDescriptor parameters)
     {
         _runtime.ThrowIfDisposedInternal();
-        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvMemcpy2DUnaligned(parameters.Pointer), "hipDrvMemcpy2DUnaligned");
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvMemcpy2DUnaligned(parameters.GetRequiredPointer(nameof(parameters))), "hipDrvMemcpy2DUnaligned");
     }
 
     /// <summary>执行 driver 3D 复制 / Performs a driver 3D copy.</summary>
     public void CopyDriver3D(HipNativeDescriptor parameters)
     {
         _runtime.ThrowIfDisposedInternal();
-        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvMemcpy3D(parameters.Pointer), "hipDrvMemcpy3D");
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvMemcpy3D(parameters.GetRequiredPointer(nameof(parameters))), "hipDrvMemcpy3D");
     }
 
     /// <summary>在 stream 上执行异步 driver 3D 复制 / Performs an asynchronous driver 3D copy on a stream.</summary>
@@ -624,7 +635,7 @@ public sealed class HipAdvancedInterop
         _runtime.ThrowIfDisposedInternal();
         if (stream is null) throw new ArgumentNullException(nameof(stream));
         if (!ReferenceEquals(stream.NativeApi, _nativeApi)) throw new ArgumentException("Stream belongs to another HIP Runtime client.", nameof(stream));
-        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvMemcpy3DAsync(parameters.Pointer, stream.DangerousGetHandle()), "hipDrvMemcpy3DAsync");
+        HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvMemcpy3DAsync(parameters.GetRequiredPointer(nameof(parameters)), stream.DangerousGetHandle()), "hipDrvMemcpy3DAsync");
     }
 
     /// <summary>读取 driver pointer attributes / Gets driver pointer attributes.</summary>
@@ -638,7 +649,7 @@ public sealed class HipAdvancedInterop
         try
         {
             for (int index = 0; index < attributes.Count; index++) Marshal.WriteInt32(buffer, index * sizeof(int), attributes[index]);
-            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvPointerGetAttributes(checked((uint)attributes.Count), buffer, values.Pointer, devicePointer), "hipDrvPointerGetAttributes");
+            HipCall.ThrowIfFailed(_nativeApi, _nativeApi.DrvPointerGetAttributes(checked((uint)attributes.Count), buffer, values.GetRequiredPointer(nameof(values)), devicePointer), "hipDrvPointerGetAttributes");
         }
         finally { Marshal.FreeHGlobal(buffer); }
     }
@@ -676,8 +687,8 @@ public sealed class HipAdvancedInterop
                 WithBorrowHandles(borrows, handles =>
                 {
                     HipError error = signal
-                        ? _nativeApi.SignalExternalSemaphoresAsync(handles, parameters.Pointer, checked((uint)borrows.Length), streamHandle)
-                        : _nativeApi.WaitExternalSemaphoresAsync(handles, parameters.Pointer, checked((uint)borrows.Length), streamHandle);
+                        ? _nativeApi.SignalExternalSemaphoresAsync(handles, parameters.GetRequiredPointer(nameof(parameters)), checked((uint)borrows.Length), streamHandle)
+                        : _nativeApi.WaitExternalSemaphoresAsync(handles, parameters.GetRequiredPointer(nameof(parameters)), checked((uint)borrows.Length), streamHandle);
                     HipCall.ThrowIfFailed(_nativeApi, error, signal ? "hipSignalExternalSemaphoresAsync" : "hipWaitExternalSemaphoresAsync");
                 });
                 return borrows;
@@ -719,11 +730,11 @@ public sealed class HipAdvancedInterop
         {
             HipGraphNode node = graph.AddInteropNode(nodes, type, (graphHandle, handles, count) =>
             {
-                if (driverMemcpy) return _nativeApi.DrvGraphAddMemcpyNode(output, graphHandle, handles, count, parameters.Pointer, context);
-                if (driverMemset) return _nativeApi.DrvGraphAddMemsetNode(output, graphHandle, handles, count, parameters.Pointer, context);
+                if (driverMemcpy) return _nativeApi.DrvGraphAddMemcpyNode(output, graphHandle, handles, count, parameters.GetRequiredPointer(nameof(parameters)), context);
+                if (driverMemset) return _nativeApi.DrvGraphAddMemsetNode(output, graphHandle, handles, count, parameters.GetRequiredPointer(nameof(parameters)), context);
                 if (devicePointer != IntPtr.Zero) return _nativeApi.DrvGraphAddMemFreeNode(output, graphHandle, handles, count, devicePointer);
-                if (externalSignal) return _nativeApi.GraphAddExternalSemaphoresSignalNode(output, graphHandle, handles, count, parameters.Pointer);
-                return _nativeApi.GraphAddExternalSemaphoresWaitNode(output, graphHandle, handles, count, parameters.Pointer);
+                if (externalSignal) return _nativeApi.GraphAddExternalSemaphoresSignalNode(output, graphHandle, handles, count, parameters.GetRequiredPointer(nameof(parameters)));
+                return _nativeApi.GraphAddExternalSemaphoresWaitNode(output, graphHandle, handles, count, parameters.GetRequiredPointer(nameof(parameters)));
             }, output, operation);
             return new HipAdvancedGraphNode(node);
         }
@@ -752,6 +763,7 @@ public sealed class HipAdvancedInterop
     }
     private string GetDriverError(HipError error, bool name)
     {
+        _runtime.ThrowIfDisposedInternal();
         IntPtr output = Marshal.AllocHGlobal(IntPtr.Size);
         try
         {

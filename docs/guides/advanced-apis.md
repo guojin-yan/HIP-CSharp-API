@@ -49,3 +49,15 @@ IPC 导出借用原 memory/event owner；全部导入方完成前须保持原 ow
 Advanced graph nodes join the same topology, dependency, sealing, node-kind and pending-launch checks as ordinary nodes. Descriptor storage and all resources embedded in `HipNativeDescriptor` remain caller-owned: graph parameter calls do not inspect descriptors or automatically retain embedded handles. Keep those resources alive through graph/executable use and every submitted launch. The managed `RetainUserObject` accepts flags zero only; ownership-moving flags require the low-level API. A `HipUserObject` releases all its initial and additional local references on disposal; graph-owned references follow native graph lifetime.
 
 高级 graph node 与普通 node 共享拓扑、依赖、封存、node 类型及 pending launch 检查。`HipNativeDescriptor` 的存储及其中嵌入的资源仍由调用方拥有：graph 参数接口不解析 descriptor，也不自动保活其中的句柄。必须在 graph/executable 使用期间及所有已提交 launch 完成前保留这些资源。托管 `RetainUserObject` 只接受零 flags，所有权移动需使用底层 API。`HipUserObject.Dispose` 释放全部初始及额外的本地引用；graph 所拥有的引用遵循原生 graph 生命周期。
+
+All managed descriptor consumers reject `default(HipNativeDescriptor)` before calling native HIP, including graph parameter updates and external mappings. This only checks for a null address; the caller remains responsible for ABI layout, buffer length and lifetime. Graphics queries reject native success with a null mapped pointer/array while keeping the mapping available for retry.
+
+所有使用 descriptor 的托管入口均在调用原生 HIP 前拒绝 `default(HipNativeDescriptor)`，包括 graph 参数更新和外部映射。这只检查空地址，ABI 布局、缓冲区长度及生命周期仍由调用方负责。graphics 查询会拒绝“原生成功但返回空 pointer/array”的结果，mapping 仍可重试。
+
+`AddStreamCallback` rejects a disposed Runtime, foreign/disposed streams and graph capture. Registration is serialized with stream disposal/capture; the callback remains rooted until native invocation and user exceptions do not escape into HIP. Do not call HIP APIs from a HIP stream callback. Driver error queries through a retained facade also reject a disposed Runtime.
+
+`AddStreamCallback` 拒绝已释放 Runtime、其他 Runtime 的 stream、已释放 stream 及 graph capture；注册与 stream 释放/capture 通过同一锁串行执行。回调保活至原生调用，用户异常不会逃逸至 HIP。不要在 HIP stream callback 中调用 HIP API。保留的高级门面在 Runtime 释放后也会拒绝 driver error 查询。
+
+Use `eng/test-local-runtime-package.ps1 -InteropBoundaries` for an additional exact-package native callback/driver-diagnostic and managed rejection workload on either platform. Its extended summary is separate from the fixed standard candidate matrix and cannot be used directly by `release-candidate.py seal`. It does not validate external memory/semaphore or graphics resources.
+
+两端均可使用 `eng/test-local-runtime-package.ps1 -InteropBoundaries`，追加精确包的原生 callback/driver 诊断和托管拒绝路径工作负载。其扩展 summary 与固定标准候选矩阵分开，不能直接用于 `release-candidate.py seal`，也不代表完成 external memory/semaphore 或 graphics 有效资源验证。

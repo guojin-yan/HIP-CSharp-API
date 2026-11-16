@@ -7,12 +7,14 @@ param(
     [string]$ReferenceAssembliesFeed,
     [switch]$PublishedRuntime,
     [switch]$CompilerOnly,
-    [switch]$ExtendedLinux
+    [switch]$ExtendedLinux,
+    [switch]$InteropBoundaries
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($CompilerOnly -and -not $PublishedRuntime) { throw 'CompilerOnly is restricted to the published Runtime regression.' }
+if ($CompilerOnly -and $InteropBoundaries) { throw 'InteropBoundaries requires the full Runtime/GPU matrix.' }
 if ($ExtendedLinux -and ($CompilerOnly -or -not $IsLinux -or -not (Test-Path /dev/kfd) -or (Test-Path /dev/dxg))) { throw 'ExtendedLinux requires a Linux KFD host and the full GPU matrix.' }
 $repository = Split-Path -Parent $PSScriptRoot
 $validationCommit = (& git -C $repository rev-parse HEAD).Trim()
@@ -95,6 +97,8 @@ foreach ($name in @('HIP_PATH', 'ROCM_PATH', 'PATH', 'LD_LIBRARY_PATH', 'LD_PREL
     $saved[$name] = [Environment]::GetEnvironmentVariable($name)
 }
 $results = @()
+$expectedWorkloadCount = if ($CompilerOnly) { 2 } elseif ($IsWindows) { 23 } elseif ($ExtendedLinux) { 24 } else { 22 }
+if ($InteropBoundaries) { $expectedWorkloadCount++ }
 try {
     foreach ($name in @('HIP_PATH', 'ROCM_PATH', 'LD_LIBRARY_PATH', 'LD_PRELOAD', 'HIPSHARP_OUTPUT_ROOT')) { [Environment]::SetEnvironmentVariable($name, $null) }
     # Keep dotnet/OS tools but remove installed AMD SDK search paths.
@@ -127,6 +131,9 @@ try {
             @{ Name = 'PhysicalMemorySharing'; Source = (Join-Path $PSScriptRoot 'local-runtime/PhysicalMemorySharingSmoke.cs'); Arguments = @() },
             @{ Name = 'CrossProcessIpc'; Source = (Join-Path $PSScriptRoot 'local-runtime/IpcProcessSmoke.cs'); Arguments = @() }
         )
+    }
+    if ($InteropBoundaries) {
+        $workloads += @{ Name = 'AdvancedInteropBoundaries'; Source = (Join-Path $PSScriptRoot 'local-runtime/AdvancedInteropBoundarySmoke.cs'); Arguments = @() }
     }
     if ($CompilerOnly) {
         $workloads = @(
@@ -253,7 +260,8 @@ try {
         sourceTreeDirty = ($sourceTreeDirty -or @(& git -C $repository status --porcelain).Count -ne 0 -or (& git -C $repository rev-parse HEAD).Trim() -ne $validationCommit)
         host = $(if ($IsWindows) { 'windows' } elseif (Test-Path /dev/dxg) { 'wsl2' } elseif (Test-Path /dev/kfd) { 'linux-kfd' } else { 'linux-other' })
         extendedLinux = [bool]$ExtendedLinux
-        completed = ($results.Count -eq $(if ($CompilerOnly) { 2 } elseif ($IsWindows) { 23 } elseif ($ExtendedLinux) { 24 } else { 22 }))
+        interopBoundaries = [bool]$InteropBoundaries
+        completed = ($results.Count -eq $expectedWorkloadCount)
         runtimePackageSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
         corePackageSha256 = (Get-FileHash -LiteralPath $corePath -Algorithm SHA256).Hash.ToLowerInvariant()
         workloads = $results
