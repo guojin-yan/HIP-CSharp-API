@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.ExceptionServices;
 using System.Runtime.InteropServices;
 using System.Threading;
 using JYPPX.ROCm.HipSharp.Graphs;
@@ -410,7 +411,11 @@ public sealed class HipAdvancedInterop
         }
         finally
         {
-            if (!transferred) { DisposeBorrows(borrows); streamOwner?.Dispose(); }
+            if (!transferred)
+            {
+                try { DisposeBorrows(borrows); }
+                finally { streamOwner?.Dispose(); }
+            }
         }
     }
 
@@ -700,7 +705,13 @@ public sealed class HipAdvancedInterop
 
     private static void DisposeBorrows(HipInteropResource.Borrow[] borrows)
     {
-        for (int index = borrows.Length - 1; index >= 0; index--) borrows[index]?.Dispose();
+        Exception? firstFailure = null;
+        for (int index = borrows.Length - 1; index >= 0; index--)
+        {
+            try { borrows[index]?.Dispose(); }
+            catch (Exception exception) { firstFailure ??= exception; }
+        }
+        if (firstFailure is not null) ExceptionDispatchInfo.Capture(firstFailure).Throw();
     }
 
     private void ValidateGraphUserObject(HipGraph graph, HipUserObject userObject, uint count)

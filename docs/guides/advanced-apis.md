@@ -61,3 +61,7 @@ All managed descriptor consumers reject `default(HipNativeDescriptor)` before ca
 Use `eng/test-local-runtime-package.ps1 -InteropBoundaries` for an additional exact-package native callback/driver-diagnostic and managed rejection workload on either platform. Its extended summary is separate from the fixed standard candidate matrix and cannot be used directly by `release-candidate.py seal`. It does not validate external memory/semaphore or graphics resources.
 
 两端均可使用 `eng/test-local-runtime-package.ps1 -InteropBoundaries`，追加精确包的原生 callback/driver 诊断和托管拒绝路径工作负载。其扩展 summary 与固定标准候选矩阵分开，不能直接用于 `release-candidate.py seal`，也不代表完成 external memory/semaphore 或 graphics 有效资源验证。
+
+Failed submission rollback attempts to return every resource borrow, even if one native cleanup fails. It reports the first cleanup failure after attempting the remaining borrows. The owner and a retained completion lease can both retry a failed final cleanup without decrementing the borrower count twice. Graphics map rollback also returns stream ownership when resource unregistration fails. Keep failed owners/streams alive and retry disposal after resolving the native error.
+
+提交失败后的回滚会尝试归还全部资源租约，单个原生清理失败不会阻止其余租约归还；全部尝试后报告首个清理错误。owner 和保留的完成租约均可重试最终清理，不会重复递减借用计数。graphics map 回滚即使注销资源失败，也会归还 stream 所有权。出现清理失败时，应保留 owner/stream，在解决原生错误后重试释放。

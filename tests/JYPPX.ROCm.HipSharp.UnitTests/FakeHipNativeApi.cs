@@ -58,6 +58,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     internal List<uint> UserObjectRetainCounts { get; } = new();
 
     internal HipError AdvancedResult { get; set; } = HipError.Success;
+    internal Action<string>? BeforeAdvancedResult { get; set; }
     internal bool ReturnNullAdvancedHandle { get; set; }
     internal HipError CallbackStatus { get; set; } = HipError.Success;
     internal bool ReturnNullIpcImport { get; set; }
@@ -2236,7 +2237,7 @@ internal sealed class FakeHipNativeApi : IHipNativeApi, IDisposable
     public HipError DrvMemcpy3DAsync(IntPtr copyParameters, IntPtr stream) => RecordAdvanced("hipDrvMemcpy3DAsync");
     public HipError DrvPointerGetAttributes(uint count, IntPtr attributes, IntPtr values, IntPtr devicePointer) => RecordAdvanced("hipDrvPointerGetAttributes");
 
-    private HipError RecordAdvanced(string name) { AdvancedCalls.Add(name); return AdvancedResult; }
+    private HipError RecordAdvanced(string name) { AdvancedCalls.Add(name); BeforeAdvancedResult?.Invoke(name); return AdvancedResult; }
     private HipError WriteAdvancedHandle(string name, IntPtr output) { AdvancedCalls.Add(name); if (AdvancedResult == HipError.Success && !ReturnNullAdvancedHandle) Marshal.WriteIntPtr(output, new IntPtr(_nextAdvancedHandle++)); return AdvancedResult; }
     private HipError WriteAdvancedStruct<T>(string name, IntPtr output, T value) where T : struct { AdvancedCalls.Add(name); if (AdvancedResult == HipError.Success) Marshal.StructureToPtr(value, output, false); return AdvancedResult; }
     private HipError WriteAdvancedText(string name, IntPtr output, string value)

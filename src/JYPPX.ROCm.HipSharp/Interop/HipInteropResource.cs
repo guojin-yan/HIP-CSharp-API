@@ -63,25 +63,36 @@ internal sealed class HipInteropResource : IDisposable
         _parent?.Dispose();
     }
 
-    private void ReleaseBorrow()
+    private void ReleaseBorrow(ref bool returned)
     {
         lock (_sync)
         {
-            // Keep the last borrow retryable when native release or parent cleanup fails.
-            if (_borrowers == 1 && _disposeRequested) Release();
-            _borrowers--;
+            // Returning a borrow and destroying native state are separate steps.
+            // Failed rollback can lose the borrow object; the owner must still be
+            // able to retry cleanup. A retained borrow can also retry without
+            // decrementing the borrower count twice.
+            if (!returned)
+            {
+                _borrowers--;
+                returned = true;
+            }
+            if (_borrowers == 0 && _disposeRequested) Release();
         }
     }
 
     internal sealed class Borrow : IDisposable
     {
+        private readonly HipInteropResource _owner;
         private readonly HipAsyncLease _lease;
+        private bool _returned;
         internal Borrow(HipInteropResource owner, IntPtr handle)
         {
+            _owner = owner;
             Handle = handle;
-            _lease = new HipAsyncLease(owner.ReleaseBorrow);
+            _lease = new HipAsyncLease(Return);
         }
         internal IntPtr Handle { get; }
         public void Dispose() => _lease.Dispose();
+        private void Return() => _owner.ReleaseBorrow(ref _returned);
     }
 }
