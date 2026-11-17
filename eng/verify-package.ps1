@@ -220,6 +220,7 @@ internal static class Program
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
+        -p:RestoreSources= `
         --packages $packages `
         --force `
         --no-cache
