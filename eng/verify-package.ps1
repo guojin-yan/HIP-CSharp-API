@@ -220,7 +220,6 @@ internal static class Program
 
     & dotnet restore (Join-Path $projectDirectory "Consumer.csproj") `
         --configfile (Join-Path $consumerRoot "NuGet.config") `
-        --source $feed --source (Get-HipSharpSupportFeed) `
         --packages $packages `
         --force `
         --no-cache

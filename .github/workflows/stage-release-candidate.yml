@@ -21,7 +21,9 @@ on:
         type: string
 
 permissions:
-  contents: read
+  # GitHub requires write access to read unpublished draft-release assets.
+  # This job only downloads and verifies the selected asset; it never creates a release.
+  contents: write
 
 jobs:
   stage:
