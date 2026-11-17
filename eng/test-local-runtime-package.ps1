@@ -8,12 +8,14 @@ param(
     [switch]$PublishedRuntime,
     [switch]$CompilerOnly,
     [switch]$ExtendedLinux,
-    [switch]$InteropBoundaries
+    [switch]$InteropBoundaries,
+    [switch]$DistributionRuntime
 )
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 if ($CompilerOnly -and -not $PublishedRuntime) { throw 'CompilerOnly is restricted to the published Runtime regression.' }
+if ($DistributionRuntime -and $PublishedRuntime) { throw 'Select one Runtime manifest format.' }
 if ($CompilerOnly -and $InteropBoundaries) { throw 'InteropBoundaries requires the full Runtime/GPU matrix.' }
 if ($ExtendedLinux -and ($CompilerOnly -or -not $IsLinux -or -not (Test-Path /dev/kfd) -or (Test-Path /dev/dxg))) { throw 'ExtendedLinux requires a Linux KFD host and the full GPU matrix.' }
 $repository = Split-Path -Parent $PSScriptRoot
@@ -59,6 +61,16 @@ try {
         if ($publicFiles.Count -ne $publicLock.nativeAssetCount) { throw 'Unexpected public native asset count.' }
         $manifest = [pscustomobject]@{ scope = 'published-runtime-regression'; packageId = $publicLock.packageId; packageVersion = $publicLock.packageVersion; rid = $publicLock.rid; files = $publicFiles }
         $text = $manifest | ConvertTo-Json -Depth 6
+    } elseif ($DistributionRuntime) {
+        $platform = if ($IsWindows) { 'win-x64' } else { 'ubuntu.24.04-x64' }
+        $pythonCommand = if ($IsWindows) { 'python' } else { 'python3' }
+        & $pythonCommand -B (Join-Path $PSScriptRoot 'runtime-distribution.py') verify --platform $platform --package $runtimePath
+        if ($LASTEXITCODE -ne 0) { throw 'Pinned Runtime distribution audit failed.' }
+        $entry = $archive.GetEntry('runtime-distribution-manifest.json')
+        if ($null -eq $entry) { throw 'Expected a Runtime distribution manifest.' }
+        $reader = [IO.StreamReader]::new($entry.Open())
+        try { $text = $reader.ReadToEnd() } finally { $reader.Dispose() }
+        $manifest = $text | ConvertFrom-Json
     } else {
         $entry = $archive.GetEntry('local-runtime-manifest.json')
         if ($null -eq $entry) { throw 'Expected a local-development Runtime package.' }
@@ -261,6 +273,7 @@ try {
         host = $(if ($IsWindows) { 'windows' } elseif (Test-Path /dev/dxg) { 'wsl2' } elseif (Test-Path /dev/kfd) { 'linux-kfd' } else { 'linux-other' })
         extendedLinux = [bool]$ExtendedLinux
         interopBoundaries = [bool]$InteropBoundaries
+        distributionRuntime = [bool]$DistributionRuntime
         completed = ($results.Count -eq $expectedWorkloadCount)
         runtimePackageSha256 = (Get-FileHash -LiteralPath $runtimePath -Algorithm SHA256).Hash.ToLowerInvariant()
         corePackageSha256 = (Get-FileHash -LiteralPath $corePath -Algorithm SHA256).Hash.ToLowerInvariant()

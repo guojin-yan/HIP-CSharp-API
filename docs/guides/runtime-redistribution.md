@@ -1,5 +1,11 @@
 # Native redistribution status / 原生依赖再分发状态
 
+The original local-only wheel packages discussed below retain their original
+status. A separate [10.1.0 distribution preparation](runtime-distribution-10.1.0.md)
+now uses valid AMD-signed Windows tarball DLLs, full pinned source archives,
+expanded notices and offline LGPL rebuild/replacement validation. Its new lock,
+packer and exact-package audits do not waive this historical local-only policy.
+
 The 10.1.0 local packages are **not public release candidates**. Fixed installed-file hashes prove local identity; they do not establish official distribution provenance or satisfy every redistribution obligation. The package lock is `eng/local-runtime-10.1.0.lock.json`; its download entries pin the archive/notice URL and SHA-256. The packer preserves downloaded source archives outside source and includes notices and inventory in the local nupkg.
 
 ## Reproducible archive mapping / 可重复的归档映射

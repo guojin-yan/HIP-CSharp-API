@@ -33,6 +33,8 @@ jobs:
           if ($LASTEXITCODE -ne 0) { throw 'Release candidate tests failed.' }
           python ./eng/test-local-runtime-provenance.py
           if ($LASTEXITCODE -ne 0) { throw 'Runtime provenance tests failed.' }
+          python -B ./eng/test-runtime-distribution.py
+          if ($LASTEXITCODE -ne 0) { throw 'Runtime distribution tests failed.' }
           python -B ./eng/interface-coverage/verify-function-evidence.py
           if ($LASTEXITCODE -ne 0) { throw 'Function receipt inventory failed.' }
           python -B ./eng/interface-coverage/test-function-evidence.py
@@ -79,6 +81,7 @@ jobs:
         run: |
           python3 ./eng/test-release-candidate.py
           python3 ./eng/test-local-runtime-provenance.py
+          python3 -B ./eng/test-runtime-distribution.py
           python3 -B ./eng/interface-coverage/verify-function-evidence.py
           python3 -B ./eng/interface-coverage/test-function-evidence.py
           python3 -B ./eng/function-validation/test-evidence.py

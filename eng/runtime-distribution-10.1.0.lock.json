@@ -1,0 +1,2008 @@
+{
+  "schemaVersion": 1,
+  "version": "10.1.0",
+  "scope": "reviewable-runtime-distribution",
+  "sourceBundle": {
+    "name": "HIP-Runtime-10.1.0-source-materials.zip",
+    "sha256": "3459cd140f7172a57c1cc6bdb872f01e7750727a4da17b96fdb5cb9ce00960ae",
+    "bytes": 525358462,
+    "url": "https://github.com/guojin-yan/HIP-CSharp-API/releases/download/runtime-sources-10.1.0/HIP-Runtime-10.1.0-source-materials.zip"
+  },
+  "sourceArchives": [
+    {
+      "name": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+      "url": "https://codeload.github.com/ROCm/TheRock/tar.gz/b324869fb3116353ac7eec5e6926aa3d452ac987",
+      "sha256": "f8e68923c54fb2b42dadf0cd7778bd92246a3843ec50c601d6df396c19eb0caa",
+      "bytes": 3242697,
+      "path": "archives/TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz"
+    },
+    {
+      "name": "bzip2-1.0.8.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/bzip2-1.0.8.tar.gz",
+      "sha256": "ab5a03176ee106d3f0fa90e381da478ddae405918153cca248e682cd0c4a2269",
+      "bytes": 810029,
+      "path": "archives/bzip2-1.0.8.tar.gz"
+    },
+    {
+      "name": "xz-5.8.1.tar.bz2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/xz-5.8.1.tar.bz2",
+      "sha256": "5965c692c4c8800cd4b33ce6d0f6ac9ac9d6ab227b17c512b6561bce4f08d47e",
+      "bytes": 1902964,
+      "path": "archives/xz-5.8.1.tar.bz2"
+    },
+    {
+      "name": "zlib-1.3.2.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/zlib-1.3.2.tar.gz",
+      "sha256": "bb329a0a2cd0274d05519d61c667c062e06990d72e125ee2dfa8de64f0119d16",
+      "bytes": 1502830,
+      "path": "archives/zlib-1.3.2.tar.gz"
+    },
+    {
+      "name": "zstd-1.5.7.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/zstd-1.5.7.tar.gz",
+      "sha256": "eb33e51f49a15e023950cd7825ca74a4a2b43db8354825ac24fc1b7ee09e6fa3",
+      "bytes": 2434947,
+      "path": "archives/zstd-1.5.7.tar.gz"
+    },
+    {
+      "name": "elfutils-0.195.tar.bz2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/elfutils-0.195.tar.bz2",
+      "sha256": "37629fdf7f1f3dc2818e138fca2b8094177d6c2d0f701d3bb650a561218dc026",
+      "bytes": 12032640,
+      "path": "archives/elfutils-0.195.tar.bz2"
+    },
+    {
+      "name": "libdrm-libdrm-2.4.134.tar.bz2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/libdrm-libdrm-2.4.134.tar.bz2",
+      "sha256": "d77e5af336b6491f9e2427378244912ef5295c3c034af76846c0fcffe2eb869c",
+      "bytes": 480043,
+      "path": "archives/libdrm-libdrm-2.4.134.tar.bz2"
+    },
+    {
+      "name": "numactl-2.0.19.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/numactl-2.0.19.tar.gz",
+      "sha256": "f2672a0381cb59196e9c246bf8bcc43d5568bc457700a697f1a1df762b9af884",
+      "bytes": 450856,
+      "path": "archives/numactl-2.0.19.tar.gz"
+    },
+    {
+      "name": "msgpack-cxx-7.0.0.tar.gz",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/msgpack-cxx-7.0.0.tar.gz",
+      "sha256": "7504b7af7e7b9002ce529d4f941e1b7fb1fb435768780ce7da4abaac79bb156f",
+      "bytes": 480653,
+      "path": "archives/msgpack-cxx-7.0.0.tar.gz"
+    },
+    {
+      "repository": "ROCm/rocm-systems",
+      "commit": "7da43026e4f2ef7600433c38c820732f7a205d22",
+      "url": "https://codeload.github.com/ROCm/rocm-systems/tar.gz/7da43026e4f2ef7600433c38c820732f7a205d22",
+      "path": "archives/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "bytes": 220430044,
+      "sha256": "25c9b2fbc20e9d486f5b5e52a4f8c912688d74a71ca51736b10b3855f7b11be1",
+      "files": 21015,
+      "tarValidated": true,
+      "downloadOrigin": "GitHub HTTPS pinned commit; not a detached publisher signature",
+      "archiveExecuted": false
+    },
+    {
+      "repository": "ROCm/llvm-project",
+      "commit": "d6f6cb691863e9258034ab48c1dfce21689d5606",
+      "url": "https://codeload.github.com/ROCm/llvm-project/tar.gz/d6f6cb691863e9258034ab48c1dfce21689d5606",
+      "path": "archives/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "bytes": 282823231,
+      "sha256": "984e6f56862c11515c680aeb6cb4325f4930e2cff42127d00500894b5fd9f005",
+      "files": 184222,
+      "tarValidated": true,
+      "downloadOrigin": "GitHub HTTPS pinned commit; not a detached publisher signature",
+      "archiveExecuted": false
+    },
+    {
+      "repository": "ROCm/half",
+      "commit": "207ee58595a64b5c4a70df221f1e6e704b807811",
+      "url": "https://codeload.github.com/ROCm/half/tar.gz/207ee58595a64b5c4a70df221f1e6e704b807811",
+      "path": "archives/half-207ee58595a64b5c4a70df221f1e6e704b807811.tar.gz",
+      "sha256": "a0b486f91ca2e60a9e8b22dcdb08c56d0306fed3c97d11ffb19638caf6939421",
+      "bytes": 113179,
+      "files": 46
+    },
+    {
+      "repository": "ROCm/rocm-cmake",
+      "commit": "10155d7272ea1bf79f6b5a9dbc339657af1aa372",
+      "url": "https://codeload.github.com/ROCm/rocm-cmake/tar.gz/10155d7272ea1bf79f6b5a9dbc339657af1aa372",
+      "path": "archives/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "sha256": "fb7cb95f0f29f0aba4ac242855013b1eec32f13a13de31ebfa6a4864bfa33d7c",
+      "bytes": 89940,
+      "files": 164
+    },
+    {
+      "repository": "ROCm/SPIRV-LLVM-Translator",
+      "commit": "4fd57e737272d1a9077a7ff874961bbc82af2024",
+      "url": "https://codeload.github.com/ROCm/SPIRV-LLVM-Translator/tar.gz/4fd57e737272d1a9077a7ff874961bbc82af2024",
+      "path": "archives/SPIRV-LLVM-Translator-4fd57e737272d1a9077a7ff874961bbc82af2024.tar.gz",
+      "sha256": "f9182b6b5dfadc4d78918dd52b337e5bf424a18599d07a72c5df1c280039838a",
+      "bytes": 2005736,
+      "files": 1316
+    },
+    {
+      "repository": "google/glog",
+      "commit": "7b134a5c82c0c0b5698bb6bf7a835b230c5638e4",
+      "url": "https://codeload.github.com/google/glog/tar.gz/7b134a5c82c0c0b5698bb6bf7a835b230c5638e4",
+      "path": "archives/glog-7b134a5c82c0c0b5698bb6bf7a835b230c5638e4.tar.gz",
+      "sha256": "9c48c7c631be5af3502a19d06ebdb5c2f67d8d0bf216f896848089c1792e6193",
+      "bytes": 182928,
+      "files": 103
+    },
+    {
+      "repository": "fmtlib/fmt",
+      "commit": "123913715afeb8a437e6388b4473fcc4753e1c9a",
+      "url": "https://codeload.github.com/fmtlib/fmt/tar.gz/123913715afeb8a437e6388b4473fcc4753e1c9a",
+      "path": "archives/fmt-123913715afeb8a437e6388b4473fcc4753e1c9a.tar.gz",
+      "sha256": "95f89f1eb3b53478417185afc0b7e3d40ec889687af86e890da20068534d29f7",
+      "bytes": 704027,
+      "files": 132
+    },
+    {
+      "repository": "simd-everywhere/simde",
+      "version": "0.8.2",
+      "url": "https://rocm-third-party-deps.s3.us-east-2.amazonaws.com/simde-0.8.2.tar.gz",
+      "path": "archives/simde-0.8.2.tar.gz",
+      "sha256": "ed2a3268658f2f2a9b5367628a85ccd4cf9516460ed8604eed369653d49b25fb",
+      "bytes": 7468969,
+      "hashVerifiedAgainst": "TheRock pinned recipe"
+    }
+  ],
+  "notices": [
+    {
+      "path": "notices/TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz__LICENSE",
+      "sourceArchive": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+      "member": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987/LICENSE",
+      "sha256": "7728762ecd3256782c89e28b1887727a484deda6356887ef2f2898598e950cb8"
+    },
+    {
+      "path": "notices/TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz__build_tools__third_party__change_wheel_version__LICENSE",
+      "sourceArchive": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+      "member": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987/build_tools/third_party/change_wheel_version/LICENSE",
+      "sha256": "0bb918f9007d8fa94e715641a38cef7309be4ed0b07e1060103ae89043d11884"
+    },
+    {
+      "path": "notices/TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz__build_tools__third_party__implib__LICENSE.txt",
+      "sourceArchive": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+      "member": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987/build_tools/third_party/implib/LICENSE.txt",
+      "sha256": "3ce4e4bc862f11fd50735454e524c009923ff82131090847234dc2aa9893eda5"
+    },
+    {
+      "path": "notices/TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz__build_tools__third_party__s3_management__LICENSE",
+      "sourceArchive": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+      "member": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987/build_tools/third_party/s3_management/LICENSE",
+      "sha256": "8f75988e45ca0793e0220858ca1f17f035e71678de79e7ef07cb6f8aaa8f3efb"
+    },
+    {
+      "path": "notices/TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz__third-party__indexer__LICENSE",
+      "sourceArchive": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987.tar.gz",
+      "member": "TheRock-b324869fb3116353ac7eec5e6926aa3d452ac987/third-party/indexer/LICENSE",
+      "sha256": "0a6bc65dd098dda7d4352f86b28dbd409b25c3c31ca382f195c4020a906573c1"
+    },
+    {
+      "path": "notices/bzip2-1.0.8.tar.gz__LICENSE",
+      "sourceArchive": "bzip2-1.0.8.tar.gz",
+      "member": "bzip2-1.0.8/LICENSE",
+      "sha256": "c6dbbf828498be844a89eaa3b84adbab3199e342eb5cb2ed2f0d4ba7ec0f38a3"
+    },
+    {
+      "path": "notices/xz-5.8.1.tar.bz2__COPYING",
+      "sourceArchive": "xz-5.8.1.tar.bz2",
+      "member": "xz-5.8.1/COPYING",
+      "sha256": "616a3ad264ce29b8f1cb97e53037b139d406899ca8d1f799651e17bfa09830b8"
+    },
+    {
+      "path": "notices/xz-5.8.1.tar.bz2__COPYING.0BSD",
+      "sourceArchive": "xz-5.8.1.tar.bz2",
+      "member": "xz-5.8.1/COPYING.0BSD",
+      "sha256": "0b01625d853911cd0e2e088dcfb743261034a091bb379246cb25a14cc4c74bf1"
+    },
+    {
+      "path": "notices/xz-5.8.1.tar.bz2__COPYING.GPLv2",
+      "sourceArchive": "xz-5.8.1.tar.bz2",
+      "member": "xz-5.8.1/COPYING.GPLv2",
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "path": "notices/xz-5.8.1.tar.bz2__COPYING.GPLv3",
+      "sourceArchive": "xz-5.8.1.tar.bz2",
+      "member": "xz-5.8.1/COPYING.GPLv3",
+      "sha256": "3972dc9744f6499f0f9b2dbf76696f2ae7ad8af9b23dde66d6af86c9dfb36986"
+    },
+    {
+      "path": "notices/xz-5.8.1.tar.bz2__COPYING.LGPLv2.1",
+      "sourceArchive": "xz-5.8.1.tar.bz2",
+      "member": "xz-5.8.1/COPYING.LGPLv2.1",
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "path": "notices/xz-5.8.1.tar.bz2__build-aux__license-check.sh",
+      "sourceArchive": "xz-5.8.1.tar.bz2",
+      "member": "xz-5.8.1/build-aux/license-check.sh",
+      "sha256": "2b3fa1d23cb2ab084f3d919908159473cc0e1eed059d106e2a2857c0ec8af98a"
+    },
+    {
+      "path": "notices/zlib-1.3.2.tar.gz__LICENSE",
+      "sourceArchive": "zlib-1.3.2.tar.gz",
+      "member": "zlib-1.3.2/LICENSE",
+      "sha256": "e32ff4e00d9d94930537635291da39e7e612703334bf6fde8c7f1686fe8a45a2"
+    },
+    {
+      "path": "notices/zlib-1.3.2.tar.gz__contrib__dotzlib__LICENSE_1_0.txt",
+      "sourceArchive": "zlib-1.3.2.tar.gz",
+      "member": "zlib-1.3.2/contrib/dotzlib/LICENSE_1_0.txt",
+      "sha256": "36266a8fd073568394cb81cdb2b124f7fdae2c64c1a7ed09db34b4d22efa2951"
+    },
+    {
+      "path": "notices/zlib-1.3.2.tar.gz__contrib__minizip__LICENSE.Info-Zip",
+      "sourceArchive": "zlib-1.3.2.tar.gz",
+      "member": "zlib-1.3.2/contrib/minizip/LICENSE.Info-Zip",
+      "sha256": "fc686023047ce5ce3a18a9b8a777156f0e475929d3de06bac279f3c025d2b2ca"
+    },
+    {
+      "path": "notices/zstd-1.5.7.tar.gz__COPYING",
+      "sourceArchive": "zstd-1.5.7.tar.gz",
+      "member": "zstd-1.5.7/COPYING",
+      "sha256": "f9c375a1be4a41f7b70301dd83c91cb89e41567478859b77eef375a52d782505"
+    },
+    {
+      "path": "notices/zstd-1.5.7.tar.gz__LICENSE",
+      "sourceArchive": "zstd-1.5.7.tar.gz",
+      "member": "zstd-1.5.7/LICENSE",
+      "sha256": "7055266497633c9025b777c78eb7235af13922117480ed5c674677adc381c9d8"
+    },
+    {
+      "path": "notices/zstd-1.5.7.tar.gz__build__LICENSE",
+      "sourceArchive": "zstd-1.5.7.tar.gz",
+      "member": "zstd-1.5.7/build/LICENSE",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "path": "notices/elfutils-0.195.tar.bz2__doc__COPYING-GFDL",
+      "sourceArchive": "elfutils-0.195.tar.bz2",
+      "member": "elfutils-0.195/doc/COPYING-GFDL",
+      "sha256": "62b0aef0fcad4d041e9de52278b2dcbbf999fe0650fa162f37a25cfd969cf4dd"
+    },
+    {
+      "path": "notices/elfutils-0.195.tar.bz2__COPYING-LGPLV3",
+      "sourceArchive": "elfutils-0.195.tar.bz2",
+      "member": "elfutils-0.195/COPYING-LGPLV3",
+      "sha256": "da7eabb7bafdf7d3ae5e9f223aa5bdc1eece45ac569dc21b3b037520b4464768"
+    },
+    {
+      "path": "notices/elfutils-0.195.tar.bz2__COPYING-GPLV2",
+      "sourceArchive": "elfutils-0.195.tar.bz2",
+      "member": "elfutils-0.195/COPYING-GPLV2",
+      "sha256": "8177f97513213526df2cf6184d8ff986c675afb514d4e68a404010521b880643"
+    },
+    {
+      "path": "notices/elfutils-0.195.tar.bz2__COPYING",
+      "sourceArchive": "elfutils-0.195.tar.bz2",
+      "member": "elfutils-0.195/COPYING",
+      "sha256": "8ceb4b9ee5adedde47b31e975c1d90c73ad27b6b165a1dcd80c7c545eb65b903"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu.h",
+      "sha256": "fde2fe737d77af5f4677241fded04dce05b0f870f4f4b46d68035777893268f3"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_asic_id.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_asic_id.c",
+      "sha256": "9c034d0bf2d42eae306e4f39122d2d9777725c5764083cc99883cec8923547f4"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_bo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_bo.c",
+      "sha256": "39e610653447ded6847d3e68627aef91cacd0492e9260c1706a2fc8a2740560b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_cs.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_cs.c",
+      "sha256": "fde2fe737d77af5f4677241fded04dce05b0f870f4f4b46d68035777893268f3"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_device.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_device.c",
+      "sha256": "fde2fe737d77af5f4677241fded04dce05b0f870f4f4b46d68035777893268f3"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_gpu_info.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_gpu_info.c",
+      "sha256": "39e610653447ded6847d3e68627aef91cacd0492e9260c1706a2fc8a2740560b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_internal.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_internal.h",
+      "sha256": "39e610653447ded6847d3e68627aef91cacd0492e9260c1706a2fc8a2740560b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_userq.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_userq.c",
+      "sha256": "07ad0935d09ec555259c050f050195708b26ca0b25183150dc5f081611cfb030"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_vamgr.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_vamgr.c",
+      "sha256": "fde2fe737d77af5f4677241fded04dce05b0f870f4f4b46d68035777893268f3"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__amdgpu_vm.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/amdgpu_vm.c",
+      "sha256": "f86e2d49f4302236c8b84aace4644b5c4fbfc3e2101ed3a6c4e5fef631dfafa2"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__handle_table.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/handle_table.c",
+      "sha256": "94eea47a1aa8c77a20eeb1e45b397277485596e6324b4a315ad39c5beb861ea3"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__amdgpu__handle_table.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/amdgpu/handle_table.h",
+      "sha256": "94eea47a1aa8c77a20eeb1e45b397277485596e6324b4a315ad39c5beb861ea3"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__android__gralloc_handle.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/android/gralloc_handle.h",
+      "sha256": "b13b1e15f772a0e13378e1dcee05117a185943699df9feec1575e8187b8e6202"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_bo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_bo.c",
+      "sha256": "58cc4bc124a6d669089ba6bff9082f96eb7d4b0bb29b9be8822a69d871cb3cdd"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_bo_cache.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_bo_cache.c",
+      "sha256": "dad19186807978f2926b11594fd8171263dab8834489fdc44419444588b6f646"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_cmd_stream.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_cmd_stream.c",
+      "sha256": "1aae5277cd94b3f9c195a570b140df1972c30458ac7088ba0748fb5ac0a8fa81"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_device.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_device.c",
+      "sha256": "58cc4bc124a6d669089ba6bff9082f96eb7d4b0bb29b9be8822a69d871cb3cdd"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_drm.h",
+      "sha256": "037c5373c25a152d32718f75c5a3169571f4c61ad9834da68c9a668d255ebc44"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_drmif.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_drmif.h",
+      "sha256": "1aae5277cd94b3f9c195a570b140df1972c30458ac7088ba0748fb5ac0a8fa81"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_gpu.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_gpu.c",
+      "sha256": "dd877215f04b8038950c6edf9366f44b7da4e4dbd4ef8367778f532dd5c78a98"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_perfmon.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_perfmon.c",
+      "sha256": "7575fb63f8c19fa9e5a4476bbad9068f704e257e098a81cd29a4f4b43e718bb0"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_pipe.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_pipe.c",
+      "sha256": "1aae5277cd94b3f9c195a570b140df1972c30458ac7088ba0748fb5ac0a8fa81"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__etnaviv__etnaviv_priv.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/etnaviv/etnaviv_priv.h",
+      "sha256": "1aae5277cd94b3f9c195a570b140df1972c30458ac7088ba0748fb5ac0a8fa81"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__exynos__exynos_drm.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/exynos/exynos_drm.c",
+      "sha256": "4b844c1a23031b6f163f91a77d87d311f0855b57ad8ca8edb83415b17a2b44e0"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__exynos__exynos_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/exynos/exynos_drm.h",
+      "sha256": "c3fa599d8edf18708d278c8a56fbdc63b2150e6594323c8f51fe8a1491426956"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__exynos__exynos_drmif.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/exynos/exynos_drmif.h",
+      "sha256": "4b844c1a23031b6f163f91a77d87d311f0855b57ad8ca8edb83415b17a2b44e0"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__exynos__exynos_fimg2d.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/exynos/exynos_fimg2d.c",
+      "sha256": "5b053f23072d81afecbb10685a16405830b675c96bd47c1dfba1d997e42ad7ed"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__exynos__exynos_fimg2d.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/exynos/exynos_fimg2d.h",
+      "sha256": "5b053f23072d81afecbb10685a16405830b675c96bd47c1dfba1d997e42ad7ed"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__exynos__fimg2d_reg.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/exynos/fimg2d_reg.h",
+      "sha256": "5b053f23072d81afecbb10685a16405830b675c96bd47c1dfba1d997e42ad7ed"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_bo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_bo.c",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_bo_cache.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_bo_cache.c",
+      "sha256": "d7147750fc85515d3f4496432a25adb939088d1d520f09cd27dc36f8b08ecd35"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_device.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_device.c",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_drmif.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_drmif.h",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_pipe.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_pipe.c",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_priv.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_priv.h",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_ringbuffer.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_ringbuffer.c",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__freedreno_ringbuffer.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/freedreno_ringbuffer.h",
+      "sha256": "09820037e156b7053fbd3e7d5c3eb9320b9bea9b1069478222166e85fe5d5e0b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__kgsl__kgsl_bo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/kgsl/kgsl_bo.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__kgsl__kgsl_device.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/kgsl/kgsl_device.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__kgsl__kgsl_pipe.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/kgsl/kgsl_pipe.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__kgsl__kgsl_priv.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/kgsl/kgsl_priv.h",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__kgsl__kgsl_ringbuffer.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/kgsl/kgsl_ringbuffer.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__msm__msm_bo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/msm/msm_bo.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__msm__msm_device.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/msm/msm_device.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__msm__msm_pipe.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/msm/msm_pipe.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__msm__msm_priv.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/msm/msm_priv.h",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__freedreno__msm__msm_ringbuffer.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/freedreno/msm/msm_ringbuffer.c",
+      "sha256": "9a2b31dc0eb59105f1d818405904135585ba08c9f459efca0cc337fe15034372"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__amdgpu_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/amdgpu_drm.h",
+      "sha256": "7ad5f0222b8dec0ca0a6f98a6b75bc45743094899192250b911b55425314f1dc"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/drm.h",
+      "sha256": "dca8b9ad8b9cab4ad216de1bcb2afafe33dd3d38d26f3e3d21ab8a57ec6c0d83"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__drm_mode.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/drm_mode.h",
+      "sha256": "d8ae67502c6507d1135b380b558a9b211180ff47185f837eb69caadc1ba6f5a5"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__drm_sarea.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/drm_sarea.h",
+      "sha256": "86f24d28339659d996e8d8ba9e00e72cec229f8a184c977839dc8a2a286b3bfb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__i915_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/i915_drm.h",
+      "sha256": "52547d9c093d4a25d4d4050c329ff882b6e8c8bb263f191d8335e66f383e72d5"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__mach64_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/mach64_drm.h",
+      "sha256": "d357fa428f76929a34a4afceb71610bc5b60536c2448df3112d95704a7ec79ac"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__mga_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/mga_drm.h",
+      "sha256": "522c2f6e999a5d417e03ac4c5302cc3f7581e15960b80f02f467a4f1b16d1125"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__msm_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/msm_drm.h",
+      "sha256": "017108463d6141ccdb6971b40a9f96d1e38ea3b96fbe60441a1eb19b0686609b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__nouveau_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/nouveau_drm.h",
+      "sha256": "d60c99747015ace950ba839759f1aeeff26bfade86a85b9504fa35ab1394296a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__qxl_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/qxl_drm.h",
+      "sha256": "41429a6464f8858af83e20448d9002f8ef04c4fef75de1a4a0530b22482f44fb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__r128_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/r128_drm.h",
+      "sha256": "6852be5d3bf8c0687544061add623f981efef9f2ec28e2447fc09ae654fea6bd"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__radeon_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/radeon_drm.h",
+      "sha256": "31f613c7ca13328e32e9cf2b7b5e739fc771f03c38d55805fab5a4a4f9e87c5a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__savage_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/savage_drm.h",
+      "sha256": "ab5077d372875bba2eb411718348228e1efe6d82c8fb6965a48545c6ce45317a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__sis_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/sis_drm.h",
+      "sha256": "baa8487ae44f918f208565502f6a63e739df7b626861627c02cb53e57d3f6e13"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__vc4_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/vc4_drm.h",
+      "sha256": "daf97d3261c2d51f8c8c63b47b23ae045de79c0cff072a62a8b22ccf850d9044"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__via_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/via_drm.h",
+      "sha256": "2aa2738a0493b393337747c8f26f393d167beb155c1cd4b0bbc4e70b4f63a405"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__virtgpu_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/virtgpu_drm.h",
+      "sha256": "41429a6464f8858af83e20448d9002f8ef04c4fef75de1a4a0530b22482f44fb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__include__drm__vmwgfx_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/include/drm/vmwgfx_drm.h",
+      "sha256": "842fb1251c91d706d8bbccfa5b289b9b713dd1540345ee3fdae257160ce40c02"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_aub.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_aub.h",
+      "sha256": "50c00ff4a0b015218314333343d6ff66051206d22e1410734fe9ad7712566789"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_bufmgr.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_bufmgr.c",
+      "sha256": "d555125c48d50ad4eb9c2b33a9d8ffef8c701b292770f50772d238438c33ad62"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_bufmgr.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_bufmgr.h",
+      "sha256": "221f2a334540225cebd353a9f81c63467ab6840a503f3ca8fc8e9aa45fd26192"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_bufmgr_fake.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_bufmgr_fake.c",
+      "sha256": "d09ce9b5abd8114a47115c60704bf9cf676172fb16d24f9fc1a0657c6709be45"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_bufmgr_gem.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_bufmgr_gem.c",
+      "sha256": "0d0a68a29a9c662221fbb8015f9b8e6312dc9e14acaf31a4e06b9ccca49f790a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_bufmgr_priv.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_bufmgr_priv.h",
+      "sha256": "fd6a2e1aef3478985e6f3258bdfd3079ddd379029777332e8348ecbaa72253bf"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_chipset.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_chipset.h",
+      "sha256": "54663929e88139556f824c4390b85479c2956cc5536b27801446df1fc5f02b15"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_debug.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_debug.h",
+      "sha256": "5211778bcd92f5e2fb939a42cfed06e949bf2a6925e3f15f034843f1fe1977fa"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__intel_decode.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/intel_decode.c",
+      "sha256": "65a89229a6356b694952cd40b9ea6cdd1f28eb0cb5dd339d465ca45aa8d6d4ae"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__mm.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/mm.c",
+      "sha256": "c5f7659cbc9f786c94d70bf958edfa72bbed53f31a033f2d55b6238f7d8be109"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__mm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/mm.h",
+      "sha256": "f78cd593c239ceda6d78edfe4f93e4313a3495107853f0b4201528c554d11d1f"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__test_decode.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/test_decode.c",
+      "sha256": "9a4468f61be702b5b30ef37a042d7528ab7d3141aff1d812b0e766469a197526"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__intel__uthash.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/intel/uthash.h",
+      "sha256": "83674a572d30cd8f35c59b7d1fb45103aef0bbb76ac7be65bfc03f73cce8090d"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__libdrm_lists.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/libdrm_lists.h",
+      "sha256": "4f1186c419293f4367177d172db751d949be83631f9266ab60a9584b66fc424a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__libdrm_macros.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/libdrm_macros.h",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__libsync.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/libsync.h",
+      "sha256": "7c5e368d3249ea1334f14f2a1e9e7c385ebdc816375906e39b550e6fdba2236f"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__nouveau__abi16.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/nouveau/abi16.c",
+      "sha256": "cdaf37f61650a8e2ad05698cc5e62c87b7cc09a39ca7200b80d55ff0d62b1544"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__nouveau__bufctx.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/nouveau/bufctx.c",
+      "sha256": "cdaf37f61650a8e2ad05698cc5e62c87b7cc09a39ca7200b80d55ff0d62b1544"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__nouveau__nouveau.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/nouveau/nouveau.c",
+      "sha256": "cdaf37f61650a8e2ad05698cc5e62c87b7cc09a39ca7200b80d55ff0d62b1544"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__nouveau__pushbuf.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/nouveau/pushbuf.c",
+      "sha256": "cdaf37f61650a8e2ad05698cc5e62c87b7cc09a39ca7200b80d55ff0d62b1544"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__omap__omap_drm.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/omap/omap_drm.c",
+      "sha256": "6729bf66db6fc6c1b006d30245c56f8245db608ec45cef67ddbc389a72028ac8"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__omap__omap_drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/omap/omap_drm.h",
+      "sha256": "6729bf66db6fc6c1b006d30245c56f8245db608ec45cef67ddbc389a72028ac8"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__omap__omap_drmif.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/omap/omap_drmif.h",
+      "sha256": "6729bf66db6fc6c1b006d30245c56f8245db608ec45cef67ddbc389a72028ac8"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__bof.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/bof.c",
+      "sha256": "72121a6cf6f9c28ee25c7a492183882e54ee1430928be7cf2a0696962e67c472"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__bof.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/bof.h",
+      "sha256": "72121a6cf6f9c28ee25c7a492183882e54ee1430928be7cf2a0696962e67c472"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_bo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_bo.c",
+      "sha256": "e648d90bc8e1c54b066b58e9d148fcf877ae4e49309fdfc1c6b71fa049b5dad5"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_bo.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_bo.h",
+      "sha256": "83b92f94ce701068b6a8f1da4f5cece387492469a5184dbce2afa2571e598021"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_bo_gem.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_bo_gem.c",
+      "sha256": "e648d90bc8e1c54b066b58e9d148fcf877ae4e49309fdfc1c6b71fa049b5dad5"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_bo_gem.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_bo_gem.h",
+      "sha256": "e648d90bc8e1c54b066b58e9d148fcf877ae4e49309fdfc1c6b71fa049b5dad5"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_cs.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_cs.h",
+      "sha256": "3c22a78edf125439dc18c4da2a23d72bc75a52fe5fa5e1f6ef3b69fdfc841de6"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_cs_gem.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_cs_gem.c",
+      "sha256": "83b92f94ce701068b6a8f1da4f5cece387492469a5184dbce2afa2571e598021"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_cs_gem.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_cs_gem.h",
+      "sha256": "19f16bca6afa51f042780adc898245411229ddf491ba43a00ba72cb098580f0a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_cs_space.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_cs_space.c",
+      "sha256": "161bc2e6dc762c74bd63507ca14a7c2d6695fa8798fd4613581501846a03fa76"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_surface.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_surface.c",
+      "sha256": "2e598b30ae94c3ca7c3099e9f62fe69fb15a59ab9f96a941916a8e8ab493028e"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__radeon__radeon_surface.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/radeon/radeon_surface.h",
+      "sha256": "2e598b30ae94c3ca7c3099e9f62fe69fb15a59ab9f96a941916a8e8ab493028e"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__channel.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/channel.c",
+      "sha256": "f3a90b13c9b1cb87c9e14bb9e1230900f134e4a27aa972ab153e260559ad0b83"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__job.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/job.c",
+      "sha256": "978e054e8fc7f87b96a44decc54be4d507521fa193183833b1a414b98eeae171"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__private.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/private.h",
+      "sha256": "978e054e8fc7f87b96a44decc54be4d507521fa193183833b1a414b98eeae171"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__pushbuf.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/pushbuf.c",
+      "sha256": "978e054e8fc7f87b96a44decc54be4d507521fa193183833b1a414b98eeae171"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__syncpt.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/syncpt.c",
+      "sha256": "0a9dcc4f0c60e6a508e941aa732e625c919a4014b34c6f9f636c09a440f263a0"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__tegra.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/tegra.c",
+      "sha256": "978e054e8fc7f87b96a44decc54be4d507521fa193183833b1a414b98eeae171"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tegra__tegra.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tegra/tegra.h",
+      "sha256": "978e054e8fc7f87b96a44decc54be4d507521fa193183833b1a414b98eeae171"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__amdgpu__amdgpu_stress.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/amdgpu/amdgpu_stress.c",
+      "sha256": "50b7734e5ef5e93faf746fb1e04ddcff4cfbd75be9f0e964353620cd6bb16fd2"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__drmdevice.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/drmdevice.c",
+      "sha256": "f44fbe698802739c9ce8ebfe0d7aca1688f5a7782310bffa9e77339144fbeafc"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__drmsl.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/drmsl.c",
+      "sha256": "aa8263f02d3352f8ddc7306cdc1a8be479f121bf49edafeb466b588e878b9089"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__cmdstream.xml.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/cmdstream.xml.h",
+      "sha256": "4f8c1fe136a5a2bd2233a0b18765c91b1724d8a6cbca9bd7c0c712e4df380d58"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__etnaviv_2d_test.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/etnaviv_2d_test.c",
+      "sha256": "1aae5277cd94b3f9c195a570b140df1972c30458ac7088ba0748fb5ac0a8fa81"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__etnaviv_bo_cache_test.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/etnaviv_bo_cache_test.c",
+      "sha256": "dad19186807978f2926b11594fd8171263dab8834489fdc44419444588b6f646"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__etnaviv_cmd_stream_test.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/etnaviv_cmd_stream_test.c",
+      "sha256": "dd877215f04b8038950c6edf9366f44b7da4e4dbd4ef8367778f532dd5c78a98"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__state.xml.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/state.xml.h",
+      "sha256": "9001ca05a8eadf3df8cea921fdf10b8a530ab410de16f1d4949cd0dac7bc30c2"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__state_2d.xml.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/state_2d.xml.h",
+      "sha256": "9001ca05a8eadf3df8cea921fdf10b8a530ab410de16f1d4949cd0dac7bc30c2"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__write_bmp.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/write_bmp.c",
+      "sha256": "5f2e72726e4990aad87eb8be1ebf3e9579674c045562dc5abaa841a1c2a6001c"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__etnaviv__write_bmp.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/etnaviv/write_bmp.h",
+      "sha256": "5f2e72726e4990aad87eb8be1ebf3e9579674c045562dc5abaa841a1c2a6001c"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__exynos__exynos_fimg2d_event.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/exynos/exynos_fimg2d_event.c",
+      "sha256": "a620585f1cc192ad3b815103cd38491223df1e44e6f0943164a8d0b2cfffc263"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__exynos__exynos_fimg2d_perf.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/exynos/exynos_fimg2d_perf.c",
+      "sha256": "a620585f1cc192ad3b815103cd38491223df1e44e6f0943164a8d0b2cfffc263"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__exynos__exynos_fimg2d_test.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/exynos/exynos_fimg2d_test.c",
+      "sha256": "5b053f23072d81afecbb10685a16405830b675c96bd47c1dfba1d997e42ad7ed"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__hash.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/hash.c",
+      "sha256": "9805e439d6e07c9cce47e0f2ebbe068a3d68f552610f7032f39d5634a9ed82d7"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__modeprint__modeprint.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/modeprint/modeprint.c",
+      "sha256": "1d676ceb7333b611d19bb45086ed7df1571ba6b0ed6a962b741322146e8bb16f"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__modetest__buffers.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/modetest/buffers.c",
+      "sha256": "8c23afe893c8f6fe63d036b2b3971da407615108fca046b037ce71b4e250f724"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__modetest__buffers.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/modetest/buffers.h",
+      "sha256": "8c23afe893c8f6fe63d036b2b3971da407615108fca046b037ce71b4e250f724"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__modetest__cursor.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/modetest/cursor.c",
+      "sha256": "f3e760f0b9931f7a4843a349e62cccca2d05ed7dc4b20d515806280ffd71b662"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__modetest__cursor.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/modetest/cursor.h",
+      "sha256": "3df60987051e3be45cd37fbac400c17e49ecf1306b27d0dd547252fb2307311a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__modetest__modetest.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/modetest/modetest.c",
+      "sha256": "8c23afe893c8f6fe63d036b2b3971da407615108fca046b037ce71b4e250f724"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__nouveau__threaded.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/nouveau/threaded.c",
+      "sha256": "1a7d03f9d8dc73b5b2a4fb8032dcdf168bc44bf241c82e9464947943d56017f4"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__proptest__proptest.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/proptest/proptest.c",
+      "sha256": "53234efc0aed2c0babe6fee3f97f4919b3172c71bdc7f69b08c8d5b704466144"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__radeon__radeon_ttm.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/radeon/radeon_ttm.c",
+      "sha256": "c33314d04b41e322d55c69905853cd7c8cdc321ab0fab66a2c5b015e2d54a3cb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__radeon__rbo.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/radeon/rbo.c",
+      "sha256": "c33314d04b41e322d55c69905853cd7c8cdc321ab0fab66a2c5b015e2d54a3cb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__radeon__rbo.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/radeon/rbo.h",
+      "sha256": "c33314d04b41e322d55c69905853cd7c8cdc321ab0fab66a2c5b015e2d54a3cb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__drm-test-tegra.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/drm-test-tegra.c",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__drm-test-tegra.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/drm-test-tegra.h",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__drm-test.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/drm-test.c",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__drm-test.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/drm-test.h",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__gr2d-fill.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/gr2d-fill.c",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__host1x.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/host1x.h",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__openclose.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/openclose.c",
+      "sha256": "29eb1e5b6dc8b3719eee65409248b7fddf4c3e24f366c4ddf243fe5085168ccb"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__syncpt-timeout.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/syncpt-timeout.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__syncpt-wait.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/syncpt-wait.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic-blit.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic-blit.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic-clear.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic-clear.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic-flip.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic-flip.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic.h",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic30.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic30.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic30.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic30.h",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic40.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic40.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic40.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic40.h",
+      "sha256": "bd45fdff3345f243568fd44289dcdff4ffd497de356915bf69422f10f8f433a8"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic41.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic41.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic41.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic41.h",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic42.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic42.c",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__tegra__vic42.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/tegra/vic42.h",
+      "sha256": "808f7b4ffa0c1d245e0025f16b4ece85a6883d87a999b554e7c887b84fe6a286"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__ttmtest__src__ttmtest.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/ttmtest/src/ttmtest.c",
+      "sha256": "69935339495bd81fdf2df98b0fc2902ce115e1fe79e886aa4a5635248c908c4b"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__ttmtest__src__xf86dri.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/ttmtest/src/xf86dri.c",
+      "sha256": "4b0dc049826d686b24168879674773f9102926e0619ab037dc4eff52bc1af569"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__ttmtest__src__xf86dri.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/ttmtest/src/xf86dri.h",
+      "sha256": "4b0dc049826d686b24168879674773f9102926e0619ab037dc4eff52bc1af569"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__ttmtest__src__xf86dristr.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/ttmtest/src/xf86dristr.h",
+      "sha256": "4b0dc049826d686b24168879674773f9102926e0619ab037dc4eff52bc1af569"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__common.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/common.h",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__format.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/format.c",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__format.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/format.h",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__kms.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/kms.c",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__kms.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/kms.h",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__pattern.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/pattern.c",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__util__pattern.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/util/pattern.h",
+      "sha256": "7b6572fe3da3a4842bf582ac445115fc910efd9f428fb75aea9df83bbdf10394"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__tests__vbltest__vbltest.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/tests/vbltest/vbltest.c",
+      "sha256": "4bc14b8912caa6c81d877057dd8c26f70b513bd3a53272f9c912934005279d5f"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__util_double_list.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/util_double_list.h",
+      "sha256": "fd76e8c8d54fd2cbd419024a72ba57fa00fdce545f150a3d43f7b254dc7759c7"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__util_math.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/util_math.h",
+      "sha256": "2d71db007e8de8a8088b9838af3edba7515de6157b9746c156fddb556fb02ab7"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__vc4__vc4_packet.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/vc4/vc4_packet.h",
+      "sha256": "9d9299cc476e11e9928e675bdb39dcbc15b06291eedc5f995e692cc53460e7c4"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__vc4__vc4_qpu_defines.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/vc4/vc4_qpu_defines.h",
+      "sha256": "9d9299cc476e11e9928e675bdb39dcbc15b06291eedc5f995e692cc53460e7c4"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86atomic.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86atomic.h",
+      "sha256": "5f74197d27e09b9802d483a52119ce7c98a9751d121509bd85b87e75d8770a2e"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drm.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drm.c",
+      "sha256": "3ebeb55615a24f54860d10c3cd809de3cb993b13916add9bad487c58f80e2630"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drm.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drm.h",
+      "sha256": "d251cb981b986459f7085d8bd53837989d2dbd5fdcabc022564f79b975278c09"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmHash.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmHash.c",
+      "sha256": "9805e439d6e07c9cce47e0f2ebbe068a3d68f552610f7032f39d5634a9ed82d7"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmHash.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmHash.h",
+      "sha256": "04c152a1626ebc4734df80ffa2a48b7a15e73c78deb1bac76f9305d04d5de3ef"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmMode.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmMode.c",
+      "sha256": "4202926ad24c69288ef7f07e8851b6c280f81d817cd4293a2aec98917c9b0f50"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmMode.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmMode.h",
+      "sha256": "4202926ad24c69288ef7f07e8851b6c280f81d817cd4293a2aec98917c9b0f50"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmRandom.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmRandom.c",
+      "sha256": "0c909d456192a08f22dc5566ffe07fa1136b4119875aabf8eedddea3b62b4f5a"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmRandom.h",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmRandom.h",
+      "sha256": "04c152a1626ebc4734df80ffa2a48b7a15e73c78deb1bac76f9305d04d5de3ef"
+    },
+    {
+      "path": "notices/libdrm-libdrm-2.4.134.tar.bz2__xf86drmSL.c",
+      "sourceArchive": "libdrm-libdrm-2.4.134.tar.bz2",
+      "member": "libdrm-libdrm-2.4.134/xf86drmSL.c",
+      "sha256": "81782a59a50f941ccbddae7cb997705a9c20a9974aa82edf58c07833f0a44c62"
+    },
+    {
+      "path": "notices/numactl-2.0.19.tar.gz__LICENSE.LGPL2.1",
+      "sourceArchive": "numactl-2.0.19.tar.gz",
+      "member": "numactl-2.0.19/LICENSE.LGPL2.1",
+      "sha256": "dc626520dcd53a22f727af3ee42c770e56c97a64fe3adb063799d8ab032fe551"
+    },
+    {
+      "path": "notices/numactl-2.0.19.tar.gz__LICENSE.GPL2",
+      "sourceArchive": "numactl-2.0.19.tar.gz",
+      "member": "numactl-2.0.19/LICENSE.GPL2",
+      "sha256": "ab15fd526bd8dd18a9e77ebc139656bf4d33e97fc7238cd11bf60e2b9b8666c6"
+    },
+    {
+      "path": "notices/msgpack-cxx-7.0.0.tar.gz__NOTICE",
+      "sourceArchive": "msgpack-cxx-7.0.0.tar.gz",
+      "member": "msgpack-cxx-7.0.0/NOTICE",
+      "sha256": "10514de451bfef1eee4885ce1da8d0e3fdfe36f58357d9199ed0201cdae0334e"
+    },
+    {
+      "path": "notices/msgpack-cxx-7.0.0.tar.gz__LICENSE_1_0.txt",
+      "sourceArchive": "msgpack-cxx-7.0.0.tar.gz",
+      "member": "msgpack-cxx-7.0.0/LICENSE_1_0.txt",
+      "sha256": "c9bff75738922193e67fa726fa225535870d2aa1059f91452c411736284ad566"
+    },
+    {
+      "path": "notices/msgpack-cxx-7.0.0.tar.gz__COPYING",
+      "sourceArchive": "msgpack-cxx-7.0.0.tar.gz",
+      "member": "msgpack-cxx-7.0.0/COPYING",
+      "sha256": "664550b43996452a5a2c7471bb0ff77185a58c69ccafa60f983dc4c162e1ee22"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__hipamd__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/hipamd/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__opencl__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/opencl/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__opencl__khronos__headers__opencl2.2__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/opencl/khronos/headers/opencl2.2/LICENSE",
+      "sha256": "cfaceadff07c2c9458283079cd0166872aa2d93d5c480f1f417be321aa7e0f4d"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__opencl__khronos__headers__opencl2.2__LICENSE.txt",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/opencl/khronos/headers/opencl2.2/LICENSE.txt",
+      "sha256": "30566989c3069521c673559e4201348629e1e4e49e0e2dde523b27c6bd1738ea"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__opencl__khronos__icd__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/opencl/khronos/icd/LICENSE",
+      "sha256": "c71d239df91726fc519c6eb72d318ec65820627232b2f796219e87dcf35d0ab4"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__opencl__khronos__icd__LICENSE.txt",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/opencl/khronos/icd/LICENSE.txt",
+      "sha256": "30566989c3069521c673559e4201348629e1e4e49e0e2dde523b27c6bd1738ea"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__clr__rocclr__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/clr/rocclr/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__hip__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/hip/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__hip__docs__license.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/hip/docs/license.md",
+      "sha256": "a8fd5ee50fffcbeab51485a0180a57b3fe2d6e9044452ab86c4cd4ed88e06862"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocprofiler-register__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocprofiler-register/LICENSE.md",
+      "sha256": "b185aaa652b0bf066c37a0d6314ce4bf4521e4a3c9bf46edd2f6a777ac522223"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__DEB__copyright.in",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/DEB/copyright.in",
+      "sha256": "ca5632ae409a12729bd6c540daae105bd7637760df38b628f73c9593028060e4"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__LICENSE.txt",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/LICENSE.txt",
+      "sha256": "ffa5a77ce21419e276bd9068faec94333128e49e1c95426d9c1d35435e8fe835"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__libhsakmt__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/libhsakmt/LICENSE.md",
+      "sha256": "f45a5bc0bc68dd9a00e9609097788b1cbda79726fee02549cb0c04b90190b419"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__libhsakmt__tests__kfdtest__LICENSE.kfdtest",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/libhsakmt/tests/kfdtest/LICENSE.kfdtest",
+      "sha256": "4c7c9343fe054fdbc17d7fc8da5bf81cf50795f5c6882ee27462e2150fb7eefb"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__rocrtst__thirdparty__include__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/rocrtst/thirdparty/include/LICENSE",
+      "sha256": "10e8b154d2d8f8bfbff3772188f0f01cb0253685065960b998772d3f990d287b"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__rocrtst__thirdparty__lib__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/rocrtst/thirdparty/lib/LICENSE",
+      "sha256": "10e8b154d2d8f8bfbff3772188f0f01cb0253685065960b998772d3f990d287b"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__runtime__cmake_modules__COPYING-CMAKE-SCRIPTS",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/runtime/cmake_modules/COPYING-CMAKE-SCRIPTS",
+      "sha256": "c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__runtime__docs__license.rst",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/runtime/docs/license.rst",
+      "sha256": "8cf688f63d1f80f7c520dc387fe452e2b587b44e1390ff87477542fa08f8252a"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__runtime__hsa-runtime__LICENSE.md",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/runtime/hsa-runtime/LICENSE.md",
+      "sha256": "dac0a5360f50972cceaed16767bc9e94642aa497d558a74471e842f7192c7403"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__runtime__hsa-runtime__cmake_modules__COPYING-CMAKE-SCRIPTS",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/runtime/hsa-runtime/cmake_modules/COPYING-CMAKE-SCRIPTS",
+      "sha256": "c666ec2313dba24523ccad88f4c04ea4b24fad6545263a35b1d4ab2b08efe50a"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__runtime__packages__hsa-ext-rocr-dev__copyright",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/runtime/packages/hsa-ext-rocr-dev/copyright",
+      "sha256": "65767f4b3bad25f4b21eeec130809091a39461cfd018eb1ed229066892e1fb74"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__projects__rocr-runtime__runtime__packages__rocr_tools_legacy__copyright",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/projects/rocr-runtime/runtime/packages/rocr_tools_legacy/copyright",
+      "sha256": "65767f4b3bad25f4b21eeec130809091a39461cfd018eb1ed229066892e1fb74"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__shared__amdgpu-windows-interop__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/shared/amdgpu-windows-interop/LICENSE",
+      "sha256": "154bdf053ef72a3cbf01d0065cfcbc0188745de81b914f744f90a0bb8015d18a"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__shared__amdgpu-windows-interop__pal__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/shared/amdgpu-windows-interop/pal/LICENSE",
+      "sha256": "0774a30583c3e28700537f2f3ca225128c271935baea7cbbed84a1a94a3c3f8b"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__shared__amdgpu-windows-interop__pal__shared__metrohash__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/shared/amdgpu-windows-interop/pal/shared/metrohash/LICENSE",
+      "sha256": "1eb85fc97224598dad1852b5d6483bbcf0aa8608790dcc657a5a2a761ae9c8c6"
+    },
+    {
+      "path": "notices/rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz__shared__kpack__LICENSE",
+      "sourceArchive": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22.tar.gz",
+      "member": "rocm-systems-7da43026e4f2ef7600433c38c820732f7a205d22/shared/kpack/LICENSE",
+      "sha256": "e071e8c7d920817b6415f4b87c115c6aefafe137e36843b3723f28dde5f484c3"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/LICENSE.TXT",
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__amd__comgr__LICENSE.txt",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/amd/comgr/LICENSE.txt",
+      "sha256": "6ad4983498652cb8c73c70a705a0d9175c5e3ff5db93c799d8e09557a04af140"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__amd__device-libs__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/amd/device-libs/LICENSE.TXT",
+      "sha256": "a4e8e3ba6e9255928a29d3085f929de402e61413cb0c49276e16b558effa8a2a"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__clang__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/clang/LICENSE.TXT",
+      "sha256": "ebcd9bbf783a73d05c53ba4d586b8d5813dcdf3bbec50265860ccc885e606f47"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__compiler-rt__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/compiler-rt/LICENSE.TXT",
+      "sha256": "1a8f1058753f1ba890de984e48f0242a3a5c29a6a8f2ed9fd813f36985387e8d"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__libcxx__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/libcxx/LICENSE.TXT",
+      "sha256": "539dd7aed86e8a4f12cbdd0e6c50c189c7d74847e4fecc64ce2c6ee3a01da38b"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__libcxxabi__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/libcxxabi/LICENSE.TXT",
+      "sha256": "e2b35be49f7284a45b7baca8fc7b3ab7440e7902392b2528a457816b5bb2a15c"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__libunwind__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/libunwind/LICENSE.TXT",
+      "sha256": "b5efebcaca80879234098e52d1725e6d9eb8fb96a19fce625d39184b705f7b6d"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__lld__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/lld/LICENSE.TXT",
+      "sha256": "f7891568956e34643eb6a0db1462db30820d40d7266e2a78063f2fe233ece5a0"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/LICENSE.TXT",
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__include__llvm__Support__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/include/llvm/Support/LICENSE.TXT",
+      "sha256": "54cbc326a78b9400065bfc5830a57fdcdaf808286d4ac35d8a9e324aa77b7241"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__lib__Support__BLAKE3__LICENSE",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/lib/Support/BLAKE3/LICENSE",
+      "sha256": "6a94bedb8b707ed97f6e310d0d015ab14e0683ffa0a612b02958581b9cc9fc0e"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__lib__Support__COPYRIGHT.regex",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/lib/Support/COPYRIGHT.regex",
+      "sha256": "0424e57d4303164dc59a8509c20dae0518b853692e5c2b0e98b11816fdbc97c7"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__test__YAMLParser__LICENSE.txt",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/test/YAMLParser/LICENSE.txt",
+      "sha256": "d0d8b09800a45cd982e9568fc7669d9c1a4c330e275a821bbe24d54366d16fe9"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__tools__llvm-ir2vec__Bindings__python__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/tools/llvm-ir2vec/Bindings/python/LICENSE.TXT",
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": "notices/llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz__llvm__utils__lit__LICENSE.TXT",
+      "sourceArchive": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606.tar.gz",
+      "member": "llvm-project-d6f6cb691863e9258034ab48c1dfce21689d5606/llvm/utils/lit/LICENSE.TXT",
+      "sha256": "8d85c1057d742e597985c7d4e6320b015a9139385cff4cbae06ffc0ebe89afee"
+    },
+    {
+      "path": "notices/half-207ee58595a64b5c4a70df221f1e6e704b807811.tar.gz__LICENSE.txt",
+      "sourceArchive": "half-207ee58595a64b5c4a70df221f1e6e704b807811.tar.gz",
+      "member": "half-207ee58595a64b5c4a70df221f1e6e704b807811/LICENSE.txt",
+      "sha256": "1269110471a5506d5cc9c115c57b855206f69a90cc57bbbf27860907067ed946"
+    },
+    {
+      "path": "notices/half-207ee58595a64b5c4a70df221f1e6e704b807811.tar.gz__docs__license.rst",
+      "sourceArchive": "half-207ee58595a64b5c4a70df221f1e6e704b807811.tar.gz",
+      "member": "half-207ee58595a64b5c4a70df221f1e6e704b807811/docs/license.rst",
+      "sha256": "8964a592b0b32583c1358fdefa60567399e2ba3506dc0437179a875666a2822d"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/LICENSE",
+      "sha256": "88d4e50ccb9e041cd667888f9639d21a9caf600b4aca5f899ea03f30752ba5f1"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__docs__src__license.rst",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/docs/src/license.rst",
+      "sha256": "10e76ec94d0964565f6e6cf55188805f22e4a64644f9ccbf1120755647265015"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libheaderonly__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libheaderonly/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libprivate__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libprivate/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libsimple__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libsimple/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libsimple2__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libsimple2/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libsimplecompat__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libsimplecompat/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libsimpletest__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libsimpletest/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__libwrapper__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/libwrapper/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz__test__version__LICENSE",
+      "sourceArchive": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372.tar.gz",
+      "member": "rocm-cmake-10155d7272ea1bf79f6b5a9dbc339657af1aa372/test/version/LICENSE",
+      "sha256": "49f775c0e6b18896bf7e4140ee81c0a398da5bd402f0b202ee398cf366e5c0bc"
+    },
+    {
+      "path": "notices/SPIRV-LLVM-Translator-4fd57e737272d1a9077a7ff874961bbc82af2024.tar.gz__LICENSE.TXT",
+      "sourceArchive": "SPIRV-LLVM-Translator-4fd57e737272d1a9077a7ff874961bbc82af2024.tar.gz",
+      "member": "SPIRV-LLVM-Translator-4fd57e737272d1a9077a7ff874961bbc82af2024/LICENSE.TXT",
+      "sha256": "e3bc36440fc927c62d5cc24efeefe225a14d4e34ffeb0c92e430625cce9ee444"
+    },
+    {
+      "path": "notices/glog-7b134a5c82c0c0b5698bb6bf7a835b230c5638e4.tar.gz__COPYING",
+      "sourceArchive": "glog-7b134a5c82c0c0b5698bb6bf7a835b230c5638e4.tar.gz",
+      "member": "glog-7b134a5c82c0c0b5698bb6bf7a835b230c5638e4/COPYING",
+      "sha256": "136d48dea7a681413691f3db3098f6cf5ffaa3119d96d97bb83b8cff3ce38c4a"
+    },
+    {
+      "path": "notices/fmt-123913715afeb8a437e6388b4473fcc4753e1c9a.tar.gz__LICENSE",
+      "sourceArchive": "fmt-123913715afeb8a437e6388b4473fcc4753e1c9a.tar.gz",
+      "member": "fmt-123913715afeb8a437e6388b4473fcc4753e1c9a/LICENSE",
+      "sha256": "07580f2a3b35709ce703d523f447b242f6dfec7582a8c0df102c7fa2849375f8"
+    },
+    {
+      "path": "notices/simde-0.8.2.tar.gz__COPYING",
+      "sourceArchive": "simde-0.8.2.tar.gz",
+      "member": "simde-0.8.2/COPYING",
+      "sha256": "75ce0a8c5a7bff42fbd6f8f3b469b518132132c4f4948fb8d02b1ccb5d0df9d8"
+    }
+  ],
+  "platforms": {
+    "win-x64": {
+      "rid": "win-x64",
+      "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64",
+      "requiresAuthenticode": true,
+      "requiredSigner": "Advanced Micro Devices",
+      "archive": {
+        "url": "https://stable.repo.amd.com/rocm/core/tarball/therock-dist-windows-gfx110X-all-10.1.0.tar.gz",
+        "sha256": "1313633026b05f8f6af2a6a16a2f323211dd81a904a808f0ee34d2bbfb8f8441",
+        "bytes": 2265249557
+      },
+      "archiveFormat": "tar",
+      "files": [
+        {
+          "name": "amdhip64_7.dll",
+          "archiveMember": "./bin/amdhip64_7.dll",
+          "sourceSha256": "4eb7eb90294cb4c3c9046efae93e51d5d16e9fd81c4161433ed56d5d092ed6f9",
+          "sha256": "4eb7eb90294cb4c3c9046efae93e51d5d16e9fd81c4161433ed56d5d092ed6f9",
+          "bytes": 16391120
+        },
+        {
+          "name": "hiprtc0716.dll",
+          "archiveMember": "./bin/hiprtc0716.dll",
+          "sourceSha256": "64dd3bd06ef93dd957d83c15a9051bd09f1053f15e582965ab6a87d7de0eb472",
+          "sha256": "64dd3bd06ef93dd957d83c15a9051bd09f1053f15e582965ab6a87d7de0eb472",
+          "bytes": 1402832
+        },
+        {
+          "name": "hiprtc-builtins0716.dll",
+          "archiveMember": "./bin/hiprtc-builtins0716.dll",
+          "sourceSha256": "b1951f047ad34e3f26d1233f6d064b522cfd482bf648a19602011c21c6750195",
+          "sha256": "b1951f047ad34e3f26d1233f6d064b522cfd482bf648a19602011c21c6750195",
+          "bytes": 1048016
+        },
+        {
+          "name": "amd_comgr.dll",
+          "archiveMember": "./bin/amd_comgr.dll",
+          "sourceSha256": "19727784b8e0146dd61b11d4619ac29cace70a242feaafbc3e3d441661dadbe0",
+          "sha256": "19727784b8e0146dd61b11d4619ac29cace70a242feaafbc3e3d441661dadbe0",
+          "bytes": 123206608
+        },
+        {
+          "name": "rocm_kpack.dll",
+          "archiveMember": "./bin/rocm_kpack.dll",
+          "sourceSha256": "922db0d5797a54c24d2be5b9cb229a8fd66203ce2b7f2caca0e0d33803e0f151",
+          "sha256": "922db0d5797a54c24d2be5b9cb229a8fd66203ce2b7f2caca0e0d33803e0f151",
+          "bytes": 191952
+        }
+      ],
+      "licenseAcceptance": true,
+      "hostPrerequisites": [
+        "Windows x64 AMD GPU driver compatible with ROCm 10.1.0",
+        "Microsoft Visual C++ x64 Redistributable and Windows UCRT",
+        "AMD hardware; included AMD interop binary terms apply"
+      ],
+      "sourceNotes": [
+        "Stable 10.1.0 tarball contains build metadata labelled 10.1.0rc3, from TheRock b324869 and AMD build 36179538173.",
+        "All five executable payloads match installed 10.1.0 wheel after excluding only Authenticode data; no binary patching or signing performed by this project."
+      ]
+    },
+    "ubuntu.24.04-x64": {
+      "rid": "linux-x64",
+      "packageId": "JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64",
+      "requiresAuthenticode": false,
+      "archive": {
+        "url": "https://stable.repo.amd.com/rocm/whl-next/rocm-sdk-core/rocm_sdk_core-10.1.0-py3-none-linux_x86_64.whl",
+        "sha256": "a1a2433334ac61a526c6bae2f58f6bbc9b525f5a9e008e76a1a48d07f64f0703",
+        "bytes": 419364838
+      },
+      "archiveFormat": "zip",
+      "files": [
+        {
+          "name": "libamd_comgr.so.3",
+          "archiveMember": "_rocm_sdk_core/lib/libamd_comgr.so.3",
+          "sourceSha256": "6bf2f6fe6b243c5ac3621cd5745887933d3a41edd944a447c88c21ec77da5d5b",
+          "sha256": "acb9bc306bdf0111dfc4ea1084cd72eb4bece65144e06912d7d195081d748764",
+          "bytes": 14061305,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libamdhip64.so.7",
+          "archiveMember": "_rocm_sdk_core/lib/libamdhip64.so.7",
+          "sourceSha256": "6d1dbee8cb3ad924e4c1bca7734e22f2c93026eb3bc871a7f64a916778d55e36",
+          "sha256": "edfcbc1c2bc8fa7112c6de76b9d640316947518aa1f91163b4a88ac4c82eb6a4",
+          "bytes": 28275305,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libhiprtc-builtins.so.7",
+          "archiveMember": "_rocm_sdk_core/lib/libhiprtc-builtins.so.7",
+          "sourceSha256": "589202fe35801ecd97f5046680b1d361891e250b3fd104b96c3d220993d94d26",
+          "sha256": "df9d1077eb14711196f9ce9041f26e445c21aeae2ef9ca3c24ded601c45efe45",
+          "bytes": 923905,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libhiprtc.so.7",
+          "archiveMember": "_rocm_sdk_core/lib/libhiprtc.so.7",
+          "sourceSha256": "650c66dc333c0d40c019be058325dbfe26ed96078e51f9e436839f35ee42636a",
+          "sha256": "abb0a1a1d2a69a9df38a1797e4c92310f4e06c2e275f0ee263e9ce436a4a1fb3",
+          "bytes": 1160081,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libhsa-runtime64.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/libhsa-runtime64.so.1",
+          "sourceSha256": "12d49db16881b9505629192231d5b3971e9030b26a326fc2c003e92da7de0c44",
+          "sha256": "1d9c6604aa026012848d61f476f90cc616fc53458d27abfb683f9c95af91f0ac",
+          "bytes": 4928105,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_kpack.so.0",
+          "archiveMember": "_rocm_sdk_core/lib/librocm_kpack.so.0",
+          "sourceSha256": "e2af394dea58ad53d6074c7aa9d56de5dc027ca186f6bbc27d6f32d7b8f12ac3",
+          "sha256": "212580795bad594d7d72b3eb4a8f1c775e9cf3a464df7dbf9b7a6880cdd33567",
+          "bytes": 388329,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocprofiler-register.so.0",
+          "archiveMember": "_rocm_sdk_core/lib/librocprofiler-register.so.0",
+          "sourceSha256": "a67764cf46d1d579eb27311576ba9c0b4dbfa5052ddd64a062131f716faa11b6",
+          "sha256": "630d4eeb8a3217af91a12bf7448c9d953b8c803576381f41c7c52a6a429d7eef",
+          "bytes": 1103313,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libLLVM.so.24.0git",
+          "archiveMember": "_rocm_sdk_core/lib/llvm/lib/libLLVM.so.24.0git",
+          "sourceSha256": "3e7b50e1f252792eba7380b8503c05c899bf8ae9deeb70faf3f9be5f995c8e0a",
+          "sha256": "4c95cee216a17dd2a312c41b9ab23716a2657af0b7094732ebcb664b3523ba01",
+          "bytes": 136689433,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libclang-cpp.so.24.0git",
+          "archiveMember": "_rocm_sdk_core/lib/llvm/lib/libclang-cpp.so.24.0git",
+          "sourceSha256": "18ef4cb8bd32366a68599fb6d723ed38814707a2ada1ff34b722dafc7856663b",
+          "sha256": "68aba1055aece667a96c142be1a1a1343a831cdc125aca2810130056ad157cda",
+          "bytes": 98749705,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_bz2.so",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_bz2.so",
+          "sourceSha256": "37a39b12a7e6e9f480d10e5e139b9aedbe5824e63b6b9e12a16837baee608602",
+          "sha256": "ce02dc262940fb083f9936af5fe83c14773816f6e718cc599322d79d6035c41f",
+          "bytes": 113641,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_drm.so.2",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_drm.so.2",
+          "sourceSha256": "b715ae24e1d62e407ffceca56b546e8a35abe37ac50878cbb16fa8b93d9c9fd5",
+          "sha256": "21cd3c061bd06a080998f6d348d1bf74a81ab2f79386634a7801114c0772a4e3",
+          "bytes": 379521,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_drm_amdgpu.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_drm_amdgpu.so.1",
+          "sourceSha256": "b25742cda500eaa61e39b2b32492bb482235ad3e3df8a988d8f4130054d94cad",
+          "sha256": "d6126addbea4018a0089e0e571bebc3c619ecd2b783e992238cb3df721b02dab",
+          "bytes": 267897,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_elf.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_elf.so.1",
+          "sourceSha256": "692dd9fe3575a45df78b319ad0e2a58ee36814958771dd810d5d91f9616c6d8f",
+          "sha256": "d071e862284d11c89a9ca6f8d24e513ec635bcf01f9247c64c64f172bed3f63b",
+          "bytes": 1213481,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_liblzma.so.5",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_liblzma.so.5",
+          "sourceSha256": "d17f947bfe3947db5aefee897f6d32dfe98c73bf80b477764ba7f4107594a671",
+          "sha256": "5f35b8cd3c2aab157b048c9ff224e8dde9d7f2802e35421e5c33c98e89df8ed3",
+          "bytes": 234537,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_numa.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_numa.so.1",
+          "sourceSha256": "26fffd0f85369950b834cfb8f56fa9e1ea4804be8bbc40db98b788c554802bc3",
+          "sha256": "76de9435e33dc59e99519f39d7f4ba9587a47e4703db1bcb1976337cb1b1e1a8",
+          "bytes": 234697,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_z.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_z.so.1",
+          "sourceSha256": "e1d7568f4a0b77eeab26f30cc9d2794dfe7ffd14e34b4ae55a9f80bc4f94ba7a",
+          "sha256": "15e78e3cab35600f640f454e1d08bc42dee09e2fb1cfff967d58e73083467b5f",
+          "bytes": 142857,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocm_sysdeps_zstd.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/rocm_sysdeps/lib/librocm_sysdeps_zstd.so.1",
+          "sourceSha256": "fc3edd0b74fa071079b0095abe7b3f41418ca39be138f4ec0c57d0640a0b2d8b",
+          "sha256": "e388fcf39b9d4be3d3c830a4ca31d5fed65929ae9e7c7d08298a85bc24a2564a",
+          "bytes": 899921,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "librocdxg.so.1",
+          "archiveMember": "_rocm_sdk_core/lib/librocdxg.so.1",
+          "sourceSha256": "401b5545dc5cfe27680b0905f62ac5f3da3c09be7e6e5211aabc94f314e0bece",
+          "sha256": "5c6eefb940c4610adc5ee1cfb67a090c0e0439b3958e03a33c079207d2da6c1d",
+          "bytes": 6864873,
+          "transformation": "patchelf --force-rpath --set-rpath $ORIGIN"
+        },
+        {
+          "name": "libamdhip64.so",
+          "aliasOf": "libamdhip64.so.7",
+          "sha256": "edfcbc1c2bc8fa7112c6de76b9d640316947518aa1f91163b4a88ac4c82eb6a4",
+          "bytes": 28275305
+        },
+        {
+          "name": "libhiprtc.so",
+          "aliasOf": "libhiprtc.so.7",
+          "sha256": "abb0a1a1d2a69a9df38a1797e4c92310f4e06c2e275f0ee263e9ce436a4a1fb3",
+          "bytes": 1160081
+        },
+        {
+          "name": "libhiprtc-builtins.so",
+          "aliasOf": "libhiprtc-builtins.so.7",
+          "sha256": "df9d1077eb14711196f9ce9041f26e445c21aeae2ef9ca3c24ded601c45efe45",
+          "bytes": 923905
+        }
+      ],
+      "licenseAcceptance": false,
+      "hostPrerequisites": [
+        "Ubuntu 24.04 x64 compatible AMD GPU driver and system C/C++ runtime",
+        "KFD host or separately qualified WSL2 DXCore host; no driver or firmware included"
+      ],
+      "sourceNotes": [
+        "Original AMD 10.1.0 wheel members; patchelf only sets flat $ORIGIN RPATH, three HIP alias copies.",
+        "Only LGPL shared libraries require the corresponding-source provision described in source bundle README; permissive components retain notices."
+      ]
+    }
+  },
+  "exclusions": [
+    "Host GPU driver, firmware, OS libraries, MSVC/UCRT, SDK compiler executables and math libraries are not included.",
+    "Known upstream native limitations remain documented; packaging does not repair AMD binaries."
+  ],
+  "historicalPolicy": "Separate 10.1.0 distribution path; does not modify historical public 7.2.1 receipts or local-only packer policy."
+}
