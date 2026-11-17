@@ -59,6 +59,11 @@ The source ZIP must be accessible at the lock's source-provision URL before any
 Runtime upload. Preserve that source delivery for the applicable license periods;
 an upstream URL alone is not the project's source delivery.
 
+The [source delivery](https://github.com/guojin-yan/HIP-CSharp-API/releases/tag/runtime-sources-10.1.0)
+is now public. Its 525,358,462-byte ZIP has SHA-256
+`3459cd140f7172a57c1cc6bdb872f01e7750727a4da17b96fdb5cb9ce00960ae`;
+an unauthenticated complete download was checked against that hash.
+
 ## Build and verify outside source
 
 Use .NET SDK 10.0.300 and Python 3.11 or newer. There are no network downloads in
@@ -85,3 +90,21 @@ public package paths keep their original checks. Native module filename/path/has
 audits, missing-HIPRTC rejection, published deployment, and Windows net48/RID tests
 still run. Native upstream defects and capability exclusions in the Core support
 guide remain separate from packaging correctness.
+
+## Publication control
+
+`eng/runtime-distribution-release.py` binds both exact Runtime packages to clean
+Windows and Linux deployment receipts, the already published Core 1.0.0 bytes,
+and the fixed source provision. The reviewed `candidate.json` hash is the approval
+anchor; these receipts are not remote GPU attestations. The publication workflow
+downloads this reviewed bundle from a draft GitHub release, checks it before
+requesting credentials, verifies the complete public source ZIP and AMD DLL
+signatures, and uses NuGet Trusted Publishing with short-lived GitHub OIDC credentials.
+The policy is restricted to `runtime-distribution-release.yml`, the protected
+`runtime-production` environment, and the two exact Runtime package IDs.
+
+Only reviewed package bytes are uploaded. Both public NuGet repository signatures
+and every non-signature ZIP entry are checked after publication. A partially
+completed publication can resume only if any existing public version matches the
+reviewed payload exactly. The workflow does not rebuild packages or promote the
+old local-only or 7.2.1 paths.

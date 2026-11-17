@@ -1,0 +1,156 @@
+name: Runtime distribution release
+
+on:
+  workflow_dispatch:
+    inputs:
+      candidate_tag:
+        description: 'Reviewed draft release runtime-10.1.0-review-<source SHA prefix>'
+        required: true
+        type: string
+      source_commit:
+        description: 'Full clean source/validation SHA bound by both Runtime packages and receipts'
+        required: true
+        type: string
+      manifest_sha256:
+        description: 'Reviewed candidate.json SHA-256'
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: runtime-production
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    name: Verify and publish exact Runtime packages
+    runs-on: windows-latest
+    environment: runtime-production
+    permissions:
+      contents: read
+      id-token: write
+    env:
+      REVIEWED_TAG: ${{ inputs.candidate_tag }}
+      REVIEWED_COMMIT: ${{ inputs.source_commit }}
+      MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+      DOTNET_NOLOGO: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.300
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: '3.12'
+
+      - name: Validate review identity and download exact staged files
+        shell: pwsh
+        run: |
+          if ($env:GITHUB_REF -ne 'refs/heads/main') { throw 'Dispatch from main only.' }
+          if ($env:REVIEWED_COMMIT -cnotmatch '^[0-9a-f]{40}$' -or $env:MANIFEST_SHA256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid review identity.' }
+          if ($env:REVIEWED_TAG -cne "runtime-10.1.0-review-$($env:REVIEWED_COMMIT.Substring(0,7))") { throw 'Unexpected candidate tag.' }
+          git merge-base --is-ancestor $env:REVIEWED_COMMIT origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate commit is outside main history.' }
+          $release = gh release view $env:REVIEWED_TAG --repo $env:GITHUB_REPOSITORY --json isDraft,targetCommitish | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or -not $release.isDraft -or $release.targetCommitish -cne $env:REVIEWED_COMMIT) { throw 'Candidate must be the reviewed draft release.' }
+          $bundle = Join-Path $env:RUNNER_TEMP 'runtime-review'
+          gh release download $env:REVIEWED_TAG --repo $env:GITHUB_REPOSITORY --dir $bundle
+          if ($LASTEXITCODE -ne 0) { throw 'Candidate download failed.' }
+          python -B ./eng/runtime-distribution-release.py verify --bundle $bundle --commit $env:REVIEWED_COMMIT --manifest-sha256 $env:MANIFEST_SHA256
+          if ($LASTEXITCODE -ne 0) { throw 'Exact package and dual-platform receipt gate failed.' }
+
+      - name: Verify public source provision and Windows AMD signatures
+        shell: pwsh
+        run: |
+          $lock = Get-Content ./eng/runtime-distribution-10.1.0.lock.json -Raw | ConvertFrom-Json
+          $source = Join-Path $env:RUNNER_TEMP $lock.sourceBundle.name
+          Invoke-WebRequest -Uri $lock.sourceBundle.url -OutFile $source -TimeoutSec 600
+          python -B ./eng/runtime-distribution.py verify-source --source-bundle $source
+          if ($LASTEXITCODE -ne 0) { throw 'Complete public corresponding-source download is invalid.' }
+          $bundle = Join-Path $env:RUNNER_TEMP 'runtime-review'
+          $package = Join-Path $bundle 'JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64.10.1.0.nupkg'
+          $native = Join-Path $env:RUNNER_TEMP 'amd-signatures'
+          New-Item -ItemType Directory -Path $native | Out-Null
+          $archive = [IO.Compression.ZipFile]::OpenRead($package)
+          try {
+            foreach ($file in $lock.platforms.'win-x64'.files) {
+              $entry = $archive.GetEntry("runtimes/win-x64/native/$($file.name)")
+              $path = Join-Path $native $file.name
+              [IO.Compression.ZipFileExtensions]::ExtractToFile($entry, $path)
+              $signature = Get-AuthenticodeSignature -LiteralPath $path
+              if ($signature.Status -ne 'Valid' -or -not $signature.SignerCertificate.Subject.Contains('Advanced Micro Devices')) { throw "Invalid AMD signature: $($file.name)" }
+            }
+          } finally { $archive.Dispose() }
+          dotnet nuget verify (Join-Path $bundle 'JYPPX.ROCm.HIP.CSharp.API.1.0.0.nupkg') --all
+          if ($LASTEXITCODE -ne 0) { throw 'Published Core repository signature failed.' }
+          python -B ./eng/test-runtime-distribution.py
+          if ($LASTEXITCODE -ne 0) { throw 'Distribution regression failed.' }
+          python -B ./eng/test-runtime-distribution-release.py
+          if ($LASTEXITCODE -ne 0) { throw 'Publication gate regression failed.' }
+
+      - name: Obtain short-lived NuGet OIDC credentials
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
+      - name: Publish reviewed packages and compare signed public payloads
+        shell: pwsh
+        env:
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
+        run: |
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'OIDC credentials missing.' }
+          $bundle = Join-Path $env:RUNNER_TEMP 'runtime-review'
+          python -B ./eng/runtime-distribution-release.py verify --bundle $bundle --commit $env:REVIEWED_COMMIT --manifest-sha256 $env:MANIFEST_SHA256
+          if ($LASTEXITCODE -ne 0) { throw 'Reviewed files changed before publication.' }
+          $published = Join-Path $env:RUNNER_TEMP 'published-runtime'
+          New-Item -ItemType Directory -Path $published | Out-Null
+          foreach ($platform in @('win-x64','ubuntu.24.04-x64')) {
+            $id = "JYPPX.ROCm.HIP.CSharp.API.Runtime.$platform"
+            $name = "$id.10.1.0.nupkg"
+            $candidate = Join-Path $bundle $name
+            $destination = Join-Path $published $name
+            $lower = $id.ToLowerInvariant()
+            $url = "https://api.nuget.org/v3-flatcontainer/$lower/10.1.0/$lower.10.1.0.nupkg"
+            $exists = $false
+            try {
+              Invoke-WebRequest -Uri $url -OutFile $destination -TimeoutSec 120
+              $exists = $true
+            } catch {
+              if ($null -eq $_.Exception.Response -or [int]$_.Exception.Response.StatusCode -ne 404) { throw }
+            }
+            if (-not $exists) {
+              dotnet nuget push $candidate --api-key $env:NUGET_API_KEY --source https://api.nuget.org/v3/index.json --timeout 600
+              if ($LASTEXITCODE -ne 0) { throw "NuGet upload failed: $id" }
+              for ($attempt=1; $attempt -le 60; $attempt++) {
+                try { Invoke-WebRequest -Uri $url -OutFile $destination -TimeoutSec 120; break }
+                catch { if ($attempt -eq 60) { throw }; Start-Sleep -Seconds 10 }
+              }
+            }
+            # Allows resuming after a partial upload only when public bytes match exactly.
+            dotnet nuget verify $destination --all
+            if ($LASTEXITCODE -ne 0) { throw "Public repository signature failed: $id" }
+            python -B ./eng/release-candidate.py compare --candidate $candidate --published $destination
+            if ($LASTEXITCODE -ne 0) { throw "Existing/public payload differs from review: $id" }
+            python -B ./eng/runtime-distribution.py verify --platform $platform --package $destination
+            if ($LASTEXITCODE -ne 0) { throw "Public distribution inventory failed: $id" }
+          }
+
+      - name: Save exact publication evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: runtime-10.1.0-publication
+          if-no-files-found: warn
+          path: |
+            ${{ runner.temp }}/runtime-review/candidate.json
+            ${{ runner.temp }}/runtime-review/*-deployment.json
+            ${{ runner.temp }}/published-runtime/*.nupkg
