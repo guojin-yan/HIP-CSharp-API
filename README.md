@@ -51,6 +51,12 @@ Core `0.10.0` includes the HIPRTC Program/Linker managed expansion and the updat
 
 ## 🚀 Get Started In 30 Seconds
 
+The upcoming managed Core 1.0.0 candidate has documented
+[AMD Runtime limitations and upstream tracking](docs/guides/upstream-runtime-issues.md).
+The wrapper does not ship private AMD patches or guarantee every raw function on
+every native Runtime. The installation command below selects the currently
+published Core; a candidate version is not advertised as published before upload.
+
 Install the published managed Core and prepare a compatible system HIP/ROCm installation; Ubuntu 24.04 can also use the published Runtime package above:
 
 ```powershell
