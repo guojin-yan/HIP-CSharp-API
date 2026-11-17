@@ -151,6 +151,9 @@ def windows_audit(directory, platform):
       [pscustomobject]@{name=$_.Name;status=[string]$s.Status;signer=$s.SignerCertificate.Subject;thumbprint=$s.SignerCertificate.Thumbprint}
     }); ConvertTo-Json -InputObject $rows -Depth 4'''
     env = os.environ.copy(); env['HIPSHARP_SIGNATURE_DIRECTORY'] = str(directory)
+    # PowerShell 7's inherited module path can prevent Windows PowerShell 5.1
+    # from loading its built-in Security module.
+    env.pop('PSModulePath', None)
     result = subprocess.run(['powershell.exe', '-NoProfile', '-NonInteractive', '-Command', script],
                             check=True, capture_output=True, text=True, env=env)
     signatures = unique_json(result.stdout)
