@@ -15,6 +15,10 @@ on:
         description: 'SHA-256 approved after reviewing candidate.json and all referenced evidence'
         required: true
         type: string
+      source_commit:
+        description: 'Full reviewed source SHA; must match the candidate run and be an ancestor of main'
+        required: true
+        type: string
 
 permissions:
   contents: read
@@ -29,18 +33,24 @@ jobs:
     name: Verify reviewed candidate, publish Core, compare public payload
     runs-on: windows-latest
     environment: nuget-production
+    permissions:
+      contents: read
+      actions: read
+      id-token: write
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       DOTNET_NOLOGO: '1'
       RELEASE_INPUT_VERSION: ${{ inputs.version }}
       CANDIDATE_RUN_ID: ${{ inputs.candidate_run_id }}
       MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+      REVIEWED_SOURCE_COMMIT: ${{ inputs.source_commit }}
 
     steps:
       - name: Checkout exact reviewed source
         uses: actions/checkout@v5
         with:
           fetch-depth: 0
+          ref: ${{ inputs.source_commit }}
 
       - name: Setup .NET
         uses: actions/setup-dotnet@v5
@@ -65,10 +75,14 @@ jobs:
           if ($env:RELEASE_INPUT_VERSION -cnotmatch '^[0-9]+\.[0-9]+\.[0-9]+$') { throw 'A stable version is required.' }
           if ($env:CANDIDATE_RUN_ID -notmatch '^[0-9]+$') { throw 'Invalid candidate run ID.' }
           if ($env:MANIFEST_SHA256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid reviewed manifest hash.' }
+          if ($env:REVIEWED_SOURCE_COMMIT -cnotmatch '^[0-9a-f]{40}$') { throw 'Invalid reviewed source commit.' }
           $version = (& dotnet msbuild ./src/JYPPX.ROCm.HipSharp/JYPPX.ROCm.HipSharp.csproj -nologo -getProperty:HipSharpCoreVersion).Trim()
           if ($LASTEXITCODE -ne 0 -or $version -ne $env:RELEASE_INPUT_VERSION) { throw 'Source version mismatch.' }
           $sha = (git rev-parse HEAD).Trim()
           if ($LASTEXITCODE -ne 0 -or $sha -cnotmatch '^[0-9a-f]{40}$') { throw 'Invalid checkout SHA.' }
+          if ($sha -cne $env:REVIEWED_SOURCE_COMMIT) { throw 'Checkout differs from reviewed source commit.' }
+          git merge-base --is-ancestor $sha origin/main
+          if ($LASTEXITCODE -ne 0) { throw 'Reviewed source commit must belong to main history.' }
           if (@(git status --porcelain).Count -ne 0) { throw 'Release checkout must be clean.' }
           $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/vnd.github+json' }
           $uri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/actions/runs/$env:CANDIDATE_RUN_ID"
@@ -113,17 +127,23 @@ jobs:
           ./eng/verify-package.ps1 -PackagePath $env:CANDIDATE_PACKAGE -ExpectedVersion $env:RELEASE_INPUT_VERSION -ExpectedRepositoryCommit $env:RELEASE_SHA -OutputDirectory artifacts/candidate-package-audit
           ./eng/test-docs.ps1 -Configuration Release
 
+      - name: Obtain short-lived NuGet credentials with GitHub OIDC
+        id: nuget-login
+        uses: NuGet/login@8d196754b4036150537f80ac539e15c2f1028841 # v1
+        with:
+          user: ${{ vars.NUGET_USER }}
+
       - name: Reject existing public version and publish the reviewed Core package
         shell: pwsh
         env:
-          NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
+          NUGET_API_KEY: ${{ steps.nuget-login.outputs.NUGET_API_KEY }}
           CANDIDATE_PACKAGE: ${{ steps.candidate.outputs.package }}
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           # Repeat the binding check immediately before push. The package produced by test.ps1 is never uploaded.
           python ./eng/release-candidate.py verify --public-only --manifest "$env:RUNNER_TEMP/hipsharp-candidate/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION
           if ($LASTEXITCODE -ne 0) { throw 'Candidate changed before publication.' }
-          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is missing.' }
+          if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NuGet OIDC did not return a temporary API key.' }
           $id = 'jyppx.rocm.hip.csharp.api'
           $uri = "https://api.nuget.org/v3-flatcontainer/$id/$env:RELEASE_INPUT_VERSION/$id.$env:RELEASE_INPUT_VERSION.nupkg"
           try {

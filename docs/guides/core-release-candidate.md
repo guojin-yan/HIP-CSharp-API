@@ -52,10 +52,24 @@ in this repository. A draft release can hold the Core-only ZIP; the workflow use
 its repository token to download it, so no public release/tag is needed for staging.
 Never attach the original local Runtime bundle. The stage verifies all bindings
 without executing bundle content, then uploads `hipsharp-release-candidate`.
-Supply that successful same-repository Actions run ID, version and exported
-manifest hash to **NuGet release**.
+Supply that successful same-repository Actions run ID, version, exported
+manifest hash and full reviewed `source_commit` to **NuGet release**. The workflow
+checks out that exact commit and requires it to belong to main history. Publishing
+control changes can therefore retain the already reviewed package and receipts;
+they do not substitute a newly built package for the reviewed bytes.
 
-Configure the `nuget-production` GitHub environment with required reviewers and an available `NUGET_API_KEY` secret (environment secret or inherited repository secret). Environment protection is a repository setting; source changes cannot establish it. Tag pushes no longer trigger upload. The workflow checks the artifact run commit, version, every referenced hash and deployment receipts, then repeats the binding check immediately before push. Existing public versions are errors.
+Configure the `nuget-production` GitHub environment with required reviewers and
+the `NUGET_USER` Actions variable containing the NuGet profile name (not email).
+In that NuGet account, create a [Trusted Publishing policy](https://learn.microsoft.com/nuget/nuget-org/trusted-publishing)
+for repository owner `guojin-yan`, repository `HIP-CSharp-API`, workflow file
+`nuget-release.yml`, and environment `nuget-production`. The publish job alone
+has `id-token: write`; the pinned official `NuGet/login` action exchanges GitHub
+OIDC for a temporary API key immediately before upload. No long-lived NuGet API
+key secret is used by this Core workflow. NuGet's account-side policy and GitHub
+environment protection are external settings; source changes do not establish them.
+Tag pushes do not trigger upload. The workflow checks the artifact run commit,
+version, every referenced hash and deployment receipts, then repeats the binding
+check immediately before push. Existing public versions are errors.
 
 After push, it downloads the public package, runs `dotnet nuget verify --all`, and compares every uncompressed entry except `.signature.p7s`. ZIP timestamps/compression/order may differ. Nuspec, dependency metadata, README, licenses and assemblies must match.
 
