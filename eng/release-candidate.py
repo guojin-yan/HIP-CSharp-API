@@ -162,7 +162,8 @@ def unpack(archive_path, digest, output):
 
 def validate(root, manifest, expected_commit, expected_version, allow_prerelease=False):
     require(isinstance(manifest, dict), "Candidate manifest must be an object")
-    require(manifest.get("schemaVersion") == 1, "Unsupported candidate schema")
+    schema = manifest.get("schemaVersion")
+    require(schema in (1, 2), "Unsupported candidate schema")
     require(re.fullmatch(r"[0-9a-f]{40}", expected_commit or ""), "Invalid source commit")
     pattern = r"[0-9]+\.[0-9]+\.[0-9]+" + (r"(?:-[0-9A-Za-z.-]+)?" if allow_prerelease else "")
     require(re.fullmatch(pattern, expected_version or ""), "A stable release version is required")
@@ -176,6 +177,26 @@ def validate(root, manifest, expected_commit, expected_version, allow_prerelease
         require(re.fullmatch(r"[0-9a-f]{64}", digest or ""), "Invalid file SHA-256")
         require(sha256(bundle_file(root, name)) == digest, f"Candidate hash mismatch: {name}")
     check_bundle_files(root, files)
+    origin = None
+    if schema == 2:
+        require(manifest.get("runtimePayloadsIncluded") is False, "Public Core candidate cannot include Runtime payloads")
+        origin_name = manifest.get("localCandidateManifest")
+        require(origin_name in files and files[origin_name] == manifest.get("localCandidateManifestSha256"),
+                "Unbound local candidate manifest")
+        origin = read_json(bundle_file(root, origin_name))
+        require(isinstance(origin, dict) and origin.get("schemaVersion") == 1, "Expected original local candidate")
+        for key in ("version", "sourceCommit", "corePackage", "reviewEvidence"):
+            require(origin.get(key) == manifest.get(key), f"Original candidate {key} mismatch")
+        require(set(origin.get("validations", {})) == {"win-x64", "linux-x64"}, "Missing original validations")
+        omitted = {v["runtimePackage"] for v in origin["validations"].values()}
+        retained = {name: digest for name, digest in origin["files"].items() if name not in omitted}
+        identities = {v["runtimeIdentity"] for v in manifest["validations"].values()}
+        require(len(identities) == 2 and set(files) == set(retained) | identities | {origin_name},
+                "Public candidate file inventory mismatch")
+        require(all(files[name] == digest for name, digest in retained.items()), "Original candidate file hash mismatch")
+        require(not (set(files) & omitted), "Runtime payload cannot be exported")
+        require([name for name in files if name.lower().endswith(".nupkg")] == [manifest["corePackage"]],
+                "Only the Core package may be exported")
     core_name = manifest.get("corePackage")
     require(core_name in files, "Core package is not hashed")
     core = bundle_file(root, core_name)
@@ -190,7 +211,8 @@ def validate(root, manifest, expected_commit, expected_version, allow_prerelease
     validations = manifest.get("validations", {})
     require(set(validations) == {"win-x64", "linux-x64"}, "Both platform validations are required")
     for rid, validation in validations.items():
-        summary_name, runtime_name = validation["summary"], validation["runtimePackage"]
+        summary_name = validation["summary"]
+        runtime_name = validation["runtimePackage" if schema == 1 else "runtimeIdentity"]
         require(summary_name in files and runtime_name in files, "Unhashed validation input")
         summary = read_json(bundle_file(root, summary_name))
         require(isinstance(summary, dict), "Validation summary must be an object")
@@ -200,9 +222,24 @@ def validate(root, manifest, expected_commit, expected_version, allow_prerelease
                 "Validation must be complete and from a clean worktree")
         require(summary.get("sourceCommit") == expected_commit and summary.get("validationCommit") == expected_commit,
                 "Validation source commit mismatch")
+        if schema == 1:
+            runtime_sha = files[runtime_name]
+            runtime_id, _, _ = package_identity(bundle_file(root, runtime_name))
+        else:
+            original_validation = origin["validations"][rid]
+            require(summary_name == original_validation["summary"], "Original validation summary mismatch")
+            identity = read_json(bundle_file(root, runtime_name))
+            require(isinstance(identity, dict) and set(identity) == {"packageId", "version", "sourceCommit", "sha256", "size", "localPackage"},
+                    "Invalid Runtime identity record")
+            runtime_sha = origin["files"][original_validation["runtimePackage"]]
+            require(re.fullmatch(r"[0-9a-f]{64}", runtime_sha or "") and identity["sha256"] == runtime_sha and
+                    identity["localPackage"] == original_validation["runtimePackage"], "Original Runtime identity mismatch")
+            require(isinstance(identity["version"], str) and bool(identity["version"]) and
+                    isinstance(identity["sourceCommit"], str) and
+                    type(identity["size"]) is int and identity["size"] > 0, "Invalid Runtime identity metadata")
+            runtime_id = identity["packageId"]
         require(summary.get("corePackageSha256") == files[core_name] and
-                summary.get("runtimePackageSha256") == files[runtime_name], "Validation package hash mismatch")
-        runtime_id, _, _ = package_identity(bundle_file(root, runtime_name))
+                summary.get("runtimePackageSha256") == runtime_sha, "Validation package hash mismatch")
         expected_id = CORE_ID + ".Runtime." + ("win-x64" if rid == "win-x64" else "ubuntu.24.04-x64")
         require(runtime_id == expected_id, "Runtime dependency identity mismatch")
         require(summary.get("architecture", "").startswith("gfx"), "Missing GPU architecture")
@@ -222,6 +259,46 @@ def validate(root, manifest, expected_commit, expected_version, allow_prerelease
                 require(status == "passed" and code == (1 if name == "MissingHipRtcRejected" else 0),
                         f"Failed workload: {name}")
     return core_name
+
+
+def export_core(manifest_path, expected_sha, output):
+    manifest_path, output = Path(manifest_path).resolve(), Path(output).resolve()
+    require(sha256(manifest_path) == expected_sha, "Reviewed manifest SHA-256 mismatch")
+    original = read_json(manifest_path)
+    require(original.get("schemaVersion") == 1, "Export requires a complete local candidate")
+    validate(manifest_path.parent, original, original["sourceCommit"], original["version"])
+    require(not output.exists(), "Use a new public candidate directory")
+    output.mkdir(parents=True)
+    omitted = {v["runtimePackage"] for v in original["validations"].values()}
+    files = {}
+    for name, digest in original["files"].items():
+        if name in omitted:
+            continue
+        target = output / name
+        target.parent.mkdir(parents=True, exist_ok=True)
+        shutil.copyfile(bundle_file(manifest_path.parent, name), target)
+        files[name] = digest
+    origin_name = "review/local-candidate.json"
+    (output / "review").mkdir(exist_ok=True)
+    shutil.copyfile(manifest_path, output / origin_name)
+    files[origin_name] = expected_sha
+    validations = {}
+    for rid, validation in original["validations"].items():
+        name = validation["runtimePackage"]
+        package = bundle_file(manifest_path.parent, name)
+        package_id, version, commit = package_identity(package)
+        identity_name = f"review/{rid}-runtime.json"
+        identity = dict(packageId=package_id, version=version, sourceCommit=commit,
+                        sha256=sha256(package), size=package.stat().st_size, localPackage=name)
+        (output / identity_name).write_text(json.dumps(identity, indent=2) + "\n", encoding="utf-8")
+        files[identity_name] = sha256(output / identity_name)
+        validations[rid] = dict(summary=validation["summary"], runtimeIdentity=identity_name)
+    manifest = dict(original, schemaVersion=2, files=files, validations=validations,
+                    runtimePayloadsIncluded=False, localCandidateManifest=origin_name,
+                    localCandidateManifestSha256=expected_sha)
+    validate(output, manifest, original["sourceCommit"], original["version"])
+    (output / "candidate.json").write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    print(f"Core-only candidate manifest SHA-256: {sha256(output / 'candidate.json')}")
 
 
 def seal(args):
@@ -264,10 +341,14 @@ def main():
                    "managed", "api", "abi", "docs", "support", "output"):
         p.add_argument("--" + option, required=True)
     p.add_argument("--allow-prerelease", action="store_true", help="Local rehearsal only")
+    p = commands.add_parser("export-core")
+    for option in ("manifest", "manifest-sha256", "output"):
+        p.add_argument("--" + option, required=True)
     p = commands.add_parser("verify")
     for option in ("manifest", "manifest-sha256", "commit", "version"):
         p.add_argument("--" + option, required=True)
     p.add_argument("--allow-prerelease", action="store_true", help="Local rehearsal only")
+    p.add_argument("--public-only", action="store_true", help="Reject bundles containing Runtime packages")
     p = commands.add_parser("compare")
     p.add_argument("--candidate", required=True)
     p.add_argument("--published", required=True)
@@ -277,6 +358,8 @@ def main():
     args = parser.parse_args()
     if args.command == "seal":
         seal(args)
+    elif args.command == "export-core":
+        export_core(args.manifest, args.manifest_sha256, args.output)
     elif args.command == "compare":
         compare(args.candidate, args.published)
         print("Published protected payload matches reviewed candidate")
@@ -286,6 +369,8 @@ def main():
         path = Path(args.manifest).resolve()
         require(sha256(path) == args.manifest_sha256, "Reviewed manifest SHA-256 mismatch")
         manifest = read_json(path)
+        if args.public_only:
+            require(manifest.get("schemaVersion") == 2, "Publication requires a Core-only candidate")
         core = validate(path.parent, manifest, args.commit, args.version, args.allow_prerelease)
         print(core)
 

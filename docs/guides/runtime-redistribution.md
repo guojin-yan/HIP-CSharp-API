@@ -44,3 +44,10 @@ The Linux staged ELF files have rewritten `$ORIGIN` RPATHs. An eventual source/b
 Obtain verifiable upstream distribution provenance (including archive origin/hash or publisher signatures where applicable), record exact component versions/revisions and patches, complete the binary/source/license/build mapping, and review the required source provision for the actual distribution. Windows's five local DLLs currently report `NotSigned`; the historical Authenticode requirement remains in force for that release path. Neither this document nor the local hash policy waives it.
 
 The Core release workflow publishes only the managed package. Its bundled Runtime dependencies do not acquire redistribution approval by passing GPU tests. The existing public Ubuntu Runtime 7.2.1 and its historical promotion receipt remain separate from these 10.1.0 materials.
+
+The current local Windows package is 50,948,457 bytes (48.59 MiB); Ubuntu is
+114,267,814 bytes (108.97 MiB). Both are below NuGet.org's documented approximate
+[250 MB package limit](https://learn.microsoft.com/nuget/nuget-org/publish-a-package#package-size-limits).
+Size is not the current release blocker. The source/build/license and applicable
+signature gates above still apply. Core-only staging exports Runtime identities
+and test summaries without uploading these native packages to GitHub artifacts.

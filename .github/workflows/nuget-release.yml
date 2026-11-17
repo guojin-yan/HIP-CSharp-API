@@ -94,7 +94,7 @@ jobs:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           $manifest = Join-Path $env:RUNNER_TEMP 'hipsharp-candidate/candidate.json'
-          $relative = (& python ./eng/release-candidate.py verify --manifest $manifest --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION)
+          $relative = (& python ./eng/release-candidate.py verify --public-only --manifest $manifest --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION)
           if ($LASTEXITCODE -ne 0) { throw 'Candidate validation failed.' }
           $package = Join-Path (Split-Path -Parent $manifest) $relative
           "package=$package" >> $env:GITHUB_OUTPUT
@@ -121,7 +121,7 @@ jobs:
           RELEASE_SHA: ${{ steps.release.outputs.sha }}
         run: |
           # Repeat the binding check immediately before push. The package produced by test.ps1 is never uploaded.
-          python ./eng/release-candidate.py verify --manifest "$env:RUNNER_TEMP/hipsharp-candidate/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION
+          python ./eng/release-candidate.py verify --public-only --manifest "$env:RUNNER_TEMP/hipsharp-candidate/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $env:RELEASE_SHA --version $env:RELEASE_INPUT_VERSION
           if ($LASTEXITCODE -ne 0) { throw 'Candidate changed before publication.' }
           if ([string]::IsNullOrWhiteSpace($env:NUGET_API_KEY)) { throw 'NUGET_API_KEY is missing.' }
           $id = 'jyppx.rocm.hip.csharp.api'

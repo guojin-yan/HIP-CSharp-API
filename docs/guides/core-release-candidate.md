@@ -1,6 +1,6 @@
 # Reviewed Core candidate / Core 候选包发布
 
-The release workflow publishes the exact Core nupkg validated on Windows and Linux. The newly rebuilt package from its managed test step is not uploaded. Native Runtime packages in the bundle are test dependencies only. This procedure does not authorize publication.
+The release workflow publishes the exact Core nupkg validated on Windows and Linux. The newly rebuilt package from its managed test step is not uploaded. Native Runtime packages remain local test dependencies; public staging contains their identities and receipts, not their binaries. This procedure does not authorize publication.
 
 ## Preparation and review / 准备与审查
 
@@ -29,9 +29,33 @@ External build roots are mapped to a stable generated-source/PDB path, and Core 
 
 ## Authorized publication / 获授权后发布
 
-Zip the candidate contents with `candidate.json` at the archive root. Record the ZIP hash and stage it at an HTTPS download URL. Run **Stage reviewed Core candidate** at the exact reviewed source commit with the URL, ZIP hash and reviewed manifest hash. It verifies all bindings without executing bundle content, then uploads `hipsharp-release-candidate`. Supply that successful same-repository Actions run ID, version and manifest hash to **NuGet release**.
+First export a Core-only candidate from the fully verified local bundle:
 
-Configure the `nuget-production` GitHub environment with required reviewers and its `NUGET_API_KEY` secret. Environment protection is a repository setting; source changes cannot establish it. Tag pushes no longer trigger upload. The workflow checks the artifact run commit, version, every referenced hash and deployment receipts, then repeats the binding check immediately before push. Existing public versions are errors.
+```powershell
+python eng/release-candidate.py export-core --manifest <local-candidate/candidate.json> `
+  --manifest-sha256 <reviewed-local-manifest-hash> --output <new-public-directory>
+```
+
+The exporter verifies the complete local bundle before copying the exact Core,
+both platform summaries and all five evidence roles. Schema 2 adds the unchanged
+local manifest and Runtime identity records (package ID/version/source/hash/size).
+The Runtime nupkg files are omitted. Verification binds retained files to the
+original manifest and the Runtime hashes to the deployment summaries. This is
+portable evidence of the reviewed local inputs, not a fresh execution or Runtime
+redistribution approval. Both publication workflows require `verify --public-only`
+and reject a schema 1 bundle containing native dependencies.
+
+Zip the exported contents with `candidate.json` at the archive root. Record the ZIP
+and exported manifest hashes. Run **Stage reviewed Core candidate** at the exact
+reviewed source commit using either an HTTPS download URL or a release asset ID
+in this repository. A draft release can hold the Core-only ZIP; the workflow uses
+its repository token to download it, so no public release/tag is needed for staging.
+Never attach the original local Runtime bundle. The stage verifies all bindings
+without executing bundle content, then uploads `hipsharp-release-candidate`.
+Supply that successful same-repository Actions run ID, version and exported
+manifest hash to **NuGet release**.
+
+Configure the `nuget-production` GitHub environment with required reviewers and an available `NUGET_API_KEY` secret (environment secret or inherited repository secret). Environment protection is a repository setting; source changes cannot establish it. Tag pushes no longer trigger upload. The workflow checks the artifact run commit, version, every referenced hash and deployment receipts, then repeats the binding check immediately before push. Existing public versions are errors.
 
 After push, it downloads the public package, runs `dotnet nuget verify --all`, and compares every uncompressed entry except `.signature.p7s`. ZIP timestamps/compression/order may differ. Nuspec, dependency metadata, README, licenses and assemblies must match.
 

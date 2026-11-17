@@ -4,8 +4,12 @@ on:
   workflow_dispatch:
     inputs:
       bundle_url:
-        description: 'HTTPS URL of reviewed candidate ZIP (candidate.json at ZIP root)'
-        required: true
+        description: 'HTTPS URL of Core-only candidate ZIP; leave empty when using a repository release asset'
+        required: false
+        type: string
+      asset_id:
+        description: 'Core-only ZIP release asset ID in this repository (may be a draft); alternative to bundle_url'
+        required: false
         type: string
       bundle_sha256:
         description: 'SHA-256 of candidate ZIP'
@@ -26,6 +30,7 @@ jobs:
       BUNDLE_URL: ${{ inputs.bundle_url }}
       BUNDLE_SHA256: ${{ inputs.bundle_sha256 }}
       MANIFEST_SHA256: ${{ inputs.manifest_sha256 }}
+      ASSET_ID: ${{ inputs.asset_id }}
     steps:
       - uses: actions/checkout@v5
       - uses: actions/setup-python@v6
@@ -33,19 +38,29 @@ jobs:
           python-version: '3.12'
       - name: Download and verify reviewed candidate without rebuilding
         shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
-          $uri = [Uri]$env:BUNDLE_URL
-          if ($uri.Scheme -ne 'https') { throw 'Candidate URL must use HTTPS.' }
           if ($env:BUNDLE_SHA256 -cnotmatch '^[0-9a-f]{64}$' -or $env:MANIFEST_SHA256 -cnotmatch '^[0-9a-f]{64}$') { throw 'Invalid SHA-256.' }
           $archive = Join-Path $env:RUNNER_TEMP 'candidate.zip'
           $bundle = Join-Path $env:RUNNER_TEMP 'candidate'
-          Invoke-WebRequest -Uri $uri -OutFile $archive -TimeoutSec 600
+          if ([bool]$env:BUNDLE_URL -eq [bool]$env:ASSET_ID) { throw 'Specify exactly one candidate URL or repository asset ID.' }
+          if ($env:ASSET_ID) {
+            if ($env:ASSET_ID -notmatch '^[0-9]+$') { throw 'Invalid repository asset ID.' }
+            $uri = "$env:GITHUB_API_URL/repos/$env:GITHUB_REPOSITORY/releases/assets/$env:ASSET_ID"
+            $headers = @{ Authorization = "Bearer $env:GH_TOKEN"; Accept = 'application/octet-stream' }
+            Invoke-WebRequest -Uri $uri -Headers $headers -OutFile $archive -TimeoutSec 120
+          } else {
+            $uri = [Uri]$env:BUNDLE_URL
+            if ($uri.Scheme -ne 'https') { throw 'Candidate URL must use HTTPS.' }
+            Invoke-WebRequest -Uri $uri -OutFile $archive -TimeoutSec 120
+          }
           python ./eng/release-candidate.py unpack --archive $archive --archive-sha256 $env:BUNDLE_SHA256 --output $bundle
           if ($LASTEXITCODE -ne 0) { throw 'Candidate archive rejected.' }
           [xml]$versions = Get-Content ./eng/Versions.props -Raw
           $version = $versions.Project.PropertyGroup.HipSharpCoreVersion
           $sha = (git rev-parse HEAD).Trim()
-          python ./eng/release-candidate.py verify --manifest "$bundle/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $sha --version $version
+          python ./eng/release-candidate.py verify --public-only --manifest "$bundle/candidate.json" --manifest-sha256 $env:MANIFEST_SHA256 --commit $sha --version $version
           if ($LASTEXITCODE -ne 0) { throw 'Candidate review binding rejected.' }
       - uses: actions/upload-artifact@v4
         with:

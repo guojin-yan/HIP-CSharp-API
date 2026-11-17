@@ -72,6 +72,78 @@ class CandidateTests(unittest.TestCase):
     def test_complete_candidate(self):
         self.assertEqual(self.validate(), self.core)
 
+    def export_core(self):
+        path = self.root / "candidate.json"
+        path.write_text(json.dumps(self.manifest), encoding="utf-8")
+        output = self.root.parent / (self.root.name + "-public")
+        import shutil
+        self.addCleanup(lambda: shutil.rmtree(output, ignore_errors=True))
+        gate.export_core(path, gate.sha256(path), output)
+        return output, gate.read_json(output / "candidate.json")
+
+    def test_public_export_preserves_core_and_receipts_without_runtime_payload(self):
+        output, manifest = self.export_core()
+        self.assertEqual(gate.validate(output, manifest, COMMIT, VERSION), self.core)
+        self.assertEqual([p.name for p in output.rglob("*.nupkg")], [self.core])
+        self.assertEqual(gate.sha256(output / self.core), self.files[self.core])
+        self.assertFalse(manifest["runtimePayloadsIncluded"])
+
+    def test_public_export_rejects_tampered_original_input(self):
+        (self.root / "win-x64.nupkg").write_bytes(b"changed native package")
+        with self.assertRaisesRegex(ValueError, "hash mismatch"):
+            self.export_core()
+
+    def test_public_identity_cannot_change_original_runtime_hash(self):
+        output, manifest = self.export_core()
+        name = manifest["validations"]["win-x64"]["runtimeIdentity"]
+        identity = gate.read_json(output / name)
+        identity["sha256"] = "b" * 64
+        (output / name).write_text(json.dumps(identity), encoding="utf-8")
+        manifest["files"][name] = gate.sha256(output / name)
+        with self.assertRaisesRegex(ValueError, "Original Runtime identity mismatch"):
+            gate.validate(output, manifest, COMMIT, VERSION)
+
+    def test_public_export_cannot_rehash_replaced_evidence(self):
+        output, manifest = self.export_core()
+        (output / "evidence.txt").write_text("changed evidence", encoding="utf-8")
+        manifest["files"]["evidence.txt"] = gate.sha256(output / "evidence.txt")
+        with self.assertRaisesRegex(ValueError, "Original candidate file hash mismatch"):
+            gate.validate(output, manifest, COMMIT, VERSION)
+
+    def test_public_export_rejects_injected_runtime_even_when_hashed(self):
+        output, manifest = self.export_core()
+        name = "native-runtime.nupkg"
+        (output / name).write_bytes((self.root / "win-x64.nupkg").read_bytes())
+        manifest["files"][name] = gate.sha256(output / name)
+        with self.assertRaisesRegex(ValueError, "Public candidate file inventory mismatch"):
+            gate.validate(output, manifest, COMMIT, VERSION)
+
+    def test_public_export_requires_original_manifest_hash(self):
+        output, manifest = self.export_core()
+        manifest["localCandidateManifestSha256"] = "b" * 64
+        with self.assertRaisesRegex(ValueError, "Unbound local candidate manifest"):
+            gate.validate(output, manifest, COMMIT, VERSION)
+
+    def test_public_identity_cannot_change_platform(self):
+        output, manifest = self.export_core()
+        name = manifest["validations"]["win-x64"]["runtimeIdentity"]
+        identity = gate.read_json(output / name)
+        identity["packageId"] = gate.CORE_ID + ".Runtime.ubuntu.24.04-x64"
+        (output / name).write_text(json.dumps(identity), encoding="utf-8")
+        manifest["files"][name] = gate.sha256(output / name)
+        with self.assertRaisesRegex(ValueError, "Runtime dependency identity mismatch"):
+            gate.validate(output, manifest, COMMIT, VERSION)
+
+    def test_public_only_command_rejects_local_bundle(self):
+        import subprocess
+        path = self.root / "candidate.json"
+        path.write_text(json.dumps(self.manifest), encoding="utf-8")
+        result = subprocess.run([sys.executable, "-B", str(Path(gate.__file__)), "verify", "--public-only",
+                                 "--manifest", str(path), "--manifest-sha256", gate.sha256(path),
+                                 "--commit", COMMIT, "--version", VERSION], capture_output=True, text=True)
+        self.assertEqual(result.returncode, 1)
+        self.assertIn("Publication requires a Core-only candidate", result.stderr)
+
     def test_tampered_package_rejected(self):
         with (self.root / self.core).open("ab") as f:
             f.write(b"tampered")
