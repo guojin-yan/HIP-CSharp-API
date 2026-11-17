@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       candidate_tag:
-        description: 'Reviewed draft release runtime-10.1.0-review-<source SHA prefix>'
+        description: 'Reviewed staging prerelease runtime-10.1.0-review-<source SHA prefix>'
         required: true
         type: string
       source_commit:
@@ -59,8 +59,8 @@ jobs:
           if ($env:REVIEWED_TAG -cne "runtime-10.1.0-review-$($env:REVIEWED_COMMIT.Substring(0,7))") { throw 'Unexpected candidate tag.' }
           git merge-base --is-ancestor $env:REVIEWED_COMMIT origin/main
           if ($LASTEXITCODE -ne 0) { throw 'Candidate commit is outside main history.' }
-          $release = gh release view $env:REVIEWED_TAG --repo $env:GITHUB_REPOSITORY --json isDraft,targetCommitish | ConvertFrom-Json
-          if ($LASTEXITCODE -ne 0 -or -not $release.isDraft -or $release.targetCommitish -cne $env:REVIEWED_COMMIT) { throw 'Candidate must be the reviewed draft release.' }
+          $release = gh release view $env:REVIEWED_TAG --repo $env:GITHUB_REPOSITORY --json isDraft,isPrerelease,targetCommitish | ConvertFrom-Json
+          if ($LASTEXITCODE -ne 0 -or $release.isDraft -or -not $release.isPrerelease -or $release.targetCommitish -cne $env:REVIEWED_COMMIT) { throw 'Candidate must be the reviewed staging prerelease.' }
           $bundle = Join-Path $env:RUNNER_TEMP 'runtime-review'
           gh release download $env:REVIEWED_TAG --repo $env:GITHUB_REPOSITORY --dir $bundle
           if ($LASTEXITCODE -ne 0) { throw 'Candidate download failed.' }

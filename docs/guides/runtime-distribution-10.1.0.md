@@ -97,7 +97,7 @@ guide remain separate from packaging correctness.
 Windows and Linux deployment receipts, the already published Core 1.0.0 bytes,
 and the fixed source provision. The reviewed `candidate.json` hash is the approval
 anchor; these receipts are not remote GPU attestations. The publication workflow
-downloads this reviewed bundle from a draft GitHub release, checks it before
+downloads this reviewed bundle from a public staging prerelease, checks it before
 requesting credentials, verifies the complete public source ZIP and AMD DLL
 signatures, and uses NuGet Trusted Publishing with short-lived GitHub OIDC credentials.
 The policy is restricted to `runtime-distribution-release.yml`, the protected
