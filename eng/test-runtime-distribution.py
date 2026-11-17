@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 import tempfile
 import unittest
+from unittest import mock
 import warnings
 import zipfile
 
@@ -115,6 +116,15 @@ class DistributionTests(unittest.TestCase):
     def test_truncated_pe_rejected(self):
         self.path.write_bytes(b'not a PE file')
         with self.assertRaises(ValueError):gate.pe_imports(self.path)
+
+    def test_signature_child_does_not_inherit_powershell7_modules(self):
+        with mock.patch.dict(gate.os.environ, {'PSMODULEPATH':'synthetic-pwsh7-modules'}), \
+             mock.patch.object(gate, 'pe_imports', return_value=[]), \
+             mock.patch.object(gate.subprocess, 'run') as run:
+            run.return_value.returncode=0
+            run.return_value.stdout='[{"name":"fixture.dll","status":"Valid"}]'
+            gate.windows_audit(self.path.parent,self.inventory['platforms']['win-x64'])
+            self.assertFalse(any(k.upper()=='PSMODULEPATH' for k in run.call_args.kwargs['env']))
 
     def test_wrong_source_bundle_hash_rejected_before_opening(self):
         self.path.write_bytes(b'not a source bundle')
