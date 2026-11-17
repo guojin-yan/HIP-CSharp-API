@@ -1,25 +1,21 @@
 # NuGet dependency and deployment boundary
 
-The HIP user-mode runtime dependencies can be distributed through NuGet. Keep the managed Core package separate from each platform's native Runtime package, so an application can choose packaged native libraries or an existing compatible system installation. A GPU driver and compatible GPU remain host prerequisites.
+Keep managed Core separate from optional native Runtime packages. Applications choose the packaged user-mode closure or a compatible system HIP installation. AMD hardware and its compatible host GPU driver remain required.
 
-For the installed TheRock SDK 10.1.0, use the separate [local-development packaging entry point](local-runtime-packages.md). Its `10.1.0-local.*` packages do not enable the old Windows 7.2.0 project or replace the published Linux 7.2.1 payload.
-
-## Package selection
-
-| Package | Current state | Purpose |
+| Package | Published version | Purpose |
 | --- | --- | --- |
-| `JYPPX.ROCm.HIP.CSharp.API` | Published `0.10.0`; source `0.11.0-dev` is unpublished | Managed assembly and XML documentation for all 15 target frameworks; no application NuGet dependencies |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` | Published `7.2.1` | Audited ROCm 7.2.1 native closure for Ubuntu 24.04 x64 |
-| `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | Disabled `7.2.0` project skeleton; unpublished | Requires a complete Windows native inventory and package validation before use |
-
-For the existing Ubuntu 24.04 release, explicitly reference both packages:
+| `JYPPX.ROCm.HIP.CSharp.API` | `1.0.0` | Managed assembly/XML across 15 TFMs, no application dependencies |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64` | `10.1.0` | AMD-signed Windows x64 HIP/HIPRTC closure |
+| `JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64` | `10.1.0` | Ubuntu 24.04 closure; native asset RID `linux-x64` |
 
 ```sh
-dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 0.10.0
-dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64 --version 7.2.1
+dotnet add package JYPPX.ROCm.HIP.CSharp.API --version 1.0.0
+# Choose one matching the host:
+dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.win-x64 --version 10.1.0
+dotnet add package JYPPX.ROCm.HIP.CSharp.API.Runtime.ubuntu.24.04-x64 --version 10.1.0
 ```
 
-This does not install a GPU driver or certify WSL2. See the [Linux runtime guide](linux-runtime-package.md) for the published package's host requirements and exact-package checks. On Windows, use the installed compatible HIP SDK until a Windows Runtime package is ready.
+The new [10.1.0 distribution guide](runtime-distribution-10.1.0.md) records exact AMD sources, dependencies, signatures, complete source/notices and package-only validation. These packages need no installed HIP SDK PATH. Windows still needs MSVC/UCRT; Linux needs the declared system C/C++ libraries and device access. Current Linux GPU validation is WSL2/gfx1100, not a new current-Core KFD certification. Historical Ubuntu 7.2.1 remains immutable; old `10.1.0-local.*` packages keep their local-only policy.
 
 ## What belongs in a package
 
@@ -37,7 +33,9 @@ This does not install a GPU driver or certify WSL2. See the [Linux runtime guide
 
 HIPRTC compile options and source includes can introduce additional resources. A native import list alone does not prove that runtime compilation will work after removing the installed SDK.
 
-## Local 10.1.0 inventory and remaining work
+## Historical installed-wheel audit (2026-11-13)
+
+The following historical wheel audit predates the new signed distribution path and records its then-open tasks. It does not describe the published 10.1.0 packages.
 
 The 2026-11-13 development host has a TheRock ROCm SDK labeled `10.1.0`, reporting HIP Runtime `7.16.26385` and HIPRTC `9.0`. These component versions are distinct from the published Runtime `7.2.1` and the old Windows `7.2.0` skeleton. Local development tests against the installed SDK do not validate a new standalone NuGet Runtime package.
 

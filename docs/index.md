@@ -1,10 +1,10 @@
 # HipSharp API Documentation / API 文档
 
-HipSharp wraps AMD HIP Runtime and HIPRTC Direct C ABIs for .NET. Core `0.10.0` and optional Linux Runtime `7.2.1` are published. The exact Core package is validated through official-host and isolated package-only GPU/ABI gates. Windows AMD GPU validation remains mandatory before any future `1.0.0` release.
+Core `1.0.0` and optional Windows / Ubuntu 24.04 x64 Runtime `10.1.0` are published on NuGet.org. Exact public packages pass signature, payload and independent consumer checks on Windows and Linux/WSL. Compatible AMD hardware and host driver remain required.
 
-HipSharp 为 AMD HIP Runtime 与 HIPRTC Direct C ABI 提供 .NET 封装。Core `0.10.0` 与可选 Linux Runtime `7.2.1` 已公开。精确 Core 包已通过官方宿主和隔离 package-only GPU/ABI 门禁。未来任何 `1.0.0` 仍必须取得 Windows AMD GPU 实机验证。
+Core `1.0.0` 和可选 Windows / Ubuntu 24.04 x64 Runtime `10.1.0` 已发布。公开精确包已通过签名、内容与双平台独立消费者验证；仍需兼容 AMD 硬件和宿主驱动。
 
-Current source is `1.0.0`; see [1.0.0 candidate / 发布候选](releases/1.0.0.md). Local Windows and WSL2 results are separate from historical public-package evidence.
+See [Core release notes](releases/1.0.0.md), [Runtime distribution](guides/runtime-distribution-10.1.0.md), and [upstream native limitations](guides/upstream-runtime-issues.md). Historical KFD evidence remains bound to its original packages.
 
 ## Documentation / 文档
 
@@ -16,7 +16,7 @@ Current source is `1.0.0`; see [1.0.0 candidate / 发布候选](releases/1.0.0.m
 - [0.10.0 release / 0.10.0 发布说明](releases/0.10.0.md)
 - [0.9.3 HIPRTC Program and Linker history / 0.9.3 HIPRTC Program 与 Linker 历史](releases/0.9.3-hiprtc-program-linker.md)
 - [ROCm 7.2.1 known limitation / ROCm 7.2.1 已知限制](releases/0.9.3-known-limitations.md)
-- [1.0.0 candidate notes / 1.0.0 候选说明](releases/1.0.0.md)
+- [1.0.0 release notes / 1.0.0 发布说明](releases/1.0.0.md)
 - [1.0.0 readiness matrix / 1.0.0 就绪矩阵](releases/1.0.0-readiness.md)
 - [M8.10 controlled cleanup / M8.10 受控清理](releases/1.0.0-cleanup.md)
 - [1.0.0 manual publishing checklist / 1.0.0 人工发布清单](releases/publishing-checklist.md)

@@ -1,10 +1,13 @@
-# Runtime 10.1.0 distribution preparation
+# Runtime 10.1.0 distribution
 
 The new 10.1.0 distribution path uses pinned official AMD artifacts and a separate
 corresponding-source delivery. It does not promote or rename the old local-only
 packages, change the historical public 7.2.1 receipt, or maintain private AMD patches.
-Packages remain candidates until their exact-package receipts and source delivery
-have been checked and the publication workflow succeeds.
+Both Runtime 10.1.0 packages are now published on NuGet.org. Their public repository
+signatures and all non-signature payload entries match the reviewed candidates.
+Windows passed 23 package cases / 1 capability skip; Linux/WSL passed 21 / 2,
+including interop boundaries, with published Core 1.0.0. Current-Core KFD and
+full-function coverage are not inferred from these results.
 
 ## Official binary inputs
 

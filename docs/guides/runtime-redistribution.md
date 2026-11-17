@@ -1,8 +1,8 @@
 # Native redistribution status / 原生依赖再分发状态
 
 The original local-only wheel packages discussed below retain their original
-status. A separate [10.1.0 distribution preparation](runtime-distribution-10.1.0.md)
-now uses valid AMD-signed Windows tarball DLLs, full pinned source archives,
+status. A separate [10.1.0 distribution](runtime-distribution-10.1.0.md)
+now publishes packages using valid AMD-signed Windows tarball DLLs, full pinned source archives,
 expanded notices and offline LGPL rebuild/replacement validation. Its new lock,
 packer and exact-package audits do not waive this historical local-only policy.
 

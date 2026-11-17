@@ -1,12 +1,18 @@
 # Platform compatibility
 
-Current source is `0.11.0-dev`. The expanded local PackageReference matrix covers 23 Windows and 22 Linux/WSL2 cases, including RID publish through dotnet/apphost and Windows .NET Framework 4.8. These 10.1.0 local packages are development dependencies; bare Linux/KFD and current Core with public Runtime 7.2.1 require fresh regression. See [0.11.0 preparation](../releases/0.11.0.md) for supported evidence, capability skips and experimental integration areas. Historical public-package results below retain their original scope.
+Core 1.0.0 and optional Runtime 10.1.0 packages are published. Core includes no GPU driver or native payload. Use compatible AMD hardware and a host driver; choose only the Runtime matching the host. The current package tests use one W7900/gfx1100 GPU.
 
-| Platform | Core build/package | GPU evidence | Runtime package state |
-| --- | --- | --- | --- |
-| Windows x64 | Core builds all 15 TFMs; loader and PE paths pass static audit | Local `0.11.0-dev` development worktree on W7900/gfx1100 with installed platform SDK 10.1.0: 17/18 workloads passed, managed-memory tutorial capability skip; .NET Framework 4.8 HIPRTC/kernel smoke passed | Installed HIP SDK supplies native libraries; Runtime 7.2.0 package remains a disabled, inventory-empty skeleton |
-| Linux x64 / WSL2 | Local development build and package on Ubuntu 24.04.5 | Same development source and SDK 10.1.0: 16/18 workloads passed; managed-memory and array paths skipped by capability; see [cross-platform scope](../guides/local-cross-platform-validation.md) | Installed Linux HIP SDK via `/dev/dxg`; separate from the pinned isolated Runtime gate |
-| Linux x64 | Core `0.10.0` published; the HIPRTC Program/Linker expansion is part of the managed API | Exact Core `0.10.0` + Runtime `7.2.1` validation runs on Ubuntu 24.04.4 / ROCm 7.2.1 / HIP 7.2 / single `gfx1100`; package-only evidence includes the required isolation and negative checks | Runtime `7.2.1` published and validated; optional to a compatible system ROCm installation |
+| Platform | Exact package validation | Deployment requirements |
+| --- | --- | --- |
+| Windows x64 | Public Core + AMD-signed Runtime 10.1.0: 23 passed / 1 managed-memory capability skip, including net48, RID dotnet/apphost, published VectorAdd, missing-HIPRTC and module hash checks | Compatible AMD driver, MSVC x64 Redistributable/UCRT; optional packaged Runtime or system HIP |
+| Ubuntu 24.04 x64 / WSL2 | Public Core + Runtime 10.1.0: 21 passed / 2 capability skips (managed memory, arrays), including interop and RID deployment | Compatible host driver, WSL DXCore/device access, system C/C++ libraries; optional packaged Runtime or system HIP |
+| Native Linux/KFD | Earlier packages have historical KFD/PRoot evidence below; current 1.0.0 bytes have no new KFD run | Compatible amdgpu/amdkfd, /dev/kfd and /dev/dri; independently qualify host and GPU |
+
+All 15 declared Core TFMs pass API/package checks; older frameworks may be out of upstream support. Two public Runtime packages pass signature/payload checks and preserve source/notices. See [Runtime distribution](../guides/runtime-distribution-10.1.0.md), [Core release notes](../releases/1.0.0.md), and [upstream native exclusions](../guides/upstream-runtime-issues.md). Full raw-function, multi-GPU and every resource combination are not established. Windows and Linux capability restrictions stay explicit; NotSupported is not a positive pass.
+
+## Historical public 0.10.0 / 7.2.1 evidence
+
+The remainder preserves the original host, package and release constraints of earlier validation. It does not replace the current scope above.
 
 The `0.10.0` Core package is validated against the published `7.2.1` Runtime closure: managed symbols `91/91` Runtime and `18/18` HIPRTC, complete symbols `458/459` Runtime with the reviewed `hipExternalMemoryGetMappedMipmappedArray` exception, schema-7 ABI, HIPRTC Program/Linker lifecycle coverage, all five managed expansion stages with 1,127 CPU/GPU comparisons, 10 rounds across 4 streams, loader/maps confinement, and fail-closed isolated negatives. The one-device instance produces `skipped(device-count<2)` for P2P. No timing or performance claim is made.
 
